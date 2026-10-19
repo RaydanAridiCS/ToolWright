@@ -42,6 +42,49 @@ The site is a standard Next.js app: static pages plus two small Node route handl
 - Do not add third-party analytics. If aggregate stats are ever wanted, use a cookieless, first-party approach and update `/privacy` first.
 - `/sw.js` must be served with `Cache-Control: no-cache` (already configured) so service-worker updates roll out.
 
+## Container image
+
+The repository's `Dockerfile` builds the web app as a small production image, for deploying the official site to any container platform. It uses Next.js's *standalone* output (enabled only for the image build via `NEXT_OUTPUT=standalone`, so `npm run build` / `npm start` are unchanged).
+
+```bash
+docker build -t toolwright \
+  --build-arg NEXT_PUBLIC_SITE_URL=https://toolwright.com \
+  --build-arg NEXT_PUBLIC_REPO_URL=https://github.com/<org>/toolwright .
+
+docker run -p 3000:3000 -e DATABASE_URL=postgres://… toolwright
+```
+
+| Build argument | Default | Purpose |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | `https://toolwright.com` | Canonical URLs, sitemap, Open Graph. Baked into the build. |
+| `NEXT_PUBLIC_REPO_URL` | `https://github.com/toolwright/toolwright` | GitHub links. Baked into the build. |
+| `NEXT_BUILD_CPUS` | `4` | Build parallelism. Lower it if the build is killed for lack of memory (a constrained Docker VM can run out of RAM with many workers). |
+| `NODE_VERSION` | `22` | Node.js major version for all stages. |
+
+Runtime environment: `DATABASE_URL` (optional; without it the request board uses its in-memory demo store), `PORT` (default `3000`).
+
+What you get: a multi-stage build (~350 MB), running as a non-root user (`nextjs`, uid 1001), with a `HEALTHCHECK` that requests `/`. The security headers and service worker are served by the app itself, so they are present in the container exactly as in `npm start`.
+
+### Migrations
+
+The runtime image does not contain migration tooling. Apply migrations as a one-off job from the `migrate` build target, before starting a new version:
+
+```bash
+docker build --target migrate -t toolwright-migrate .
+docker run --rm -e DATABASE_URL=postgres://… toolwright-migrate
+```
+
+### Verifying an image
+
+The end-to-end suite can run against any running instance, including a container:
+
+```bash
+docker run -d -p 3000:3000 --name tw toolwright
+E2E_BASE_URL=http://localhost:3000 npx playwright test e2e/privacy.spec.ts e2e/home.spec.ts e2e/requests.spec.ts
+```
+
+Remember to place a TLS-terminating reverse proxy or platform load balancer in front: the app serves plain HTTP and its CSP includes `upgrade-insecure-requests`. Keep any proxy from injecting scripts or analytics (see the hosting requirements above).
+
 ## Releasing
 
 1. Make sure `main` is green: lint, typecheck, unit tests, e2e (including accessibility).
