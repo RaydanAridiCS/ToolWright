@@ -1,0 +1,44 @@
+{
+  "name": "toolwright",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Toolwright: free, open-source, privacy-first tools that run entirely in your browser.",
+  "license": "MIT",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "npm run dev -w @toolwright/web",
+    "build": "npm run build -w @toolwright/web",
+    "start": "npm run start -w @toolwright/web",
+    "lint": "eslint .",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "e2e": "playwright test",
+    "new-tool": "node scripts/new-tool.mjs",
+    "docs:tools": "node scripts/gen-tool-docs.mjs",
+    "db:generate": "npm run generate -w @toolwright/db",
+    "db:migrate": "npm run migrate -w @toolwright/db"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@playwright/test": "^1.64.1",
+    "@axe-core/playwright": "^4.14.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.1",
+    "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^9.39.0",
+    "eslint-config-next": "^16.4.2",
+    "jsdom": "^26.1.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.0",
+    "vitest": "^3.2.4"
+  }
+}

@@ -1,0 +1,26 @@
+name: Improve an existing tool
+description: Missing option, confusing wording, accessibility problem, wrong result in an edge case
+labels: [enhancement]
+body:
+  - type: input
+    id: tool
+    attributes:
+      label: Which tool?
+      placeholder: e.g. /tools/image-compressor
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What should be better?
+      description: Describe the problem first, then your suggestion.
+    validations:
+      required: true
+  - type: dropdown
+    id: help
+    attributes:
+      label: Would you like to work on it?
+      options:
+        - "Yes, I'd like to open a pull request"
+        - "Maybe, with some guidance"
+        - "No, just suggesting"

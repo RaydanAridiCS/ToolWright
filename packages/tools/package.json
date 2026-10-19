@@ -1,0 +1,35 @@
+{
+  "name": "@toolwright/tools",
+  "version": "0.1.0",
+  "description": "Every Toolwright tool: a metadata file plus a React component.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./loaders": "./src/loaders.generated.ts",
+    "./define": "./src/define.ts",
+    "./categories": "./src/categories.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@toolwright/core": "*",
+    "@toolwright/ui": "*",
+    "dompurify": "^3.3.0",
+    "exifr": "^7.1.3",
+    "fflate": "^0.8.3",
+    "lucide-react": "^0.545.0"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  }
+}

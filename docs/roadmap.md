@@ -1,0 +1,40 @@
+# Roadmap
+
+Ideas we'd love help with, roughly ordered by value. Vote on the [request board](https://toolwright.com/requests) or open an issue to claim one. Anything here must keep the core promise: **no tool input leaves the device**.
+
+## Tools people ask for
+
+- **PDF compression** — real recompression of embedded images (render pages with PDF.js, re-encode as JPEG, rebuild). Needs a careful bundle-size and memory plan; today `pdf-lib` can only re-save structure.
+- **Audio and video** — trim, convert and compress in the browser (WebAssembly FFmpeg). Must be bundled locally (the CSP forbids loading it from a CDN) and lazy-loaded.
+- **Image background remover** — a small on-device model.
+- **JSON diff / merge** (semantic, key-order aware), **JSON Schema generator**, **JSONPath tester**.
+- **HEIC → JPG**, **animated GIF/APNG tools**, **favicon pack generator** (ICO + sizes as a ZIP).
+- **OCR** — text from images and scanned PDFs with a local engine.
+- **Diagrams** — Mermaid editor/renderer.
+- **Text** — Markdown ⇄ HTML, readability scores, text-to-speech preview using the Web Speech API.
+- **Developer** — HTTP header explainer, cURL ⇄ fetch converter, GraphQL formatter, Dockerfile/YAML linting.
+- **Calculators** — mortgage affordability, unit price comparison, BMI (with honest caveats), timezone meeting planner with shareable link.
+
+## Platform improvements
+
+- Publish `@toolwright/core` to npm as a standalone, tree-shakeable library with its own README and examples.
+- Nonce-based CSP to drop `'unsafe-inline'` from `script-src`.
+- Precache every tool chunk for fully-offline use after install (opt-in, with a size indicator).
+- Keyboard shortcut help dialog and per-tool shortcuts.
+- Localized UI and tool help text (i18n).
+- Embeddable tool widgets (`<iframe>`-free, web-component based) for blogs and docs.
+- Visual regression tests (Playwright screenshots) for the highest-traffic tools.
+- Tool usage ideas surfaced locally ("Because you used X…") using only on-device data.
+
+## Quality
+
+- More real-world fixtures for the image-metadata and PDF tools (rotated JPEGs, encrypted PDFs, huge files).
+- Streaming/worker-based processing for very large files to keep the UI responsive (Web Workers).
+- Screen-reader walkthroughs documented per tool category.
+- Performance budgets: fail CI if a tool's JS exceeds an agreed size.
+
+## Not planned
+
+- User accounts, cloud storage or server-side processing of user files.
+- Advertising or third-party tracking.
+- Features that require sending user input to an API.

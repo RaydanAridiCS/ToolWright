@@ -1,0 +1,108 @@
+# Architecture
+
+Toolwright is a TypeScript monorepo managed with **npm workspaces**. This document explains how the pieces fit together so you can find your way around and make changes confidently.
+
+```
+┌──────────────────────────── apps/web (Next.js 16, App Router) ────────────────────────────┐
+│  pages · layout · SEO · command palette · PWA · API routes (request board only)            │
+└───────────────┬───────────────────────────┬───────────────────────────┬────────────────────┘
+                │ renders                   │ renders                   │ calls
+        ┌───────▼────────┐          ┌───────▼────────┐          ┌───────▼────────┐
+        │ @toolwright/   │ uses     │ @toolwright/   │          │ @toolwright/db │
+        │ tools          ├─────────►│ ui             │          │ Drizzle +      │
+        │ meta.ts+Tool.tsx│         │ primitives +   │          │ repositories   │
+        └───────┬────────┘          │ TransformTool  │          └────────────────┘
+                │ calls             └────────────────┘
+        ┌───────▼────────┐
+        │ @toolwright/   │   pure TypeScript: no React, no DOM, no network
+        │ core           │
+        └────────────────┘
+```
+
+Dependencies only point **downwards**. `core` knows about nothing else, which is what makes its logic easy to test and reuse.
+
+## Packages
+
+### `packages/core` — the logic
+
+Plain TypeScript modules, one per domain (`json.ts`, `pdf.ts`, `hash.ts`, `color.ts`…). Rules:
+
+- **No React, no DOM, no network.** Functions take values and return values (or throw an `Error` with a human-readable message).
+- Anything that needs the browser (canvas, files) lives in `packages/tools`; `core` works on bytes and strings so it runs in Node tests.
+- Web Crypto (`crypto.subtle`, `crypto.getRandomValues`) is used for hashing and randomness; both exist in browsers and Node 20+.
+- Each module is importable on its own (`@toolwright/core/hash`) so bundlers include only what a tool needs. `index.ts` re-exports everything as namespaces.
+
+Notable modules: `pdf.ts` (pdf-lib), `image-meta.ts` (lossless EXIF/metadata stripping for JPEG/PNG/WebP by walking the file's binary structure), `json.ts` (a strict scanner that reports exact error positions on every engine), `cron.ts`, `time.ts` (Intl-based zones), `qr.ts` (SVG output and payload builders).
+
+### `packages/ui` — the UI kit
+
+Tailwind-styled, accessible primitives (`Button`, `Field`, `Select`, `Toggle`, `SegmentedControl`, `FileDropzone`, `CopyButton`, `ScrollArea`…) and two building blocks:
+
+- **`useShareableState`** mirrors component state into the URL *hash* (`#s=…`, base64url JSON). The fragment is never sent to a server, so shareable links don't weaken privacy.
+- **`TransformTool`**: a config-driven "input → options → output" tool: textareas, sample data, paste, open file, copy, download, "use output as input", error display, debounced async transforms and share links. Roughly 60% of tools are a `TransformTool` plus a function from `core`.
+
+### `packages/tools` — the tools
+
+Each tool is a folder under `src/tools/<slug>/`:
+
+| File | Role |
+| --- | --- |
+| `meta.ts` | Pure data (`defineTool({...})`): name, tagline, description, category, keywords, icon, optional `howTo`, `faq`, `related`. Safe to import on the server; drives routing, search, SEO and sitemap. |
+| `Tool.tsx` | The UI (default export). Client component, loaded lazily. |
+
+`scripts/gen-registry.mjs` scans the folders and writes two generated files (committed, and verified by a test):
+
+- `registry.generated.ts` — the list of every tool's `meta`.
+- `loaders.generated.ts` — `() => import("./tools/<slug>/Tool")` for each tool.
+
+Splitting them means search, the sitemap and cards never pull tool UI code into their bundles; a tool's code downloads only when its page is opened. `src/index.ts` exposes `tools`, `getTool`, `toolsByCategory`, `relatedTools`, `popularTools` and a ranked `searchTools`.
+
+`src/shared` holds helpers used by several tools: `image.ts` (canvas decode/encode with EXIF orientation), `zip.ts`, `pdf-ui.tsx` (drop zone + job state for PDF tools), `image-workbench.tsx` (shared by the compressor, converter and resizer), `reference-table.tsx`, `number-field.tsx`.
+
+### `packages/db` — the request board
+
+Used by exactly one feature. It follows the **repository pattern**:
+
+- `repository.ts` defines the `ToolRequestRepository` interface and domain types.
+- `drizzle-repository.ts` implements it for Postgres via Drizzle; `memory-repository.ts` implements it in memory. Both run the **same contract test suite** (the Postgres one against PGlite, a real in-process Postgres).
+- `service.ts` holds the business rules (validation with Zod, anonymous identity by hashing a browser token, rate limiting, duplicate handling) so API routes stay thin.
+- `client.ts` chooses the implementation: Postgres when `DATABASE_URL` is set, otherwise the in-memory store (seeded with examples) so development needs no setup.
+
+See [request-board.md](request-board.md).
+
+### `apps/web` — the site
+
+Next.js App Router. Key points:
+
+- **Static by default.** Home, catalogue, category and every tool page are prerendered (`generateStaticParams`). Only the two `/api/requests` routes are dynamic.
+- **Tool pages** render server-side metadata, description, FAQ, JSON-LD and related tools. The interactive tool itself mounts on the client (`ToolLoader`), because tools read the URL hash, localStorage and other browser-only APIs. It is wrapped in a Suspense boundary and an error boundary (for a friendly message if a chunk can't load offline).
+- **Security headers** (`next.config.ts`): a Content Security Policy that restricts connections to the site's own origin, plus `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` and framing protection. See [privacy-model.md](privacy-model.md).
+- **Command palette** (`cmdk`): `Ctrl/Cmd+K` or `/`, ranked by `searchTools`, with favorites and recents from `localStorage`.
+- **PWA**: `public/sw.js` caches build assets and visited pages so opened tools work offline; `manifest.ts` and generated icons make it installable.
+- **SEO**: per-tool titles/descriptions, canonical URLs, Open Graph images (`opengraph-image.tsx`), `sitemap.ts`, `robots.ts`, and JSON-LD (`WebApplication`, `BreadcrumbList`, `FAQPage`, `HowTo`).
+
+## Data flow for a typical tool
+
+1. Visitor opens `/tools/json-formatter` → static HTML with the tool's description, FAQ and structured data.
+2. `ToolLoader` mounts, lazily imports `tools/json-formatter/Tool.tsx` and records the visit in `localStorage` (recents).
+3. `Tool.tsx` renders `TransformTool`. Typing updates state; after a short debounce the `transform` function (from `core`) runs **in the browser** and the output appears.
+4. State is mirrored into `location.hash`. Nothing is sent over the network.
+
+## Design decisions
+
+| Decision | Why |
+| --- | --- |
+| Logic in `core`, UI in `tools` | Logic is testable in Node without a browser and reusable (for example as an npm package). |
+| `meta.ts` separate from `Tool.tsx` | The server can list, search and index all tools without loading any tool UI. |
+| Generated registry | Adding a tool never means editing a shared list — fewer merge conflicts, and a test guards against drift. |
+| URL hash for shareable state | Keeps privacy intact (fragments aren't sent to servers) with no backend. |
+| CSP instead of a promise | The browser enforces the privacy guarantee; tests verify it. |
+| In-memory fallback for the request board | A fresh clone works with `npm install && npm run dev` — no database needed. |
+| No accounts | Less to secure, nothing personal to store. Votes use a random browser token that is hashed server-side. |
+
+## Adding to the architecture
+
+- New **domain logic** → `packages/core/src/<name>.ts` + tests.
+- New **tool** → `npm run new-tool`. See [writing-a-tool.md](writing-a-tool.md).
+- New **shared UI** → `packages/ui` (with a component test) if generic; `packages/tools/src/shared` if only tools use it.
+- New **page** → `apps/web/src/app/...`, with metadata and an e2e or accessibility check.

@@ -1,0 +1,243 @@
+@import "tailwindcss";
+
+/* Tailwind scans the shared packages as well as the app. */
+@source "../../../../packages/ui/src";
+@source "../../../../packages/tools/src";
+
+@custom-variant dark (&:is(.dark, .dark *));
+
+/*
+ * Design tokens. Brand = indigo + teal. (No orange anywhere in the brand palette.)
+ * Contrast notes: foreground/background ≈ 16:1, muted-foreground/background ≥ 5:1, primary/background ≥ 6:1.
+ */
+:root {
+  color-scheme: light;
+  --background: #f9f9fe;
+  --foreground: #14142b;
+  --card: #ffffff;
+  --card-foreground: #14142b;
+  --muted: #eeeef8;
+  --muted-foreground: #565675;
+  --border: #e0e0ef;
+  --primary: #4338ca;
+  --primary-foreground: #ffffff;
+  --secondary: #e8e8f9;
+  --secondary-foreground: #26265a;
+  --accent: #0f766e;
+  --ring: #4f46e5;
+  --success: #166534;
+  --warning: #8a6a00;
+  --danger: #b91c1c;
+  --hero-glow-1: rgba(99, 102, 241, 0.18);
+  --hero-glow-2: rgba(20, 184, 166, 0.14);
+}
+
+.dark {
+  color-scheme: dark;
+  --background: #0a0a18;
+  --foreground: #ececf8;
+  --card: #12122a;
+  --card-foreground: #ececf8;
+  --muted: #1a1a36;
+  --muted-foreground: #a0a0c6;
+  --border: #272750;
+  --primary: #8b93ff;
+  --primary-foreground: #0a0a18;
+  --secondary: #1f1f42;
+  --secondary-foreground: #dcdcf5;
+  --accent: #2dd4bf;
+  --ring: #8b93ff;
+  --success: #4ade80;
+  --warning: #facc15;
+  --danger: #f87171;
+  --hero-glow-1: rgba(129, 140, 248, 0.2);
+  --hero-glow-2: rgba(45, 212, 191, 0.12);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --radius-xl: 0.9rem;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--primary) 30%, transparent);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* Chevron for native <select>. A neutral grey works on both themes. */
+.select-chevron {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238b8bad' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+.hero-bg {
+  background:
+    radial-gradient(60rem 28rem at 15% -10%, var(--hero-glow-1), transparent 60%),
+    radial-gradient(48rem 24rem at 90% 0%, var(--hero-glow-2), transparent 60%);
+}
+
+.grid-fade {
+  background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse at 50% 0%, #000 0%, transparent 70%);
+  opacity: 0.45;
+}
+
+/* Typography for rendered Markdown (Markdown previewer) and long-form pages. */
+.prose-tw {
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.prose-tw > :first-child {
+  margin-top: 0;
+}
+.prose-tw h1,
+.prose-tw h2,
+.prose-tw h3,
+.prose-tw h4 {
+  font-weight: 650;
+  line-height: 1.25;
+  margin: 1.6em 0 0.5em;
+}
+.prose-tw h1 {
+  font-size: 1.75rem;
+}
+.prose-tw h2 {
+  font-size: 1.4rem;
+  padding-bottom: 0.25em;
+  border-bottom: 1px solid var(--border);
+}
+.prose-tw h3 {
+  font-size: 1.15rem;
+}
+.prose-tw p,
+.prose-tw ul,
+.prose-tw ol,
+.prose-tw pre,
+.prose-tw table,
+.prose-tw blockquote {
+  margin: 0.9em 0;
+}
+.prose-tw ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+}
+.prose-tw ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+}
+.prose-tw li > ul,
+.prose-tw li > ol {
+  margin: 0.25em 0;
+}
+.prose-tw a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.prose-tw code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background: var(--muted);
+  padding: 0.15em 0.4em;
+  border-radius: 0.375rem;
+}
+.prose-tw pre {
+  background: var(--muted);
+  padding: 0.9rem 1rem;
+  border-radius: 0.6rem;
+  overflow-x: auto;
+}
+.prose-tw pre code {
+  background: none;
+  padding: 0;
+}
+.prose-tw blockquote {
+  border-left: 3px solid var(--primary);
+  padding-left: 1rem;
+  color: var(--muted-foreground);
+}
+.prose-tw table {
+  border-collapse: collapse;
+  display: block;
+  overflow-x: auto;
+}
+.prose-tw th,
+.prose-tw td {
+  border: 1px solid var(--border);
+  padding: 0.4rem 0.75rem;
+}
+.prose-tw th {
+  background: var(--muted);
+  text-align: left;
+}
+.prose-tw hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 1.5em 0;
+}
+.prose-tw img {
+  max-width: 100%;
+}
+.prose-tw input[type="checkbox"] {
+  margin-right: 0.4em;
+}
+
+/* Skeleton shimmer used while tool code loads. */
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--muted) 25%, color-mix(in oklab, var(--muted) 60%, var(--card)) 50%, var(--muted) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+  border-radius: 0.6rem;
+}

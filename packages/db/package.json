@@ -1,0 +1,24 @@
+{
+  "name": "@toolwright/db",
+  "version": "0.1.0",
+  "description": "Drizzle schema and repositories for the tool-request board.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "generate": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.44.7",
+    "postgres": "^3.4.7",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.3.11",
+    "drizzle-kit": "^0.31.5"
+  }
+}

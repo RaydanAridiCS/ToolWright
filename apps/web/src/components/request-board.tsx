@@ -1,0 +1,173 @@
+"use client";
+
+import { useCallback, useEffect, useId, useState } from "react";
+import { ChevronUp, Loader2, Send } from "lucide-react";
+import { Alert, Badge, Button, Field, Input, SegmentedControl, Textarea, cn, type BadgeTone } from "@toolwright/ui";
+import { ApiError, requestsApi, type RequestItem, type Status } from "../lib/request-client";
+
+const STATUS_LABEL: Record<Status, string> = { open: "Open", planned: "Planned", building: "In progress", shipped: "Shipped", declined: "Not planned" };
+const STATUS_TONE: Record<Status, BadgeTone> = { open: "neutral", planned: "primary", building: "accent", shipped: "success", declined: "danger" };
+
+export function RequestBoard() {
+  const formId = useId();
+  const [sort, setSort] = useState<"top" | "new">("top");
+  const [items, setItems] = useState<RequestItem[] | null>(null);
+  const [persistent, setPersistent] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [website, setWebsite] = useState(""); // honeypot
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [pending, setPending] = useState<Set<string>>(new Set());
+
+  const load = useCallback(async () => {
+    try {
+      const { requests, persistent: p } = await requestsApi.list(sort);
+      setItems(requests);
+      setPersistent(p);
+      setLoadError(null);
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : "Could not load requests.");
+    }
+  }, [sort]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setFormError(null);
+    setNotice(null);
+    try {
+      const { request } = await requestsApi.create({ title, description, website });
+      setItems((current) => [request, ...(current ?? [])]);
+      setTitle("");
+      setDescription("");
+      setNotice("Thanks! Your idea is on the board and has your vote.");
+      if (sort === "top") void load();
+    } catch (err) {
+      if (err instanceof ApiError && err.code === "duplicate") {
+        setFormError(err.message);
+        void load();
+      } else setFormError(err instanceof Error ? err.message : "Could not submit your idea.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const toggleVote = async (item: RequestItem) => {
+    if (pending.has(item.id)) return;
+    setPending((p) => new Set(p).add(item.id));
+    // Optimistic update, rolled back on failure.
+    const apply = (hasVoted: boolean, votes: number) => setItems((cur) => cur?.map((r) => (r.id === item.id ? { ...r, hasVoted, votes } : r)) ?? cur);
+    apply(!item.hasVoted, item.votes + (item.hasVoted ? -1 : 1));
+    try {
+      const result = item.hasVoted ? await requestsApi.unvote(item.id) : await requestsApi.vote(item.id);
+      apply(result.hasVoted, result.votes);
+    } catch (err) {
+      apply(item.hasVoted, item.votes);
+      setLoadError(err instanceof Error ? err.message : "Your vote could not be saved.");
+    } finally {
+      setPending((p) => {
+        const next = new Set(p);
+        next.delete(item.id);
+        return next;
+      });
+    }
+  };
+
+  return (
+    <div className="grid gap-10 lg:grid-cols-[22rem_1fr]">
+      <form onSubmit={submit} className="flex h-fit flex-col gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm lg:sticky lg:top-24" aria-labelledby={`${formId}-title`}>
+        <h2 id={`${formId}-title`} className="text-lg font-semibold">
+          Suggest a tool
+        </h2>
+        <Field label="What should we build?" hint="Be specific: &ldquo;Compare two JSON files ignoring key order&rdquo; beats &ldquo;JSON tool&rdquo;.">
+          {(id) => <Input id={id} value={title} maxLength={120} required minLength={4} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Image background remover" />}
+        </Field>
+        <Field label="Why would it help? (optional)">
+          {(id) => <Textarea id={id} mono={false} rows={4} value={description} maxLength={1000} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the problem it solves." />}
+        </Field>
+        {/* Honeypot: hidden from people, irresistible to bots. */}
+        <div aria-hidden className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
+          <label>
+            Website
+            <input tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
+          </label>
+        </div>
+        {formError ? <Alert tone="error">{formError}</Alert> : null}
+        {notice ? <Alert tone="success">{notice}</Alert> : null}
+        <Button type="submit" variant="primary" size="lg" disabled={submitting || title.trim().length < 4}>
+          {submitting ? <Loader2 className="animate-spin" /> : <Send />} Submit idea
+        </Button>
+        <p className="text-xs text-muted-foreground">No account needed. A random code stored in your browser keeps votes to one per idea. We never see your email or IP address.</p>
+      </form>
+
+      <section aria-labelledby={`${formId}-list`}>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 id={`${formId}-list`} className="text-lg font-semibold">
+            Ideas {items ? <span className="font-normal text-muted-foreground">({items.length})</span> : null}
+          </h2>
+          <SegmentedControl
+            label="Sort ideas"
+            value={sort}
+            onValueChange={setSort}
+            options={[
+              { value: "top", label: "Most voted" },
+              { value: "new", label: "Newest" },
+            ]}
+          />
+        </div>
+
+        {!persistent ? (
+          <Alert tone="info" title="Demo mode" className="mb-4">
+            No database is connected, so ideas are kept in memory and reset when the server restarts.
+          </Alert>
+        ) : null}
+        {loadError ? <Alert tone="error" className="mb-4">{loadError}</Alert> : null}
+
+        {items === null && !loadError ? (
+          <div className="flex flex-col gap-3" role="status" aria-label="Loading ideas">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="skeleton h-24" />
+            ))}
+          </div>
+        ) : null}
+        {items?.length === 0 ? <p className="rounded-xl border border-dashed border-border p-10 text-center text-muted-foreground">No ideas yet. Be the first to suggest one!</p> : null}
+
+        <ul className="flex flex-col gap-3">
+          {items?.map((item) => (
+            <li key={item.id} className="flex gap-4 rounded-xl border border-border bg-card p-4">
+              <button
+                type="button"
+                onClick={() => toggleVote(item)}
+                disabled={pending.has(item.id)}
+                aria-pressed={item.hasVoted}
+                aria-label={`${item.hasVoted ? "Remove your vote from" : "Vote for"} ${item.title}. ${item.votes} vote${item.votes === 1 ? "" : "s"}`}
+                className={cn(
+                  "flex h-16 w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border text-sm font-semibold transition-colors",
+                  item.hasVoted ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background hover:border-primary/50 hover:bg-primary/5",
+                )}
+              >
+                <ChevronUp aria-hidden className="size-4" />
+                <span className="tabular-nums">{item.votes}</span>
+              </button>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="font-semibold">{item.title}</h3>
+                  {item.status !== "open" ? <Badge tone={STATUS_TONE[item.status]}>{STATUS_LABEL[item.status]}</Badge> : null}
+                </div>
+                {item.description ? <p className="mt-1 whitespace-pre-line break-words text-sm text-muted-foreground">{item.description}</p> : null}
+                <p className="mt-2 text-xs text-muted-foreground">Suggested {new Date(item.createdAt).toLocaleDateString(undefined, { dateStyle: "medium" })}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  );
+}

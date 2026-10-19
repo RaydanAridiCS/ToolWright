@@ -1,0 +1,50 @@
+import type { NextConfig } from "next";
+
+const isDev = process.env.NODE_ENV !== "production";
+
+/**
+ * The privacy promise is enforced by the browser, not just by us: pages may only talk to their own origin,
+ * so tool code physically cannot send your input to a third party.
+ */
+const csp = [
+  "default-src 'self'",
+  // Next.js injects small inline scripts/styles; dev mode additionally needs eval for React Refresh.
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob:",
+  "media-src 'self' blob: data:",
+  "font-src 'self' data:",
+  `connect-src 'self'${isDev ? " ws: wss:" : ""}`,
+  "worker-src 'self' blob:",
+  "manifest-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  ...(isDev ? [] : ["upgrade-insecure-requests"]),
+].join("; ");
+
+const securityHeaders = [
+  { key: "Content-Security-Policy", value: csp },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()" },
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+];
+
+const config: NextConfig = {
+  reactStrictMode: true,
+  poweredByHeader: false,
+  transpilePackages: ["@toolwright/core", "@toolwright/db", "@toolwright/tools", "@toolwright/ui"],
+  serverExternalPackages: ["postgres"],
+  async headers() {
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      // The service worker must always be revalidated so updates roll out.
+      { source: "/sw.js", headers: [{ key: "Cache-Control", value: "no-cache" }, { key: "Service-Worker-Allowed", value: "/" }] },
+    ];
+  },
+};
+
+export default config;

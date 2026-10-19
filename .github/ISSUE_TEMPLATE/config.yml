@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Request a new tool
+    url: https://toolwright.com/requests
+    about: Suggest and vote on tool ideas on the request board.
+  - name: Security or privacy vulnerability
+    url: https://github.com/toolwright/toolwright/security/advisories/new
+    about: Please report privately rather than opening a public issue.
