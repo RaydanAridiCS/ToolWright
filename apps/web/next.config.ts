@@ -38,6 +38,8 @@ const config: NextConfig = {
   // Only the container build sets this: it emits a minimal self-contained server (see /Dockerfile).
   // Regular `next build` / `next start` (and the e2e tests) are unaffected.
   ...(process.env.NEXT_OUTPUT === "standalone" ? { output: "standalone" as const, outputFileTracingRoot: path.join(process.cwd(), "../..") } : {}),
+  // Caps build parallelism so memory-constrained builders (containers, small CI runners) don't run out of RAM.
+  ...(process.env.NEXT_BUILD_CPUS ? { experimental: { cpus: Math.max(1, Number(process.env.NEXT_BUILD_CPUS) || 1) } } : {}),
   reactStrictMode: true,
   poweredByHeader: false,
   transpilePackages: ["@toolwright/core", "@toolwright/db", "@toolwright/tools", "@toolwright/ui"],

@@ -26,6 +26,10 @@ COPY packages/core/package.json packages/core/
 COPY packages/db/package.json packages/db/
 COPY packages/tools/package.json packages/tools/
 COPY packages/ui/package.json packages/ui/
+# Retries make the install resilient to flaky networks in CI.
+ENV npm_config_fetch_retries=5 \
+    npm_config_fetch_retry_mintimeout=20000 \
+    npm_config_fetch_retry_maxtimeout=120000
 RUN --mount=type=cache,target=/root/.npm npm ci
 
 COPY . .
@@ -33,8 +37,11 @@ COPY . .
 # NEXT_PUBLIC_* values are inlined into the browser bundle, so they must be known at build time.
 ARG NEXT_PUBLIC_SITE_URL=https://toolwright.com
 ARG NEXT_PUBLIC_REPO_URL=https://github.com/toolwright/toolwright
+# Build workers: lower this if the build is killed for lack of memory, raise it for faster builds.
+ARG NEXT_BUILD_CPUS=4
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
     NEXT_PUBLIC_REPO_URL=$NEXT_PUBLIC_REPO_URL \
+    NEXT_BUILD_CPUS=$NEXT_BUILD_CPUS \
     NEXT_TELEMETRY_DISABLED=1 \
     NEXT_OUTPUT=standalone
 RUN npm run build
