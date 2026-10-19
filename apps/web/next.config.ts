@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV !== "production";
@@ -34,6 +35,9 @@ const securityHeaders = [
 ];
 
 const config: NextConfig = {
+  // Only the container build sets this: it emits a minimal self-contained server (see /Dockerfile).
+  // Regular `next build` / `next start` (and the e2e tests) are unaffected.
+  ...(process.env.NEXT_OUTPUT === "standalone" ? { output: "standalone" as const, outputFileTracingRoot: path.join(process.cwd(), "../..") } : {}),
   reactStrictMode: true,
   poweredByHeader: false,
   transpilePackages: ["@toolwright/core", "@toolwright/db", "@toolwright/tools", "@toolwright/ui"],

@@ -1,0 +1,26 @@
+# Dependencies and build output are created inside the image.
+**/node_modules
+**/.next
+**/out
+**/dist
+coverage
+**/*.tsbuildinfo
+
+# Test artifacts and tooling not needed to build the app.
+e2e
+test-results
+playwright-report
+.github
+
+# Local environment and VCS.
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+
+# Docs and container files do not affect the build.
+docs
+*.md
+Dockerfile
+.dockerignore
