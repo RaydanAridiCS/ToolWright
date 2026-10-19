@@ -5,6 +5,8 @@ const baseURL = process.env.E2E_BASE_URL ?? `http://localhost:${PORT}`;
 
 export default defineConfig({
   testDir: "./e2e",
+  // Visual snapshots have per-OS baselines, so they only run when asked for (npm run e2e:visual).
+  grepInvert: process.argv.some((a) => a.includes("visual")) ? undefined : /@visual/,
   timeout: 45_000,
   expect: { timeout: 10_000 },
   fullyParallel: true,

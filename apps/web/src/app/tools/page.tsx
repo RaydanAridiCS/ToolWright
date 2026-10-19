@@ -11,12 +11,13 @@ export const metadata: Metadata = {
 
 export default function ToolsPage() {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
-      <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">All tools</h1>
-      <p className="mt-2 max-w-2xl text-muted-foreground">Everything runs in your browser. Search, filter by category, or star the tools you use most.</p>
-      <div className="mt-8">
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14">
+      <p className="label-plate mb-3">The catalogue</p>
+      <h1 className="font-display text-[clamp(2.6rem,6vw,5rem)] font-extrabold leading-[0.95] tracking-[-0.028em]">All {tools.length} tools</h1>
+      <p className="mt-4 max-w-xl text-lg">Everything runs on your device. Search, open a drawer, or star the ones you use most.</p>
+      <div className="mt-10">
         {/* useSearchParams requires a Suspense boundary for static rendering */}
-        <Suspense fallback={<div className="skeleton h-14 w-full" />}>
+        <Suspense fallback={<div className="skeleton h-16 w-full" />}>
           <ToolBrowser />
         </Suspense>
       </div>

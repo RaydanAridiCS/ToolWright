@@ -11,7 +11,7 @@ interface EyeDropperLike {
 }
 
 export default function Tool() {
-  const { state, setState } = useShareableState({ color: "#4f46e5" });
+  const { state, setState } = useShareableState({ color: "#0b6b55" });
   const [pickError, setPickError] = useState<string | null>(null);
   const parsed = useMemo(() => parseColor(state.color), [state.color]);
   const formats = parsed ? formatColor(parsed) : null;
@@ -21,14 +21,14 @@ export default function Tool() {
     <div className="flex flex-col gap-5">
       <div className="grid gap-5 md:grid-cols-[16rem_1fr]">
         <div
-          className="flex min-h-40 items-end rounded-xl border border-border p-4 font-mono text-sm shadow-inner"
+          className="flex min-h-40 items-end border border-foreground p-4 font-mono text-sm"
           style={{ background: parsed ? `${formats?.hex}` : "transparent", color: parsed ? readableTextColor(parsed) : undefined }}
           aria-label="Color preview"
         >
           {formats?.hex ?? "Invalid color"}
         </div>
         <div className="flex flex-col gap-4">
-          <Field label="Color" hint="HEX (#4f46e5), rgb(79 70 229), hsl(243 75% 59%) or a name like rebeccapurple.">
+          <Field label="Color" hint="HEX (#0b6b55), rgb(11 107 85), hsl(166 81% 23%) or a name like seagreen.">
             {(id) => (
               <div className="flex gap-2">
                 <input

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CATEGORIES, CATEGORY_BY_ID, isCategoryId, toolsByCategory } from "@toolwright/tools";
 import { JsonLd } from "../../../components/json-ld";
-import { ToolGrid } from "../../../components/tool-card";
+import { Ledger } from "../../../components/ledger";
 import { absoluteUrl } from "../../../lib/site";
 
 interface Props {
@@ -33,10 +33,10 @@ export default async function CategoryPage({ params }: Props) {
   if (!isCategoryId(category)) notFound();
   const c = CATEGORY_BY_ID[category];
   const list = toolsByCategory(category);
-  const Icon = c.icon;
+  const drawerNo = String(CATEGORIES.findIndex((x) => x.id === c.id) + 1).padStart(2, "0");
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14">
       <JsonLd
         data={{
           "@context": "https://schema.org",
@@ -46,35 +46,41 @@ export default async function CategoryPage({ params }: Props) {
           mainEntity: { "@type": "ItemList", itemListElement: list.map((t, i) => ({ "@type": "ListItem", position: i + 1, url: absoluteUrl(`/tools/${t.slug}`), name: t.name })) },
         }}
       />
-      <nav aria-label="Breadcrumb" className="mb-6 text-sm text-muted-foreground">
-        <Link href="/tools" className="hover:text-foreground">
-          All tools
-        </Link>{" "}
-        / <span className="text-foreground">{c.name}</span>
-      </nav>
-      <div className="flex items-start gap-4">
-        <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-accent/12 text-accent">
-          <Icon aria-hidden className="size-7" />
+      <nav aria-label="Breadcrumb" className="label-plate flex items-center gap-2">
+        <Link href="/tools" className="hover:bg-marker hover:text-marker-foreground">
+          Tools
+        </Link>
+        <span aria-hidden>/</span>
+        <span aria-current="page" className="text-foreground">
+          {c.name}
         </span>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{c.name} tools</h1>
-          <p className="mt-2 max-w-2xl text-muted-foreground">
-            {c.description} {list.length} tools, all private and free.
-          </p>
-        </div>
-      </div>
-      <ToolGrid tools={list} className="mt-10" showCategory={false} />
+      </nav>
 
-      <h2 className="mb-4 mt-16 text-lg font-semibold">Other categories</h2>
-      <ul className="flex flex-wrap gap-2">
-        {CATEGORIES.filter((x) => x.id !== c.id).map((x) => (
-          <li key={x.id}>
-            <Link href={`/category/${x.id}`} className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium hover:border-primary/40 hover:bg-primary/5">
-              <x.icon aria-hidden className="size-4 text-muted-foreground" /> {x.name}
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <header className="mt-6 flex flex-wrap items-end justify-between gap-6 border-b-2 border-foreground pb-8">
+        <div>
+          <p className="label-plate mb-3">Drawer {drawerNo}</p>
+          <h1 className="font-display text-[clamp(2.8rem,7vw,6rem)] font-extrabold leading-[0.9] tracking-[-0.03em]">{c.name}</h1>
+          <p className="mt-4 max-w-xl text-lg">{c.description}</p>
+        </div>
+        <p className="font-display text-[clamp(4rem,10vw,8rem)] font-extrabold leading-none tabular-nums text-primary" aria-label={`${list.length} tools`}>
+          {String(list.length).padStart(2, "0")}
+        </p>
+      </header>
+
+      <Ledger tools={list} sequential={false} glyphs className="border-t-0" />
+
+      <nav aria-label="Other drawers" className="mt-16">
+        <h2 className="label-plate mb-3 text-foreground">Other drawers</h2>
+        <ul className="flex flex-wrap gap-x-6 gap-y-2 border-t border-foreground pt-4">
+          {CATEGORIES.filter((x) => x.id !== c.id).map((x) => (
+            <li key={x.id}>
+              <Link href={`/category/${x.id}`} className="font-display text-xl font-bold hover:bg-marker hover:text-marker-foreground">
+                {x.name}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </div>
   );
 }

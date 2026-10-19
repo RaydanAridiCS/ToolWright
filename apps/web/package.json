@@ -25,6 +25,9 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
+    "@fontsource-variable/instrument-sans": "^5.3.0",
+    "@fontsource/bricolage-grotesque": "^5.3.0",
     "@tailwindcss/postcss": "^4.1.16",
     "@types/node": "^22.18.0",
     "@types/react": "^19.2.2",

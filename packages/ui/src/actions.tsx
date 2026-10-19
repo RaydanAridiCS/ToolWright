@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Check, Copy, Download, FileUp, UploadCloud, X } from "lucide-react";
+import { ArrowDownToLine, Check, Copy, Download, FileUp, X } from "lucide-react";
 import { Button, type ButtonProps } from "./button";
 import { cn } from "./cn";
 import { copyText, downloadBlob, formatFileSize, matchesAccept } from "./files";
@@ -97,9 +97,9 @@ export function FileDropzone({
   return (
     <div
       className={cn(
-        "relative flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-muted/40 px-4 py-8 text-center transition-colors",
-        "hover:border-primary/60 hover:bg-primary/5 focus-within:border-primary",
-        dragging && "border-primary bg-primary/10",
+        "relative flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 border border-dashed border-foreground/60 bg-card px-4 py-9 text-center text-foreground transition-colors",
+        "hover:border-foreground hover:bg-muted focus-within:border-foreground",
+        dragging && "border-foreground bg-marker text-marker-foreground",
         disabled && "pointer-events-none opacity-50",
         className,
       )}
@@ -115,9 +115,14 @@ export function FileDropzone({
       }}
       onClick={() => inputRef.current?.click()}
     >
-      <UploadCloud aria-hidden className="size-8 text-primary" />
-      <p className="text-sm font-medium text-foreground">{label}</p>
-      <p className="text-xs text-muted-foreground">{hint ?? "Files never leave your device."}</p>
+      {/* Registration brackets in the corners, like the slot a print job drops into. */}
+      <i aria-hidden className="pointer-events-none absolute left-2 top-2 size-3 border-l-2 border-t-2 border-primary" />
+      <i aria-hidden className="pointer-events-none absolute right-2 top-2 size-3 border-r-2 border-t-2 border-primary" />
+      <i aria-hidden className="pointer-events-none absolute bottom-2 left-2 size-3 border-b-2 border-l-2 border-primary" />
+      <i aria-hidden className="pointer-events-none absolute bottom-2 right-2 size-3 border-b-2 border-r-2 border-primary" />
+      <ArrowDownToLine aria-hidden className="size-7" strokeWidth={1.75} />
+      <p className="text-sm font-semibold">{label}</p>
+      <p className="text-xs opacity-75">{hint ?? "Files never leave your device."}</p>
       <input
         ref={inputRef}
         type="file"
@@ -146,7 +151,7 @@ export interface FileListItemProps {
 
 export function FileListItem({ name, size, detail, onRemove, children }: FileListItemProps) {
   return (
-    <li className="flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2">
+    <li className="flex items-center gap-3 border border-border bg-card px-3 py-2">
       <FileUp aria-hidden className="size-4 shrink-0 text-muted-foreground" />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-foreground" title={name}>

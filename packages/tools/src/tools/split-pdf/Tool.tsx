@@ -54,7 +54,7 @@ export default function Tool() {
 
       {job.result ? (
         <div className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-success/40 bg-success/10 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 border border-l-4 border-foreground border-l-success bg-card p-4 shadow-md">
             <p className="font-medium">Created {job.result.length} file{job.result.length === 1 ? "" : "s"}.</p>
             <DownloadButton
               data={createZip(job.result.map((p) => ({ name: p.name, data: p.data })))}

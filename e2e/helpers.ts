@@ -29,8 +29,8 @@ export async function makePng(page: Page, width = 400, height = 300): Promise<Bu
       canvas.height = h as number;
       const ctx = canvas.getContext("2d")!;
       const gradient = ctx.createLinearGradient(0, 0, w as number, h as number);
-      gradient.addColorStop(0, "#4f46e5");
-      gradient.addColorStop(1, "#14b8a6");
+      gradient.addColorStop(0, "#0b6b55");
+      gradient.addColorStop(1, "#d8ec4e");
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, w as number, h as number);
       for (let i = 0; i < 400; i++) {

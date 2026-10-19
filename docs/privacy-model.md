@@ -53,6 +53,20 @@ Other headers: `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origi
 - The URL hash is not sent on reload; no cookies are set.
 - File workflows (merge PDF, compress image) make no external requests and no non-GET requests.
 
+## The network ledger (what it shows)
+
+Tool pages, the home page bench and the footer show **"outside requests: N"**. It is computed in your browser by `useOutsideRequests()` from the Resource Timing API: every resource this page loaded whose origin differs from the site's own (`data:` and `blob:` are ignored). It starts as "…" and only shows a number once measured.
+
+What it proves: the page, its scripts, fonts and images did not fetch anything from another origin while you had it open.
+
+What it does **not** prove:
+
+- It cannot see request *bodies*, so it is not a replacement for the DevTools check below.
+- Requests blocked by the Content Security Policy never leave your device, so they are not counted (that is the point of the policy). The home page's "Try to make it leak" button shows this: it attempts a cross-origin POST and reports the browser's refusal.
+- It measures this page only, not browser extensions or the network layer.
+
+It complements the automated tests in `e2e/privacy.spec.ts`; it does not replace them.
+
 ## Verify it yourself in 60 seconds
 
 1. Open any tool, then your browser's developer tools → **Network** tab; clear it.

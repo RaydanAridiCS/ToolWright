@@ -108,6 +108,22 @@ export default function Tool() {
 
 Compose primitives from `@toolwright/ui` (`Field`, `Input`, `Select`, `Panel`, `Alert`, `Stat`, `CopyButton`, `DownloadButton`, `FileDropzone`…). Use `useShareableState` for state that should survive reloads and be shareable. Look at `color-converter`, `jwt-decoder` and `loan-calculator` for examples, and `merge-pdf` / `image-compressor` for file workflows.
 
+#### Show the answer, not a box
+
+For calculators and converters, put the headline number in a `ResultSlab` and the detail in a `StatGrid` (or a table) below it. Do not build your own tinted result box.
+
+```tsx
+import { ResultSlab, Stat, StatGrid } from "@toolwright/ui";
+
+<ResultSlab label="Monthly payment" value={fmt(monthly)} valueTestId="loan-monthly" />
+<StatGrid>
+  <Stat label="Total interest" value={fmt(totalInterest)} />
+  <Stat label="Total paid" value={fmt(total)} />
+</StatGrid>
+```
+
+Use `Alert` (a left color bar, never a tinted box) for errors and notes, `Badge` (a square mono stamp) for tiny labels, `SegmentedControl` for 2–4 modes and `Toggle` for on/off. A highlighted state is `bg-marker text-marker-foreground`. Tools are placed on the `Plate` automatically, so you never draw your own frame.
+
 ### File tools
 
 - Read files with `file.arrayBuffer()` and pass bytes to `core`.
@@ -163,6 +179,7 @@ Open the tool in the browser too: try keyboard-only use, narrow widths (~360px),
 - [ ] Errors are readable by non-developers
 - [ ] Every control has a label; works with keyboard; contrast meets WCAG AA
 - [ ] Layout works at 360px wide, in light and dark themes
+- [ ] Built from shared primitives (`ResultSlab` for the headline answer); tokens only, no gradients or tinted result boxes
 - [ ] `sample` provided for text tools; sensible defaults so the tool does something immediately
 - [ ] `meta.ts` has accurate copy, synonyms in `keywords`, `related` tools, and `howTo`/`faq` if it's a popular tool
 - [ ] Honest about limitations (security, lossy formats, browser support)
@@ -171,7 +188,7 @@ Open the tool in the browser too: try keyboard-only use, narrow widths (~360px),
 ## Conventions
 
 - **Naming.** Slugs are kebab-case nouns or noun phrases ("hash-generator"); components are `Tool`; core functions are camelCase verbs ("convertCase").
-- **Styling.** Use Tailwind with the design tokens (`bg-card`, `text-muted-foreground`, `border-border`, `text-primary`…) instead of raw colors, so light and dark themes both work. See [design-system.md](design-system.md).
+- **Styling.** Use Tailwind with the design tokens (`bg-card`, `text-muted-foreground`, `border-border`, `text-primary`, `bg-marker`…) instead of raw colors, so light and dark themes both work. **No gradients, glows, blur, pill badges, purple or orange**; sample colors should come from the brand tokens. These are enforced by `apps/web/tests/design-rules.test.ts`. See [design-system.md](design-system.md) and [design-language.md](design-language.md).
 - **Dependencies.** Prefer the platform. If you must add a package, add it to the package that uses it (`core` for logic), pin a sensible range, and mention why in the PR.
 - **Performance.** Keep heavy libraries out of `core/index.ts`; import from the specific module so tools only bundle what they use. Debounce expensive work.
 - **Secrets.** Tools that handle secrets (passwords, tokens, keys) must set `shareable={false}` or avoid `useShareableState`, so values don't end up in a URL.

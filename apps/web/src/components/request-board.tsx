@@ -37,6 +37,12 @@ export function RequestBoard() {
     void load();
   }, [load]);
 
+  // The home page ticket links here with ?title=… so the idea carries over.
+  useEffect(() => {
+    const prefill = new URLSearchParams(window.location.search).get("title");
+    if (prefill) setTitle(prefill.slice(0, 120));
+  }, []);
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -82,8 +88,8 @@ export function RequestBoard() {
 
   return (
     <div className="grid gap-10 lg:grid-cols-[22rem_1fr]">
-      <form onSubmit={submit} className="flex h-fit flex-col gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm lg:sticky lg:top-24" aria-labelledby={`${formId}-title`}>
-        <h2 id={`${formId}-title`} className="text-lg font-semibold">
+      <form onSubmit={submit} className="flex h-fit flex-col gap-4 border border-foreground bg-card p-5 shadow-md lg:sticky lg:top-24" aria-labelledby={`${formId}-title`}>
+        <h2 id={`${formId}-title`} className="font-display text-2xl font-extrabold tracking-tight">
           Suggest a tool
         </h2>
         <Field label="What should we build?" hint="Be specific: &ldquo;Compare two JSON files ignoring key order&rdquo; beats &ldquo;JSON tool&rdquo;.">
@@ -109,7 +115,7 @@ export function RequestBoard() {
 
       <section aria-labelledby={`${formId}-list`}>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h2 id={`${formId}-list`} className="text-lg font-semibold">
+          <h2 id={`${formId}-list`} className="font-display text-2xl font-extrabold tracking-tight">
             Ideas {items ? <span className="font-normal text-muted-foreground">({items.length})</span> : null}
           </h2>
           <SegmentedControl
@@ -139,9 +145,9 @@ export function RequestBoard() {
         ) : null}
         {items?.length === 0 ? <p className="rounded-xl border border-dashed border-border p-10 text-center text-muted-foreground">No ideas yet. Be the first to suggest one!</p> : null}
 
-        <ul className="flex flex-col gap-3">
+        <ul className="border-t border-foreground">
           {items?.map((item) => (
-            <li key={item.id} className="flex gap-4 rounded-xl border border-border bg-card p-4">
+            <li key={item.id} className="flex gap-4 border-b border-border py-4">
               <button
                 type="button"
                 onClick={() => toggleVote(item)}
@@ -149,8 +155,8 @@ export function RequestBoard() {
                 aria-pressed={item.hasVoted}
                 aria-label={`${item.hasVoted ? "Remove your vote from" : "Vote for"} ${item.title}. ${item.votes} vote${item.votes === 1 ? "" : "s"}`}
                 className={cn(
-                  "flex h-16 w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border text-sm font-semibold transition-colors",
-                  item.hasVoted ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background hover:border-primary/50 hover:bg-primary/5",
+                  "flex h-16 w-14 shrink-0 flex-col items-center justify-center gap-0.5 border text-sm font-bold transition-colors",
+                  item.hasVoted ? "border-foreground bg-marker text-marker-foreground shadow-md" : "border-foreground/60 bg-card hover:bg-muted",
                 )}
               >
                 <ChevronUp aria-hidden className="size-4" />
@@ -158,11 +164,11 @@ export function RequestBoard() {
               </button>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="font-semibold">{item.title}</h3>
+                  <h3 className="font-display text-xl font-bold leading-tight">{item.title}</h3>
                   {item.status !== "open" ? <Badge tone={STATUS_TONE[item.status]}>{STATUS_LABEL[item.status]}</Badge> : null}
                 </div>
                 {item.description ? <p className="mt-1 whitespace-pre-line break-words text-sm text-muted-foreground">{item.description}</p> : null}
-                <p className="mt-2 text-xs text-muted-foreground">Suggested {new Date(item.createdAt).toLocaleDateString(undefined, { dateStyle: "medium" })}</p>
+                <p className="label-plate mt-2">Suggested {new Date(item.createdAt).toLocaleDateString(undefined, { dateStyle: "medium" })}</p>
               </div>
             </li>
           ))}

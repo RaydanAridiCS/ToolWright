@@ -1,27 +1,25 @@
 import { cn } from "@toolwright/ui";
 
-/** The Toolwright mark: a rounded tile with a "T" whose crossbar ends in a teal wrench-jaw notch. */
+/**
+ * The Toolwright mark: the head of an open-end spanner with its bolt hole, underlined by a highlighter stroke.
+ * Flat, no gradient. It takes its colors from the theme, so it reads on paper and on ink.
+ */
 export function LogoMark({ className, title }: { className?: string; title?: string }) {
   return (
     <svg viewBox="0 0 32 32" role={title ? "img" : undefined} aria-label={title} aria-hidden={title ? undefined : true} className={cn("size-8", className)}>
-      <defs>
-        <linearGradient id="tw-logo-gradient" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#6366f1" />
-          <stop offset="1" stopColor="#4338ca" />
-        </linearGradient>
-      </defs>
-      <rect width="32" height="32" rx="8" fill="url(#tw-logo-gradient)" />
-      <path d="M8 9.5h16v4h-5.5V24h-5V13.5H8z" fill="#fff" />
-      <circle cx="24.5" cy="23.5" r="2.5" fill="#2dd4bf" />
+      <rect x="2" y="2" width="28" height="25" fill="var(--foreground)" />
+      <rect x="11" y="2" width="10" height="11" fill="var(--background)" />
+      <circle cx="16" cy="20" r="3.2" fill="var(--background)" />
+      <rect x="2" y="28.5" width="28" height="3" fill="var(--marker)" />
     </svg>
   );
 }
 
 export function Logo({ className }: { className?: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-2.5 font-semibold tracking-tight", className)}>
+    <span className={cn("inline-flex items-center gap-2.5", className)}>
       <LogoMark />
-      <span className="text-[17px]">Toolwright</span>
+      <span className="font-display text-[22px] font-extrabold leading-none tracking-tight">Toolwright</span>
     </span>
   );
 }

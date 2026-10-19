@@ -48,7 +48,10 @@ These are the most numerous and the cheapest. Principles:
 
 ## Layer 3: UI tests
 
-- `packages/ui/tests` — primitives and `TransformTool` (typing, async transforms, errors, options, share links, file input, generators).
+- `packages/ui/tests` — primitives and `TransformTool` (typing, async transforms, errors, options, share links, file input, generators); `design-primitives.test.tsx` covers `Plate`, `StatusLine`, `ResultSlab`, `Alert`, `Badge`, `Stat` and the marker states.
+- `apps/web/tests/design-rules.test.ts` — the "no slop" scan: no gradients, blur or glow, gradient text, oversized radius, padded pills, purple/indigo/violet or orange, or marketing filler anywhere in source, and the home hero keeps its structure (no eyebrow chip above the headline).
+- `apps/web/tests/tokens.test.ts` — parses `globals.css` and checks every text pair against WCAG AA in both themes (ink on marker ≥ 7:1, control borders and focus ring ≥ 3:1), warm paper, sharp radius and visible hard shadows.
+- `apps/web/tests/home.test.tsx` — `HeroBench` tabs run the real core functions; `use-outside-requests` classifies same-origin, cross-origin and `data:`/`blob:` entries correctly and reports "…" before measuring.
 - `packages/tools/tests/registry.test.ts` — every tool's metadata is well formed; slugs match folders; `related` links resolve; the generated registry is up to date; copy never mentions self-hosting; search ranks sensibly (every tool is findable by its own name).
 - `packages/tools/tests/smoke.test.tsx` — **every tool mounts** without errors, plus behaviour tests for representative tools (calculators, formatters, chmod, reference tables).
 
@@ -69,7 +72,8 @@ Tips:
 | `a11y.spec.ts` | axe-core (WCAG 2.0/2.1 A + AA) on ~22 pages in **light and dark** themes, the command palette, focus visibility, reduced motion. |
 | `responsive.spec.ts` | No horizontal scroll on key pages at desktop and phone widths; mobile menu; tap-target size. |
 | `offline.spec.ts` | After a tool is opened, it keeps working with the network off; unvisited pages fall back to the offline page. |
-| `home.spec.ts` | Home page, command palette (keyboard and pointer), theme switching, static pages, 404, sitemap/robots/manifest. |
+| `visual.spec.ts` | Optional `@visual` snapshots (home, catalogue, two tools, request board, light and dark). Baselines are per-OS, so they are excluded from the default run and from CI: `npm run e2e:visual -- --update-snapshots`, then `npm run e2e:visual`. |
+| `home.spec.ts` | Home page (headline, working bench, network ledger reads 0, "Try to make it leak" is blocked, no gradient/blur in computed styles), command palette (keyboard and pointer), theme switching, static pages, 404, sitemap/robots/manifest. |
 
 Helpers in `e2e/helpers.ts`: `trackRequests(page)` records every request (to assert none leave the origin or contain a canary), `makePng(page)` builds a PNG in the browser, `appAlert(page)` selects app alerts while ignoring Next's route announcer.
 

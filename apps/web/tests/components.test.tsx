@@ -19,7 +19,7 @@ vi.mock("next/link", () => ({
 
 import { CommandPalette, SearchButton } from "../src/components/command-palette";
 import { ThemeToggle, THEME_INIT_SCRIPT, THEME_KEY, applyTheme } from "../src/components/theme-toggle";
-import { ToolCard, ToolGrid } from "../src/components/tool-card";
+import { Ledger, catalogueNumber } from "../src/components/ledger";
 import { JsonLd } from "../src/components/json-ld";
 import { FAVORITES_KEY, RECENTS_KEY, clearList, pushRecent, toggleFavorite } from "../src/lib/local-list";
 
@@ -112,19 +112,20 @@ describe("CommandPalette", () => {
 });
 
 describe("ThemeToggle", () => {
-  it("cycles system → light → dark, applies the class and remembers the choice", async () => {
+  it("starts on light paper and cycles light → dark → system, applying the class and remembering the choice", async () => {
     render(<ThemeToggle />);
     const button = () => screen.getByRole("button", { name: /theme/i });
-    await waitFor(() => expect(button()).toHaveAccessibleName(/Match system theme/));
-    await userEvent.click(button());
-    expect(button()).toHaveAccessibleName(/^Light theme/);
+    await waitFor(() => expect(button()).toHaveAccessibleName(/^Light theme/));
     expect(document.documentElement).not.toHaveClass("dark");
-    expect(window.localStorage.getItem(THEME_KEY)).toBe("light");
     await userEvent.click(button());
     expect(button()).toHaveAccessibleName(/^Dark theme/);
     expect(document.documentElement).toHaveClass("dark");
+    expect(window.localStorage.getItem(THEME_KEY)).toBe("dark");
     await userEvent.click(button());
+    expect(button()).toHaveAccessibleName(/^Match system theme/);
     expect(window.localStorage.getItem(THEME_KEY)).toBe("system");
+    await userEvent.click(button());
+    expect(window.localStorage.getItem(THEME_KEY)).toBe("light");
   });
 
   it("restores a saved theme on mount", async () => {
@@ -141,6 +142,16 @@ describe("ThemeToggle", () => {
     expect(document.documentElement).not.toHaveClass("dark");
   });
 
+  it("first-time visitors get light paper even when the OS prefers dark", () => {
+    window.matchMedia = ((query: string) => ({ matches: query.includes("dark"), media: query, addEventListener() {}, removeEventListener() {} })) as unknown as typeof window.matchMedia;
+    document.documentElement.classList.add("dark");
+    new Function(THEME_INIT_SCRIPT)(); // no saved choice
+    expect(document.documentElement).not.toHaveClass("dark");
+    window.localStorage.setItem(THEME_KEY, "system");
+    new Function(THEME_INIT_SCRIPT)(); // explicit "match system" follows the OS
+    expect(document.documentElement).toHaveClass("dark");
+  });
+
   it("the pre-paint script is valid JavaScript that sets the class", () => {
     window.localStorage.setItem(THEME_KEY, "dark");
     new Function(THEME_INIT_SCRIPT)();
@@ -151,27 +162,45 @@ describe("ThemeToggle", () => {
   });
 });
 
-describe("ToolCard", () => {
-  const tool = getTool("merge-pdf")!;
+describe("Ledger", () => {
+  const sample = ["merge-pdf", "json-formatter", "qr-code-generator"].map((slug) => getTool(slug)!);
 
-  it("is one link to the tool, with the category and a favorite button", () => {
-    render(<ToolCard tool={tool} />);
-    const link = screen.getByRole("link", { name: "Merge PDF" });
-    expect(link).toHaveAttribute("href", "/tools/merge-pdf");
-    expect(screen.getByText("PDF")).toBeInTheDocument();
-    expect(screen.getByText(tool.tagline)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Add Merge PDF to favorites" })).toBeInTheDocument();
-    expect(screen.getAllByRole("link")).toHaveLength(1);
+  it("renders an ordered list with one link per tool, numbered 01, 02…", () => {
+    render(<Ledger tools={sample} />);
+    expect(screen.getByRole("list")).toBeInTheDocument();
+    const items = screen.getAllByRole("listitem");
+    expect(items).toHaveLength(3);
+    expect(within(items[0]!).getByRole("link", { name: "Merge PDF" })).toHaveAttribute("href", "/tools/merge-pdf");
+    expect(within(items[0]!).getByText("01")).toBeInTheDocument();
+    expect(within(items[2]!).getByText("03")).toBeInTheDocument();
+    expect(screen.getAllByRole("link")).toHaveLength(3);
   });
 
-  it("can hide the category badge", () => {
-    render(<ToolCard tool={tool} showCategory={false} />);
+  it("can show catalogue numbers instead of row numbers", () => {
+    render(<Ledger tools={[getTool("hash-generator")!]} sequential={false} />);
+    expect(screen.getByText(catalogueNumber("hash-generator"))).toBeInTheDocument();
+    expect(catalogueNumber("hash-generator")).toMatch(/^\d{3}$/);
+  });
+
+  it("shows the category by default and can hide it", () => {
+    const { rerender } = render(<Ledger tools={[getTool("merge-pdf")!]} />);
+    expect(screen.getByText("PDF")).toBeInTheDocument();
+    rerender(<Ledger tools={[getTool("merge-pdf")!]} showCategory={false} />);
     expect(screen.queryByText("PDF")).not.toBeInTheDocument();
   });
 
-  it("ToolGrid renders every tool it is given", () => {
-    render(<ToolGrid tools={tools.slice(0, 5)} />);
-    expect(screen.getAllByRole("article")).toHaveLength(5);
+  it("gives every row a favorite button that is separate from the row link", async () => {
+    render(<Ledger tools={sample} />);
+    const star = screen.getByRole("button", { name: "Add Merge PDF to favorites" });
+    expect(star).toHaveAttribute("aria-pressed", "false");
+    await userEvent.click(star);
+    expect(screen.getByRole("button", { name: "Remove Merge PDF from favorites" })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("draws a glyph for featured tools and falls back to the icon for others (decorative, hidden from assistive tech)", () => {
+    const { container } = render(<Ledger tools={[getTool("merge-pdf")!, getTool("chmod-calculator")!]} glyphs />);
+    const glyphs = container.querySelectorAll('span[aria-hidden="true"] svg');
+    expect(glyphs.length).toBeGreaterThanOrEqual(2);
   });
 });
 

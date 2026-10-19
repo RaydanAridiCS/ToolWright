@@ -10,9 +10,9 @@ const fmt = (n: number) => (Number.isFinite(n) ? String(Number(n.toPrecision(10)
 function Block({ title, children, result }: { title: string; children: ReactNode; result: string }) {
   return (
     <Card className="flex flex-col gap-4 p-5">
-      <h3 className="text-sm font-semibold">{title}</h3>
+      <h3 className="font-display text-lg font-bold">{title}</h3>
       <div className="grid grid-cols-2 gap-3">{children}</div>
-      <p className="rounded-lg bg-primary/8 px-4 py-3 font-mono text-xl font-semibold" aria-live="polite">
+      <p className="border border-l-4 border-border border-l-primary bg-muted px-4 py-3 font-display text-3xl font-bold tabular-nums" aria-live="polite">
         {result}
       </p>
     </Card>

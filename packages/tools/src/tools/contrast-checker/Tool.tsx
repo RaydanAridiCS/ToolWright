@@ -27,7 +27,7 @@ function ColorField({ label, value, onChange }: { label: string; value: string; 
 
 function Check_({ pass, label }: { pass: boolean; label: string }) {
   return (
-    <div className={cn("flex items-center justify-between gap-2 rounded-lg border px-3.5 py-2.5 text-sm", pass ? "border-success/40 bg-success/10" : "border-danger/40 bg-danger/10")}>
+    <div className={cn("flex items-center justify-between gap-2 border border-l-4 border-border bg-card px-3.5 py-2.5 text-sm", pass ? "border-l-success" : "border-l-danger")}>
       <span>{label}</span>
       <Badge tone={pass ? "success" : "danger"}>
         {pass ? <Check className="size-3" /> : <X className="size-3" />}
@@ -38,7 +38,7 @@ function Check_({ pass, label }: { pass: boolean; label: string }) {
 }
 
 export default function Tool() {
-  const { state, setState } = useShareableState({ fg: "#1f2937", bg: "#ffffff" });
+  const { state, setState } = useShareableState({ fg: "#1b1a15", bg: "#ffffff" });
   const fg = useMemo(() => parseColor(state.fg), [state.fg]);
   const bg = useMemo(() => parseColor(state.bg), [state.bg]);
   const result = fg && bg ? wcagContrast(fg, bg) : null;

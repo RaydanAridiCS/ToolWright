@@ -30,7 +30,7 @@ function Swatch({ hex, label }: { hex: string; label?: string }) {
 }
 
 export default function Tool() {
-  const { state, setState } = useShareableState({ base: "#4f46e5", harmony: "analogous" as Harmony, name: "brand", format: "css" as "css" | "tailwind" });
+  const { state, setState } = useShareableState({ base: "#0b6b55", harmony: "analogous" as Harmony, name: "brand", format: "css" as "css" | "tailwind" });
   const set = (patch: Partial<typeof state>) => setState((s) => ({ ...s, ...patch }));
   const base = useMemo(() => parseColor(state.base), [state.base]);
   const scale = useMemo(() => (base ? generateScale(base) : []), [base]);

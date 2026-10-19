@@ -18,7 +18,7 @@ test.describe("responsive layout", () => {
     test.skip(!isMobile, "mobile only");
     await page.goto("/");
     await page.getByRole("button", { name: "Open menu" }).click();
-    await page.getByRole("navigation", { name: "Mobile" }).getByRole("link", { name: "All tools" }).click();
+    await page.getByRole("navigation", { name: "Mobile" }).getByRole("link", { name: /Tools/ }).click();
     await expect(page).toHaveURL(/\/tools$/);
     await expect(page.getByRole("button", { name: "Open menu" })).toBeVisible();
   });

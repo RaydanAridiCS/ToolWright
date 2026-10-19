@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Alert, Button, DownloadButton, Field, Panel, ScrollArea, Select, Stat, StatGrid, useShareableState } from "@toolwright/ui";
+import { Alert, Button, DownloadButton, Field, Panel, ScrollArea, Select, Stat, StatGrid, useShareableState, ResultSlab } from "@toolwright/ui";
 import { loanPayment } from "@toolwright/core/calc";
 import { NumberField, num } from "../../shared/number-field";
 import { formatMoney } from "../../shared/format";
@@ -63,24 +63,19 @@ export default function Tool() {
 
       {result ? (
         <>
-          <div className="rounded-xl border border-primary/30 bg-primary/8 p-5">
-            <p className="text-sm text-muted-foreground">Payment per period</p>
-            <p className="font-mono text-4xl font-semibold" data-testid="payment">
-              {formatMoney(result.payment)}
-            </p>
-          </div>
+          <ResultSlab label="Payment per period" value={formatMoney(result.payment)} valueTestId="payment" />
           <StatGrid className="sm:grid-cols-3 lg:grid-cols-3">
             <Stat label="Total interest" value={formatMoney(result.totalInterest)} />
             <Stat label="Total paid" value={formatMoney(result.totalPaid)} />
             <Stat label="Number of payments" value={result.schedule.length} />
           </StatGrid>
-          <div role="img" aria-label={`Interest is ${interestShare.toFixed(0)} percent of everything you pay`} className="flex h-3 overflow-hidden rounded-full bg-border">
+          <div role="img" aria-label={`Interest is ${interestShare.toFixed(0)} percent of everything you pay`} className="flex h-3 border border-foreground bg-card">
             <span className="bg-primary" style={{ width: `${100 - interestShare}%` }} />
-            <span className="bg-accent" style={{ width: `${interestShare}%` }} />
+            <span className="bg-foreground" style={{ width: `${interestShare}%` }} />
           </div>
           <p className="-mt-3 flex gap-4 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1.5"><i className="size-2 rounded-full bg-primary" /> Principal {(100 - interestShare).toFixed(0)}%</span>
-            <span className="flex items-center gap-1.5"><i className="size-2 rounded-full bg-accent" /> Interest {interestShare.toFixed(0)}%</span>
+            <span className="flex items-center gap-1.5"><i className="size-2.5 bg-primary" /> Principal {(100 - interestShare).toFixed(0)}%</span>
+            <span className="flex items-center gap-1.5"><i className="size-2.5 bg-foreground" /> Interest {interestShare.toFixed(0)}%</span>
           </p>
 
           <Panel

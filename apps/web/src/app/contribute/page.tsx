@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function ContributePage() {
   return (
-    <ProsePage title="Contribute" intro="The easiest way to add to Toolwright is to add a tool. Each one lives in its own folder, so you never need to touch the rest of the app.">
+    <ProsePage kicker="Join the workshop" title="Contribute" intro="The easiest way to add to Toolwright is to add a tool. Each one lives in its own folder, so you never need to touch the rest of the app.">
       <h2>Add a tool in five steps</h2>
       <ol>
         <li>

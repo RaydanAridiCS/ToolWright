@@ -284,7 +284,7 @@ export function ImageWorkbench({ mode }: { mode: WorkbenchMode }) {
           <ul className="flex flex-col gap-2">
             {results.map((r) =>
               "error" in r && r.error ? (
-                <li key={r.id} className="rounded-lg border border-danger/40 bg-danger/10 px-3.5 py-2.5 text-sm">
+                <li key={r.id} className="border border-l-4 border-border border-l-danger bg-card px-3.5 py-2.5 text-sm">
                   <strong>{r.originalName}</strong>: {r.error}
                 </li>
               ) : (
@@ -303,7 +303,7 @@ function ResultItem({ r }: { r: Result }) {
   return (
     <li className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-2.5">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={r.url} alt={`Preview of ${r.name}`} className="size-16 shrink-0 rounded-md border border-border bg-[repeating-conic-gradient(var(--muted)_0%_25%,transparent_0%_50%)] bg-[length:12px_12px] object-contain" />
+      <img src={r.url} alt={`Preview of ${r.name}`} className="checker size-16 shrink-0 border border-border object-contain" />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium" title={r.name}>
           {r.name}

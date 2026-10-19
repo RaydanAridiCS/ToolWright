@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <ProsePage title="How privacy works" intro="“Your data never leaves your device” is easy to say. This page explains how it is true, what the few exceptions are, and how to check for yourself.">
+    <ProsePage kicker="The privacy model" title="How privacy works" intro="“Your data never leaves your device” is easy to say. This page explains how it is true, what the few exceptions are, and how to check for yourself.">
       <h2>The short version</h2>
       <ul>
         <li>
@@ -32,7 +32,7 @@ export default function PrivacyPage() {
         </li>
       </ul>
 
-      <h2>Verify it yourself in 60 seconds</h2>
+      <h2 id="verify" className="scroll-mt-24">Verify it yourself in 60 seconds</h2>
       <ol>
         <li>
           Open any tool, for example the <Link href="/tools/json-formatter">JSON Formatter</Link>.

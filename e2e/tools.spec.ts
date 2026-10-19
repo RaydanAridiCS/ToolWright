@@ -28,12 +28,23 @@ test.describe("catalogue", () => {
 
   test("category pages list their tools", async ({ page }) => {
     await page.goto("/category/pdf");
-    await expect(page.getByRole("heading", { level: 1, name: "PDF tools" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "PDF" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Split PDF" })).toBeVisible();
   });
 });
 
 test.describe("tool pages", () => {
+  test("sit on a plate with a catalogue number and a live status line instead of chips", async ({ page }) => {
+    await page.goto("/tools/json-formatter");
+    const plate = page.getByRole("region", { name: "JSON Formatter & Validator" });
+    await expect(plate.getByText(/^Tool \d{3} · Developer$/)).toBeVisible();
+    await expect(plate.getByTestId("outside-requests")).toHaveText("0");
+    await expect(plate.getByText("Runs on this device")).toBeVisible();
+    await expect(plate.getByText("Works offline once opened")).toBeVisible();
+    // The old status pills are gone from the page header.
+    await expect(page.getByText("Runs in your browser", { exact: true })).toHaveCount(0);
+  });
+
   test("have SEO metadata, JSON-LD and related tools", async ({ page }) => {
     await page.goto("/tools/json-formatter");
     await expect(page).toHaveTitle(/JSON Formatter/);
@@ -119,10 +130,10 @@ test.describe("favorites and recents", () => {
     await favorite.click();
     await expect(favorite).toHaveAttribute("aria-pressed", "true");
     await page.goto("/");
-    await expect(page.getByText("Favorites", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Your bench" })).toBeVisible();
     await expect(page.getByRole("link", { name: "UUID, ULID & NanoID Generator" }).first()).toBeVisible();
     await page.reload();
-    await expect(page.getByText("Favorites", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Your bench" })).toBeVisible();
   });
 
   test("recently used tools appear after visiting them", async ({ page }) => {

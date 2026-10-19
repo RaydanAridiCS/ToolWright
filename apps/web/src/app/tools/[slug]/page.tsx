@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronRight, Lock, ShieldCheck, WifiOff } from "lucide-react";
-import { Badge } from "@toolwright/ui";
+import { Plate, StatusLine } from "@toolwright/ui";
 import { CATEGORY_BY_ID, getTool, relatedTools, tools } from "@toolwright/tools";
 import { FavoriteButton } from "../../../components/favorite-button";
 import { JsonLd } from "../../../components/json-ld";
-import { ToolGrid } from "../../../components/tool-card";
+import { Ledger, catalogueNumber } from "../../../components/ledger";
+import { NetworkLedger } from "../../../components/network-ledger";
 import { ToolLoader } from "../../../components/tool-loader";
 import { SITE, absoluteUrl } from "../../../lib/site";
 
@@ -35,13 +35,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+const crumb = "hover:bg-marker hover:text-marker-foreground";
+
 export default async function ToolPage({ params }: Props) {
   const { slug } = await params;
   const tool = getTool(slug);
   if (!tool) notFound();
   const category = CATEGORY_BY_ID[tool.category];
   const related = relatedTools(tool.slug, 4);
-  const Icon = tool.icon;
   const url = absoluteUrl(`/tools/${tool.slug}`);
 
   const structured: Record<string, unknown>[] = [
@@ -86,77 +87,63 @@ export default async function ToolPage({ params }: Props) {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
       <JsonLd data={structured} />
 
-      <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground">
-        <Link href="/" className="hover:text-foreground">
-          Home
+      <nav aria-label="Breadcrumb" className="label-plate flex flex-wrap items-center gap-x-2 gap-y-1">
+        <Link href="/tools" className={crumb}>
+          Tools
         </Link>
-        <ChevronRight aria-hidden className="size-3.5" />
-        <Link href={`/category/${category.id}`} className="hover:text-foreground">
+        <span aria-hidden>/</span>
+        <Link href={`/category/${category.id}`} className={crumb}>
           {category.name}
         </Link>
-        <ChevronRight aria-hidden className="size-3.5" />
+        <span aria-hidden>/</span>
         <span aria-current="page" className="text-foreground">
           {tool.name}
         </span>
       </nav>
 
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex min-w-0 items-start gap-4">
-          <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <Icon aria-hidden className="size-7" />
-          </span>
-          <div className="min-w-0">
-            <h1 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl">{tool.name}</h1>
-            <p className="mt-2 max-w-3xl text-pretty text-muted-foreground">{tool.description}</p>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <Link href={`/category/${category.id}`}>
-                <Badge tone="primary">{category.name}</Badge>
-              </Link>
-              <Badge tone="success">
-                <Lock aria-hidden className="size-3" /> Runs in your browser
-              </Badge>
-              <Badge>
-                <WifiOff aria-hidden className="size-3" /> Works offline once loaded
-              </Badge>
-            </div>
-          </div>
+      <header className="mt-6 flex flex-wrap items-end justify-between gap-x-10 gap-y-5">
+        <div className="min-w-0 max-w-4xl">
+          <h1 className="font-display text-[clamp(2.4rem,5.6vw,4.6rem)] font-extrabold leading-[0.95] tracking-[-0.028em]">{tool.name}</h1>
+          <p className="mt-5 max-w-[62ch] text-lg leading-relaxed">{tool.description}</p>
         </div>
         <FavoriteButton slug={tool.slug} name={tool.name} withLabel />
       </header>
 
-      <section aria-label={tool.name} className="mt-8 rounded-2xl border border-border bg-card/60 p-4 shadow-sm sm:p-6">
+      <Plate
+        aria-label={tool.name}
+        label={`Tool ${catalogueNumber(tool.slug)} · ${category.name}`}
+        className="mt-10"
+        footer={
+          <StatusLine>
+            <NetworkLedger />
+            <span>Runs on this device</span>
+            <span>Works offline once opened</span>
+          </StatusLine>
+        }
+      >
         <ToolLoader slug={tool.slug} />
         <noscript>
           <p className="p-4 text-sm">This tool needs JavaScript to run in your browser. Nothing is sent to a server.</p>
         </noscript>
-      </section>
+      </Plate>
 
-      <p className="mt-4 flex items-start gap-2 text-sm text-muted-foreground">
-        <ShieldCheck aria-hidden className="mt-0.5 size-4 shrink-0 text-success" />
-        <span>
-          Private by design: your input is processed on this device and never uploaded.{" "}
-          <Link href="/privacy" className="font-medium text-primary hover:underline">
-            Verify it yourself
-          </Link>
-          .
-        </span>
-      </p>
-
-      <div className="mt-14 grid gap-12 lg:grid-cols-[1fr_20rem]">
-        <div className="flex flex-col gap-12">
+      <div className="mt-20 grid gap-14 lg:grid-cols-[1fr_20rem]">
+        <div className="flex flex-col gap-16">
           {tool.howTo?.length ? (
             <section aria-labelledby="how-to">
-              <h2 id="how-to" className="text-xl font-semibold">
+              <h2 id="how-to" className="font-display text-3xl font-extrabold tracking-tight">
                 How to use {tool.name}
               </h2>
-              <ol className="mt-4 flex flex-col gap-3">
+              <ol className="mt-6 border-t border-foreground">
                 {tool.howTo.map((step, i) => (
-                  <li key={step} className="flex gap-3">
-                    <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">{i + 1}</span>
-                    <span className="pt-0.5">{step}</span>
+                  <li key={step} className="flex items-baseline gap-5 border-b border-border py-4">
+                    <span aria-hidden className="font-display text-5xl font-extrabold leading-none tabular-nums text-primary">
+                      {i + 1}
+                    </span>
+                    <span className="text-lg">{step}</span>
                   </li>
                 ))}
               </ol>
@@ -165,17 +152,20 @@ export default async function ToolPage({ params }: Props) {
 
           {tool.faq?.length ? (
             <section aria-labelledby="faq">
-              <h2 id="faq" className="text-xl font-semibold">
+              <h2 id="faq" className="font-display text-3xl font-extrabold tracking-tight">
                 Frequently asked questions
               </h2>
-              <div className="mt-4 divide-y divide-border rounded-xl border border-border bg-card">
+              <div className="mt-6 border-t border-foreground">
                 {tool.faq.map((f) => (
-                  <details key={f.question} className="group px-5 py-4">
-                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-medium [&::-webkit-details-marker]:hidden">
+                  <details key={f.question} className="group border-b border-border py-4">
+                    <summary className="flex cursor-pointer list-none items-baseline justify-between gap-6 text-lg font-semibold hover:bg-marker hover:text-marker-foreground [&::-webkit-details-marker]:hidden">
                       {f.question}
-                      <ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" />
+                      <span aria-hidden className="font-mono text-xl font-medium">
+                        <span className="group-open:hidden">+</span>
+                        <span className="hidden group-open:inline">–</span>
+                      </span>
                     </summary>
-                    <p className="mt-2 text-muted-foreground">{f.answer}</p>
+                    <p className="mt-3 max-w-[62ch] text-muted-foreground">{f.answer}</p>
                   </details>
                 ))}
               </div>
@@ -183,26 +173,20 @@ export default async function ToolPage({ params }: Props) {
           ) : null}
         </div>
 
-        <aside aria-labelledby="keywords" className="text-sm">
-          <h2 id="keywords" className="font-semibold">
+        <aside aria-labelledby="keywords">
+          <h2 id="keywords" className="label-plate text-foreground">
             Also searched as
           </h2>
-          <ul className="mt-3 flex flex-wrap gap-2">
-            {tool.keywords.map((k) => (
-              <li key={k} className="rounded-full bg-muted px-3 py-1 text-muted-foreground">
-                {k}
-              </li>
-            ))}
-          </ul>
+          <p className="mt-3 border-t border-foreground pt-3 text-sm leading-relaxed text-muted-foreground">{tool.keywords.join(" · ")}</p>
         </aside>
       </div>
 
       {related.length > 0 ? (
-        <section aria-labelledby="related" className="mt-16">
-          <h2 id="related" className="mb-5 text-xl font-semibold">
+        <section aria-labelledby="related" className="mt-20">
+          <h2 id="related" className="mb-5 font-display text-3xl font-extrabold tracking-tight">
             Related tools
           </h2>
-          <ToolGrid tools={related} showCategory={false} />
+          <Ledger tools={related} sequential={false} compact showCategory={false} />
         </section>
       ) : null}
     </div>

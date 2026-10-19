@@ -9,10 +9,11 @@ export const metadata: Metadata = {
 
 export default function RequestsPage() {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
-      <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Request a tool</h1>
-      <p className="mt-2 max-w-2xl text-muted-foreground">Tell us what to build next. The most-voted ideas get built first, and anyone can contribute one.</p>
-      <div className="mt-10">
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14">
+      <p className="label-plate mb-3">The request board</p>
+      <h1 className="font-display text-[clamp(2.6rem,6vw,5rem)] font-extrabold leading-[0.95] tracking-[-0.028em]">Request a tool</h1>
+      <p className="mt-4 max-w-xl text-lg">Tell us what to build next. The most-voted ideas get built first, and anyone can build one.</p>
+      <div className="mt-12">
         <RequestBoard />
       </div>
     </div>

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <ProsePage title="About Toolwright" intro="A wright is a maker. Toolwright is a workshop for making everyday online tools that respect the people using them.">
+    <ProsePage kicker="About" title="About Toolwright" intro="A wright is a maker. Toolwright is a workshop for making everyday online tools that respect the people using them.">
       <h2>Why this exists</h2>
       <p>
         Ask a search engine for a PDF merger, an image compressor or a JSON formatter and most results want you to upload your files to a server you know nothing about, wrap them in ads, or sign you up for a trial. For the sensitive stuff (contracts, ID scans, API payloads, passwords) that is a bad trade.

@@ -2,13 +2,14 @@ import type { InputHTMLAttributes, LabelHTMLAttributes, ReactNode, Ref, SelectHT
 import { useId } from "react";
 import { cn } from "./cn";
 
+// Form controls are "sheet" colored with a visible ink border (≥3:1 against the page, WCAG 1.4.11).
 const control =
-  "w-full rounded-lg border border-border bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground/70 " +
-  "transition-colors hover:border-foreground/25 focus-visible:border-ring focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-ring/40 " +
+  "w-full rounded-md border border-foreground/55 bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground " +
+  "transition-colors hover:border-foreground focus-visible:border-foreground " +
   "disabled:cursor-not-allowed disabled:opacity-60";
 
 export function Label({ className, ...props }: LabelHTMLAttributes<HTMLLabelElement>) {
-  return <label className={cn("text-[13px] font-medium text-foreground", className)} {...props} />;
+  return <label className={cn("text-[13px] font-semibold text-foreground", className)} {...props} />;
 }
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -74,7 +75,7 @@ export interface ToggleProps extends Omit<InputHTMLAttributes<HTMLInputElement>,
   hint?: ReactNode;
 }
 
-/** An accessible switch built on a native checkbox. */
+/** An accessible switch built on a native checkbox: a square track with a square thumb. */
 export function Toggle({ label, checked, onCheckedChange, hint, className, id, ...props }: ToggleProps) {
   const generated = useId();
   const inputId = id ?? generated;
@@ -87,10 +88,10 @@ export function Toggle({ label, checked, onCheckedChange, hint, className, id, .
         checked={checked}
         onChange={(e) => onCheckedChange(e.target.checked)}
         className={cn(
-          "relative mt-0.5 h-5 w-9 shrink-0 cursor-pointer appearance-none rounded-full bg-border transition-colors",
-          "checked:bg-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50",
-          "after:absolute after:left-0.5 after:top-0.5 after:size-4 after:rounded-full after:bg-white after:shadow after:transition-transform after:content-['']",
-          "checked:after:translate-x-4",
+          "relative mt-0.5 h-5 w-9 shrink-0 cursor-pointer appearance-none rounded-sm border border-foreground/60 bg-muted transition-colors",
+          "checked:border-foreground checked:bg-primary disabled:cursor-not-allowed disabled:opacity-50",
+          "after:absolute after:left-[3px] after:top-[3px] after:size-3 after:rounded-[1px] after:bg-foreground after:transition-transform after:content-['']",
+          "checked:after:translate-x-4 checked:after:bg-primary-foreground",
         )}
         {...props}
       />
@@ -117,17 +118,19 @@ export interface SegmentedControlProps<T extends string> {
   className?: string;
 }
 
-/** A compact radio group styled as a segmented control. */
+/** A radio group styled as ledger tabs: the active choice is highlighted with the marker. */
 export function SegmentedControl<T extends string>({ value, onValueChange, options, label, className }: SegmentedControlProps<T>) {
   const name = useId();
   return (
-    <div role="radiogroup" aria-label={label} className={cn("inline-flex rounded-lg bg-muted p-0.5", className)}>
+    <div role="radiogroup" aria-label={label} className={cn("inline-flex flex-wrap gap-1", className)}>
       {options.map((option) => (
         <label
           key={option.value}
           className={cn(
-            "cursor-pointer rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring",
-            value === option.value ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+            "cursor-pointer border px-3 py-1.5 text-[13px] font-semibold transition-colors has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring",
+            value === option.value
+              ? "border-foreground bg-marker text-marker-foreground"
+              : "border-transparent text-muted-foreground hover:border-foreground/40 hover:text-foreground",
           )}
         >
           <input

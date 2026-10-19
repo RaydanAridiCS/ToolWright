@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Alert, Button, Stat, StatGrid, Toggle, useShareableState } from "@toolwright/ui";
+import { Alert, Button, Stat, StatGrid, Toggle, useShareableState, ResultSlab } from "@toolwright/ui";
 import { splitBill } from "@toolwright/core/calc";
 import { NumberField, num } from "../../shared/number-field";
 import { formatMoney } from "../../shared/format";
@@ -39,12 +39,7 @@ export default function Tool() {
       {!result ? <Alert tone="warning">Enter a bill, a tip and at least one person.</Alert> : null}
       {result ? (
         <>
-          <div className="rounded-xl border border-primary/30 bg-primary/8 p-5">
-            <p className="text-sm text-muted-foreground">Each person pays</p>
-            <p className="font-mono text-4xl font-semibold" data-testid="per-person">
-              {formatMoney(result.perPerson)}
-            </p>
-          </div>
+          <ResultSlab label="Each person pays" value={formatMoney(result.perPerson)} valueTestId="per-person" />
           <StatGrid className="sm:grid-cols-3 lg:grid-cols-3">
             <Stat label="Tip total" value={formatMoney(result.tip)} />
             <Stat label="Grand total" value={formatMoney(result.total)} />

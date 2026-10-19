@@ -36,7 +36,7 @@ Notable modules: `pdf.ts` (pdf-lib), `image-meta.ts` (lossless EXIF/metadata str
 
 ### `packages/ui` — the UI kit
 
-Tailwind-styled, accessible primitives (`Button`, `Field`, `Select`, `Toggle`, `SegmentedControl`, `FileDropzone`, `CopyButton`, `ScrollArea`…) and two building blocks:
+Tailwind-styled, accessible primitives (`Button`, `Field`, `Select`, `Toggle`, `SegmentedControl`, `FileDropzone`, `CopyButton`, `ScrollArea`…) plus the Workshop Ledger primitives (`Plate`, `StatusLine`, `ResultSlab`, `Stat`/`StatGrid`, `Alert`, `Badge`; see [design-system.md](design-system.md)) and two building blocks:
 
 - **`useShareableState`** mirrors component state into the URL *hash* (`#s=…`, base64url JSON). The fragment is never sent to a server, so shareable links don't weaken privacy.
 - **`TransformTool`**: a config-driven "input → options → output" tool: textareas, sample data, paste, open file, copy, download, "use output as input", error display, debounced async transforms and share links. Roughly 60% of tools are a `TransformTool` plus a function from `core`.
@@ -77,6 +77,8 @@ Next.js App Router. Key points:
 - **Static by default.** Home, catalogue, category and every tool page are prerendered (`generateStaticParams`). Only the two `/api/requests` routes are dynamic.
 - **Tool pages** render server-side metadata, description, FAQ, JSON-LD and related tools. The interactive tool itself mounts on the client (`ToolLoader`), because tools read the URL hash, localStorage and other browser-only APIs. It is wrapped in a Suspense boundary and an error boundary (for a friendly message if a chunk can't load offline).
 - **Security headers** (`next.config.ts`): a Content Security Policy that restricts connections to the site's own origin, plus `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` and framing protection. See [privacy-model.md](privacy-model.md).
+- **Design layer.** All tokens live in `app/globals.css` (light "paper" and dark "ink"; Tailwind's `--radius-*` and `--shadow-*` are remapped there, so every tool inherits sharp corners and flat, hard shadows). Fonts (Bricolage Grotesque, Instrument Sans, Geist Mono) are self-hosted through `next/font/local` in `layout.tsx`. The default theme is light for everyone; `THEME_INIT_SCRIPT` sets it before paint. Site components: `Ledger` (numbered rows that replace card grids), `ToolGlyph`, `Ruler`, `Logo`, and the home page's `HeroBench`, `ProofLog` and `Ticket`.
+- **Network ledger.** `lib/use-outside-requests.ts` observes Resource Timing (`PerformanceObserver`, `buffered: true`) and `NetworkLedger` shows how many requests this page made to other origins. It shows "…" until measured, never a number the browser has not seen. What it proves and what it does not: see [privacy-model.md](privacy-model.md).
 - **Command palette** (`cmdk`): `Ctrl/Cmd+K` or `/`, ranked by `searchTools`, with favorites and recents from `localStorage`.
 - **PWA**: `public/sw.js` caches build assets and visited pages so opened tools work offline; `manifest.ts` and generated icons make it installable.
 - **SEO**: per-tool titles/descriptions, canonical URLs, Open Graph images (`opengraph-image.tsx`), `sitemap.ts`, `robots.ts`, and JSON-LD (`WebApplication`, `BreadcrumbList`, `FAQPage`, `HowTo`).
@@ -97,6 +99,7 @@ Next.js App Router. Key points:
 | Generated registry | Adding a tool never means editing a shared list — fewer merge conflicts, and a test guards against drift. |
 | URL hash for shareable state | Keeps privacy intact (fragments aren't sent to servers) with no backend. |
 | CSP instead of a promise | The browser enforces the privacy guarantee; tests verify it. |
+| Tokens remapped, not rewritten | Re-pointing `--radius-*`, `--shadow-*` and the color tokens restyled 71 tools without touching them; the design rules are tested so new tools cannot drift. |
 | In-memory fallback for the request board | A fresh clone works with `npm install && npm run dev` — no database needed. |
 | No accounts | Less to secure, nothing personal to store. Votes use a random browser token that is hashed server-side. |
 

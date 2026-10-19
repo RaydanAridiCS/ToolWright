@@ -69,7 +69,7 @@ export default function Tool() {
               title={f.description}
               className={cn(
                 "cursor-pointer rounded-md border px-2.5 py-1 font-mono text-xs transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring",
-                state.flags.includes(f.flag) ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:text-foreground",
+                state.flags.includes(f.flag) ? "border-foreground bg-marker text-marker-foreground" : "border-border text-muted-foreground hover:text-foreground",
               )}
             >
               <input type="checkbox" className="sr-only" checked={state.flags.includes(f.flag)} onChange={() => toggleFlag(f.flag)} />
@@ -94,7 +94,7 @@ export default function Tool() {
         >
           <pre aria-label="Highlighted matches" tabIndex={0} className="min-h-48 overflow-auto whitespace-pre-wrap break-words rounded-lg border border-border bg-muted/40 p-3 font-mono text-[13px] leading-relaxed">
             {highlighted
-              ? highlighted.map((p, i) => (p.match ? <mark key={i} className="rounded-sm bg-primary/25 px-0.5 text-foreground">{p.text}</mark> : <Fragment key={i}>{p.text}</Fragment>))
+              ? highlighted.map((p, i) => (p.match ? <mark key={i} className="bg-marker px-0.5 text-marker-foreground">{p.text}</mark> : <Fragment key={i}>{p.text}</Fragment>))
               : dText || <span className="text-muted-foreground">Highlights appear here.</span>}
           </pre>
         </Panel>

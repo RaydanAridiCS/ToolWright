@@ -59,6 +59,7 @@ CI runs the same checks plus a coverage report and the full Playwright suite (in
 - Is the error message something a non-developer could act on?
 - Does it work with the keyboard and a screen reader? Is it usable at 360px wide?
 - Is the copy accurate, with no overclaiming?
+- Does it follow the [design rules](docs/design-language.md)? Tokens and shared components only; no gradients, glows, blur, pill badges, purple or orange (a test fails the build if they appear).
 - Is the diff focused? Please keep unrelated refactors out of tool PRs.
 
 ## Commit and PR style
@@ -80,7 +81,9 @@ CI runs the same checks plus a coverage report and the full Playwright suite (in
 | [docs/architecture.md](docs/architecture.md) | How the monorepo, registry and rendering fit together |
 | [docs/writing-a-tool.md](docs/writing-a-tool.md) | Step-by-step tool authoring guide and conventions |
 | [docs/testing.md](docs/testing.md) | Testing strategy, how to run and write each kind of test |
-| [docs/design-system.md](docs/design-system.md) | Tokens, components and UI guidelines |
+| [docs/design-language.md](docs/design-language.md) | The "Workshop Ledger" concept, principles, voice and what we deliberately avoid |
+| [docs/design-system.md](docs/design-system.md) | Tokens, type, components, motion and accessibility rules |
+| [CHANGELOG.md](CHANGELOG.md) | What changed, release by release |
 | [docs/privacy-model.md](docs/privacy-model.md) | How privacy is enforced and verified |
 | [docs/request-board.md](docs/request-board.md) | The tool-request API and database |
 | [docs/maintainers.md](docs/maintainers.md) | Environment variables, migrations and releases |

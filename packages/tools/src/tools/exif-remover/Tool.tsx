@@ -76,7 +76,7 @@ export default function Tool() {
           <ul className="flex flex-col gap-2">
             {results.map((r) =>
               "error" in r && r.error ? (
-                <li key={r.id} className="rounded-lg border border-danger/40 bg-danger/10 px-3.5 py-2.5 text-sm">
+                <li key={r.id} className="border border-l-4 border-border border-l-danger bg-card px-3.5 py-2.5 text-sm">
                   <strong>{r.name}</strong>: {r.error}
                 </li>
               ) : (

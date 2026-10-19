@@ -40,7 +40,7 @@ const INITIAL = {
   ecc: "M" as ErrorCorrection,
   size: 320,
   margin: 4,
-  dark: "#111827",
+  dark: "#1b1a15",
   light: "#ffffff",
   rounded: false,
 };

@@ -13,7 +13,7 @@ export default function Tool() {
   const [size, setSize] = useState("72");
   const [opacity, setOpacity] = useState("20");
   const [angle, setAngle] = useState("45");
-  const [color, setColor] = useState("#6b7280");
+  const [color, setColor] = useState("#5b574a");
   const job = useJob<Uint8Array>();
   const source = pdf.source;
 

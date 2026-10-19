@@ -29,10 +29,10 @@ export default function Tool() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary/8 px-5 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border border-foreground bg-card px-5 py-4 shadow-md">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-primary">Current Unix time</p>
-          <p className="font-mono text-2xl font-semibold tabular-nums" aria-live="off">
+          <p className="label-plate">Current Unix time</p>
+          <p className="font-display text-4xl font-bold tabular-nums" aria-live="off">
             {now === null ? "…" : Math.floor(now / 1000)}
           </p>
         </div>

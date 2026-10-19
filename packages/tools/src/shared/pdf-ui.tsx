@@ -105,7 +105,7 @@ export function JobError({ error }: { error: string | null }) {
 
 export function DownloadResult({ data, filename, mime = "application/pdf", note }: { data: Uint8Array; filename: string; mime?: string; note?: string }) {
   return (
-    <div className="flex flex-wrap items-center gap-4 rounded-xl border border-success/40 bg-success/10 p-4">
+    <div className="flex flex-wrap items-center gap-4 border border-l-4 border-foreground border-l-success bg-card p-4 shadow-md">
       <div className="min-w-0 flex-1">
         <p className="font-medium">Done! Your file is ready.</p>
         <p className="truncate text-sm text-muted-foreground">

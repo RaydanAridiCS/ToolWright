@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Alert, Field, Panel, ScrollArea, Select, Stat, StatGrid, useShareableState } from "@toolwright/ui";
+import { Alert, Field, Panel, ScrollArea, Select, Stat, StatGrid, useShareableState, ResultSlab } from "@toolwright/ui";
 import { compoundInterest } from "@toolwright/core/calc";
 import { NumberField, num } from "../../shared/number-field";
 import { formatMoney } from "../../shared/format";
@@ -45,12 +45,7 @@ export default function Tool() {
 
       {result ? (
         <>
-          <div className="rounded-xl border border-primary/30 bg-primary/8 p-5">
-            <p className="text-sm text-muted-foreground">Future value</p>
-            <p className="font-mono text-4xl font-semibold" data-testid="future-value">
-              {formatMoney(result.finalBalance)}
-            </p>
-          </div>
+          <ResultSlab label="Future value" value={formatMoney(result.finalBalance)} valueTestId="future-value" />
           <StatGrid className="sm:grid-cols-3 lg:grid-cols-3">
             <Stat label="Total contributed" value={formatMoney(result.totalContributions)} />
             <Stat label="Interest earned" value={formatMoney(result.totalInterest)} />
@@ -75,7 +70,7 @@ export default function Tool() {
                       <td className="px-4 py-1.5">{formatMoney(y.interest)}</td>
                       <td className="px-4 py-1.5 text-left">
                         <div className="flex items-center gap-2">
-                          <span className="h-2 rounded-full bg-primary/70" style={{ width: `${Math.max(2, (y.balance / max) * 60)}%` }} />
+                          <span className="h-2 bg-primary" style={{ width: `${Math.max(2, (y.balance / max) * 60)}%` }} />
                           {formatMoney(y.balance)}
                         </div>
                       </td>

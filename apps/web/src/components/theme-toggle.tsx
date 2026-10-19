@@ -6,21 +6,23 @@ import { Button } from "@toolwright/ui";
 
 export type Theme = "light" | "dark" | "system";
 export const THEME_KEY = "tw-theme";
+/** First-time visitors get the signature light paper look; dark and "match my system" are one click away. */
+export const DEFAULT_THEME: Theme = "light";
 
 /** Runs before first paint (see layout.tsx) so there is no flash of the wrong theme. */
-export const THEME_INIT_SCRIPT = `(function(){try{var t=localStorage.getItem("${THEME_KEY}")||"system";var d=t==="dark"||(t==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);}catch(e){}})();`;
+export const THEME_INIT_SCRIPT = `(function(){try{var t=localStorage.getItem("${THEME_KEY}")||"${DEFAULT_THEME}";var d=t==="dark"||(t==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);}catch(e){}})();`;
 
 export function applyTheme(theme: Theme): void {
   const dark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
   document.documentElement.classList.toggle("dark", dark);
 }
 
-const ORDER: Theme[] = ["system", "light", "dark"];
-const LABELS: Record<Theme, string> = { system: "Match system theme", light: "Light theme", dark: "Dark theme" };
-const ICONS = { system: Monitor, light: Sun, dark: Moon } as const;
+const ORDER: Theme[] = ["light", "dark", "system"];
+const LABELS: Record<Theme, string> = { light: "Light theme", dark: "Dark theme", system: "Match system theme" };
+const ICONS = { light: Sun, dark: Moon, system: Monitor } as const;
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>("system");
+  const [theme, setTheme] = useState<Theme>(DEFAULT_THEME);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {

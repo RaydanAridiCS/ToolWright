@@ -25,8 +25,9 @@ const PAGES: Page[] = [
   { label: "Contribute", href: "/contribute", icon: FolderOpen, keywords: "open source github add tool" },
 ];
 
+// The highlighted row is "marked" with the lime highlighter; its text is forced to ink so it reads in both themes.
 const itemClass =
-  "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-foreground outline-none data-[selected=true]:bg-primary/10 data-[selected=true]:text-foreground";
+  "flex cursor-pointer items-center gap-3 px-3 py-2.5 text-sm text-foreground outline-none data-[selected=true]:bg-marker data-[selected=true]:text-marker-foreground data-[selected=true]:[&_*]:text-marker-foreground";
 const headingClass = "[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wide [&_[cmdk-group-heading]]:text-muted-foreground";
 
 function ToolItem({ tool, onSelect, hint }: { tool: ToolMeta; onSelect: () => void; hint?: LucideIcon }) {
@@ -34,7 +35,7 @@ function ToolItem({ tool, onSelect, hint }: { tool: ToolMeta; onSelect: () => vo
   const Hint = hint;
   return (
     <Command.Item value={tool.slug} onSelect={onSelect} className={itemClass}>
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+      <span className="flex size-8 shrink-0 items-center justify-center border border-foreground/40 text-foreground">
         <Icon aria-hidden className="size-4" />
       </span>
       <span className="min-w-0 flex-1">
@@ -103,11 +104,11 @@ export function CommandPalette() {
       label="Search tools"
       shouldFilter={false}
       loop
-      overlayClassName="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm"
-      contentClassName="fixed left-1/2 top-[12vh] z-50 w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-2xl"
+      overlayClassName="fixed inset-0 z-50 bg-foreground/40"
+      contentClassName="fixed left-1/2 top-[12vh] z-50 w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 overflow-hidden border border-foreground bg-card text-card-foreground shadow-2xl"
     >
-      <div className="flex items-center gap-3 border-b border-border px-4">
-        <Search aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+      <div className="flex items-center gap-3 border-b border-foreground px-4">
+        <Search aria-hidden className="size-4 shrink-0 text-foreground" />
         <Command.Input value={query} onValueChange={setQuery} placeholder={`Search ${tools.length} tools…`} className="h-14 w-full bg-transparent text-base outline-none placeholder:text-muted-foreground" />
         <Kbd>Esc</Kbd>
       </div>
@@ -169,7 +170,7 @@ export function CommandPalette() {
           </Command.Group>
         ) : null}
       </Command.List>
-      <div className="flex items-center justify-between border-t border-border px-4 py-2 text-xs text-muted-foreground">
+      <div className="label-plate flex items-center justify-between border-t border-foreground bg-muted px-4 py-2">
         <span className="flex items-center gap-1.5">
           <Kbd>↑</Kbd>
           <Kbd>↓</Kbd> to move

@@ -7,51 +7,57 @@
 @custom-variant dark (&:is(.dark, .dark *));
 
 /*
- * Design tokens. Brand = indigo + teal. (No orange anywhere in the brand palette.)
- * Contrast notes: foreground/background ≈ 16:1, muted-foreground/background ≥ 5:1, primary/background ≥ 6:1.
+ * Toolwright design tokens: "Workshop Ledger".
+ * Warm paper, black ink, one patina-green accent and a highlighter-lime marker.
+ * No gradients, no glows. See docs/design-language.md and docs/design-system.md.
+ * Every text/background pair is checked for WCAG AA by apps/web/tests/config.test.ts.
  */
 :root {
   color-scheme: light;
-  --background: #f9f9fe;
-  --foreground: #14142b;
-  --card: #ffffff;
-  --card-foreground: #14142b;
-  --muted: #eeeef8;
-  --muted-foreground: #565675;
-  --border: #e0e0ef;
-  --primary: #4338ca;
-  --primary-foreground: #ffffff;
-  --secondary: #e8e8f9;
-  --secondary-foreground: #26265a;
-  --accent: #0f766e;
-  --ring: #4f46e5;
-  --success: #166534;
-  --warning: #8a6a00;
-  --danger: #b91c1c;
-  --hero-glow-1: rgba(99, 102, 241, 0.18);
-  --hero-glow-2: rgba(20, 184, 166, 0.14);
+  --background: #f4f0e6; /* paper */
+  --foreground: #1b1a15; /* ink */
+  --card: #fbf9f3; /* sheet */
+  --card-foreground: #1b1a15;
+  --muted: #eae5d8; /* sunken wells, table heads, hover fills */
+  --muted-foreground: #5b574a;
+  --border: #cfc8b4; /* hairline rules */
+  --primary: #0b6b55; /* patina green */
+  --primary-foreground: #fbf9f3;
+  --secondary: #e3ddcb;
+  --secondary-foreground: #1b1a15;
+  --accent: #0b6b55;
+  --marker: #d8ec4e; /* highlighter lime: only ever behind ink text */
+  --marker-foreground: #1b1a15;
+  --ring: #0b6b55;
+  --success: #236b2b;
+  --warning: #6f5700;
+  --danger: #a8261d;
+  --shadow-ink: #1b1a15;
+  --noise-opacity: 0.05;
 }
 
 .dark {
   color-scheme: dark;
-  --background: #0a0a18;
-  --foreground: #ececf8;
-  --card: #12122a;
-  --card-foreground: #ececf8;
-  --muted: #1a1a36;
-  --muted-foreground: #a0a0c6;
-  --border: #272750;
-  --primary: #8b93ff;
-  --primary-foreground: #0a0a18;
-  --secondary: #1f1f42;
-  --secondary-foreground: #dcdcf5;
-  --accent: #2dd4bf;
-  --ring: #8b93ff;
-  --success: #4ade80;
-  --warning: #facc15;
-  --danger: #f87171;
-  --hero-glow-1: rgba(129, 140, 248, 0.2);
-  --hero-glow-2: rgba(45, 212, 191, 0.12);
+  --background: #12110d;
+  --foreground: #efeadb;
+  --card: #1b1a15;
+  --card-foreground: #efeadb;
+  --muted: #26241d;
+  --muted-foreground: #a8a28f;
+  --border: #38352c;
+  --primary: #46c9a3;
+  --primary-foreground: #12110d;
+  --secondary: #2c2a22;
+  --secondary-foreground: #efeadb;
+  --accent: #46c9a3;
+  --marker: #d8ec4e;
+  --marker-foreground: #1b1a15;
+  --ring: #46c9a3;
+  --success: #7fd48a;
+  --warning: #e3c34a;
+  --danger: #f0847b;
+  --shadow-ink: #4a463a;
+  --noise-opacity: 0.035;
 }
 
 @theme inline {
@@ -67,13 +73,35 @@
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-accent: var(--accent);
+  --color-marker: var(--marker);
+  --color-marker-foreground: var(--marker-foreground);
   --color-ring: var(--ring);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --radius-xl: 0.9rem;
+  --color-ink: var(--shadow-ink);
+
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font-display), var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Sharp corners: re-map Tailwind's radius scale so every existing rounded-* class tightens at once. */
+  --radius-xs: 1px;
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 3px;
+  --radius-xl: 4px;
+  --radius-2xl: 4px;
+  --radius-3xl: 6px;
+
+  /* Flat at rest; lifted things get a hard offset shadow instead of a soft blur. */
+  --shadow-2xs: none;
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow-md: 3px 3px 0 0 var(--shadow-ink);
+  --shadow-lg: 4px 4px 0 0 var(--shadow-ink);
+  --shadow-xl: 6px 6px 0 0 var(--shadow-ink);
+  --shadow-2xl: 8px 8px 0 0 var(--shadow-ink);
 }
 
 @layer base {
@@ -85,18 +113,47 @@
     -webkit-text-size-adjust: 100%;
   }
   body {
+    position: relative;
+    isolation: isolate;
     background: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
+    font-size: 15.5px;
+    line-height: 1.55;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
+  /* Paper grain. A tiny inline SVG at very low opacity; no blur, no blend modes, never intercepts the pointer. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: var(--noise-opacity);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.022em;
+    word-spacing: 0.04em;
+    font-optical-sizing: auto;
+    text-wrap: balance;
+  }
   ::selection {
-    background: color-mix(in oklab, var(--primary) 30%, transparent);
+    background: var(--marker);
+    color: var(--marker-foreground);
   }
   :focus-visible {
-    outline: 2px solid var(--ring);
+    outline: 3px solid var(--ring);
     outline-offset: 2px;
+  }
+  @media (forced-colors: active) {
+    :focus-visible {
+      outline-color: Highlight;
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     html {
@@ -106,33 +163,140 @@
     *::before,
     *::after {
       animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
       transition-duration: 0.01ms !important;
     }
   }
 }
 
-/* Chevron for native <select>. A neutral grey works on both themes. */
+/* ---------- Motion ---------- */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes swipe {
+  from {
+    transform: rotate(-1deg) scaleX(0);
+  }
+  to {
+    transform: rotate(-1deg) scaleX(1);
+  }
+}
+@keyframes tick {
+  from {
+    transform: translateY(0.5em);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes pulse-solid {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.rise {
+  animation: rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+.tick {
+  display: inline-block;
+  animation: tick 0.35s ease-out both;
+}
+
+/* ---------- Print-shop details ---------- */
+
+/* Highlighter swipe behind a phrase. Solid lime, always ink text. */
+.marker {
+  position: relative;
+  z-index: 0;
+  color: var(--marker-foreground);
+  white-space: nowrap;
+}
+.marker::before {
+  content: "";
+  position: absolute;
+  inset: 0.14em -0.14em 0.02em;
+  z-index: -1;
+  background: var(--marker);
+  transform-origin: left center;
+  transform: rotate(-1deg);
+  animation: swipe 0.7s 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Mono "label plate": small uppercase caption for metadata. */
+.label-plate {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* Ledger rows: a marker sweeps in behind the row on hover/focus. */
+.ledger-row {
+  position: relative;
+  isolation: isolate;
+}
+.ledger-row::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--marker);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.ledger-row:is(:hover, :focus-within)::before {
+  transform: scaleX(1);
+}
+.ledger-row:is(:hover, :focus-within) {
+  color: var(--marker-foreground);
+}
+.ledger-row:is(:hover, :focus-within) .ledger-muted {
+  color: color-mix(in oklab, var(--marker-foreground) 78%, transparent);
+}
+.ledger-row .ledger-shift {
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.ledger-row:is(:hover, :focus-within) .ledger-shift {
+  transform: translateX(8px);
+}
+
+/* Chevron for native <select>. */
 .select-chevron {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238b8bad' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237a7566' stroke-width='2.5' stroke-linecap='square' stroke-linejoin='miter'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 }
 
-.hero-bg {
-  background:
-    radial-gradient(60rem 28rem at 15% -10%, var(--hero-glow-1), transparent 60%),
-    radial-gradient(48rem 24rem at 90% 0%, var(--hero-glow-2), transparent 60%);
+/* Transparency checkerboard behind image previews. */
+.checker {
+  background-color: var(--card);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Crect width='8' height='8' fill='%23c9c3b0'/%3E%3Crect x='8' y='8' width='8' height='8' fill='%23c9c3b0'/%3E%3C/svg%3E");
 }
 
-.grid-fade {
-  background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
-  background-size: 44px 44px;
-  mask-image: radial-gradient(ellipse at 50% 0%, #000 0%, transparent 70%);
-  opacity: 0.45;
+/* Skeleton: a plain pulsing block (no shimmer gradient). */
+.skeleton {
+  background: var(--muted);
+  animation: pulse-solid 1.4s ease-in-out infinite;
+  border-radius: 3px;
 }
 
-/* Typography for rendered Markdown (Markdown previewer) and long-form pages. */
+/* ---------- Long-form typography (Markdown previewer, static pages) ---------- */
 .prose-tw {
   line-height: 1.7;
   overflow-wrap: anywhere;
+  max-width: 68ch;
 }
 .prose-tw > :first-child {
   margin-top: 0;
@@ -141,20 +305,20 @@
 .prose-tw h2,
 .prose-tw h3,
 .prose-tw h4 {
-  font-weight: 650;
-  line-height: 1.25;
-  margin: 1.6em 0 0.5em;
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 1.8em 0 0.5em;
 }
 .prose-tw h1 {
-  font-size: 1.75rem;
+  font-size: 2rem;
 }
 .prose-tw h2 {
-  font-size: 1.4rem;
-  padding-bottom: 0.25em;
-  border-bottom: 1px solid var(--border);
+  font-size: 1.5rem;
+  padding-top: 0.6em;
+  border-top: 1px solid var(--foreground);
 }
 .prose-tw h3 {
-  font-size: 1.15rem;
+  font-size: 1.2rem;
 }
 .prose-tw p,
 .prose-tw ul,
@@ -165,12 +329,15 @@
   margin: 0.9em 0;
 }
 .prose-tw ul {
-  list-style: disc;
-  padding-left: 1.5rem;
+  list-style: square;
+  padding-left: 1.4rem;
 }
 .prose-tw ol {
   list-style: decimal;
   padding-left: 1.5rem;
+}
+.prose-tw li::marker {
+  color: var(--primary);
 }
 .prose-tw li > ul,
 .prose-tw li > ol {
@@ -179,27 +346,33 @@
 .prose-tw a {
   color: var(--primary);
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+.prose-tw a:hover {
+  background: var(--marker);
+  color: var(--marker-foreground);
 }
 .prose-tw code {
   font-family: var(--font-mono);
-  font-size: 0.875em;
+  font-size: 0.86em;
   background: var(--muted);
-  padding: 0.15em 0.4em;
-  border-radius: 0.375rem;
+  padding: 0.12em 0.4em;
+  border: 1px solid var(--border);
 }
 .prose-tw pre {
   background: var(--muted);
+  border: 1px solid var(--border);
   padding: 0.9rem 1rem;
-  border-radius: 0.6rem;
   overflow-x: auto;
 }
 .prose-tw pre code {
   background: none;
+  border: 0;
   padding: 0;
 }
 .prose-tw blockquote {
-  border-left: 3px solid var(--primary);
+  border-left: 4px solid var(--primary);
   padding-left: 1rem;
   color: var(--muted-foreground);
 }
@@ -216,28 +389,20 @@
 .prose-tw th {
   background: var(--muted);
   text-align: left;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 .prose-tw hr {
   border: 0;
-  border-top: 1px solid var(--border);
-  margin: 1.5em 0;
+  border-top: 1px solid var(--foreground);
+  margin: 1.8em 0;
 }
 .prose-tw img {
   max-width: 100%;
 }
 .prose-tw input[type="checkbox"] {
   margin-right: 0.4em;
-}
-
-/* Skeleton shimmer used while tool code loads. */
-@keyframes shimmer {
-  to {
-    background-position: -200% 0;
-  }
-}
-.skeleton {
-  background: linear-gradient(90deg, var(--muted) 25%, color-mix(in oklab, var(--muted) 60%, var(--card)) 50%, var(--muted) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s linear infinite;
-  border-radius: 0.6rem;
+  accent-color: var(--primary);
 }

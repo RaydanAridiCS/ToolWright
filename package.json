@@ -21,6 +21,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "e2e": "playwright test",
+    "e2e:visual": "playwright test e2e/visual.spec.ts --grep @visual",
+    "screenshots": "node scripts/screenshots.mjs",
     "new-tool": "node scripts/new-tool.mjs",
     "docs:tools": "node scripts/gen-tool-docs.mjs",
     "db:generate": "npm run generate -w @toolwright/db",

@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { ArrowLeftRight } from "lucide-react";
-import { Button, Field, Panel, Select, useShareableState } from "@toolwright/ui";
+import { Button, Field, Panel, Select, useShareableState, ResultSlab } from "@toolwright/ui";
 import { TEMPERATURE_UNITS, UNIT_CATEGORIES, convertTemperature, convertUnit, formatNumber, type TemperatureUnit } from "@toolwright/core/units";
 import { NumberField, num } from "../../shared/number-field";
 import { ResultRow } from "../../shared/result-row";
@@ -101,14 +101,11 @@ export default function Tool() {
         </Field>
       </div>
 
-      <div className="rounded-xl border border-primary/30 bg-primary/8 p-5" aria-live="polite">
-        <p className="text-sm text-muted-foreground">
-          {Number.isFinite(value) ? `${formatNumber(value)} ${unitLabel(state.from)?.symbol ?? ""} =` : "Enter a number"}
-        </p>
-        <p className="mt-1 break-all font-mono text-3xl font-semibold" data-testid="unit-result">
-          {result === null ? "—" : `${formatNumber(result, 10)} ${unitLabel(state.to)?.symbol ?? ""}`}
-        </p>
-      </div>
+      <ResultSlab
+        label={Number.isFinite(value) ? `${formatNumber(value)} ${unitLabel(state.from)?.symbol ?? ""} =` : "Enter a number"}
+        value={result === null ? "—" : `${formatNumber(result, 10)} ${unitLabel(state.to)?.symbol ?? ""}`}
+        valueTestId="unit-result"
+      />
 
       {Number.isFinite(value) ? (
         <Panel title={`${formatNumber(value)} ${unitLabel(state.from)?.symbol ?? ""} in every ${category.label.toLowerCase()} unit`}>

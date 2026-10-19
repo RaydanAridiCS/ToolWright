@@ -88,7 +88,7 @@ export default function Tool() {
           <div className="mt-1" aria-live="polite">
             <div className="flex h-1.5 gap-1" role="img" aria-label={`Strength: ${label}`}>
               {[0, 1, 2, 3, 4].map((i) => (
-                <span key={i} className={cn("flex-1 rounded-full bg-border", i <= score && METER[score])} />
+                <span key={i} className={cn("flex-1 bg-border", i <= score && METER[score])} />
               ))}
             </div>
             <p className="mt-1.5 text-sm text-muted-foreground">

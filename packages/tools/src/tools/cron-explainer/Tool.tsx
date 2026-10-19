@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Alert, Button, Field, Input, Panel, SegmentedControl, useShareableState } from "@toolwright/ui";
+import { Alert, Button, Field, Input, Panel, SegmentedControl, useShareableState, ResultSlab } from "@toolwright/ui";
 import { CRON_EXAMPLES, explainCron, nextRuns } from "@toolwright/core/cron";
 import { errorMessage } from "../../shared/format";
 
@@ -51,10 +51,7 @@ export default function Tool() {
 
       {result?.ok ? (
         <>
-          <div className="rounded-xl border border-primary/30 bg-primary/8 p-5">
-            <p className="text-xs font-medium uppercase tracking-wide text-primary">In plain English</p>
-            <p className="mt-1 text-xl font-semibold">{result.explanation}</p>
-          </div>
+          <ResultSlab label="In plain English" value={result.explanation} size="md" />
           <Panel
             title="Next 10 runs"
             actions={

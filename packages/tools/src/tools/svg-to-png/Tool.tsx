@@ -7,9 +7,9 @@ import { NumberField, num } from "../../shared/number-field";
 import { errorMessage } from "../../shared/format";
 
 const SAMPLE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
-  <rect width="120" height="120" rx="24" fill="#4f46e5"/>
+  <rect width="120" height="120" rx="24" fill="#1b1a15"/>
   <path d="M30 78 60 30l30 48H30Z" fill="#fff" opacity=".92"/>
-  <circle cx="60" cy="84" r="8" fill="#2dd4bf"/>
+  <circle cx="60" cy="84" r="8" fill="#d8ec4e"/>
 </svg>`;
 
 function measure(svg: string): { width: number; height: number } | null {
@@ -150,7 +150,7 @@ export default function Tool() {
       {result ? (
         <div className="flex flex-wrap items-center gap-5 rounded-xl border border-border bg-card p-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={result.url} alt="Rendered output" className="max-h-56 max-w-full rounded border border-border bg-[repeating-conic-gradient(var(--muted)_0%_25%,transparent_0%_50%)] bg-[length:14px_14px] object-contain" />
+          <img src={result.url} alt="Rendered output" className="checker max-h-56 max-w-full border border-border object-contain" />
           <div className="flex flex-col gap-2">
             <p className="text-sm text-muted-foreground">
               {result.width} × {result.height}px
