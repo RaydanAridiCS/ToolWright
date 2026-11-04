@@ -97,6 +97,7 @@ import meta_svg_to_react from "./tools/svg-to-react/meta";
 import meta_text_ciphers from "./tools/text-ciphers/meta";
 import meta_text_diff from "./tools/text-diff/meta";
 import meta_text_reverser from "./tools/text-reverser/meta";
+import meta_text_to_speech from "./tools/text-to-speech/meta";
 import meta_time_zone_converter from "./tools/time-zone-converter/meta";
 import meta_timestamp_converter from "./tools/timestamp-converter/meta";
 import meta_tip_calculator from "./tools/tip-calculator/meta";
@@ -212,6 +213,7 @@ export const tools: readonly ToolMeta[] = [
   meta_text_ciphers,
   meta_text_diff,
   meta_text_reverser,
+  meta_text_to_speech,
   meta_time_zone_converter,
   meta_timestamp_converter,
   meta_tip_calculator,

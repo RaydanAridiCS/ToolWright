@@ -71,6 +71,7 @@ const PAGES = [
   "/tools/xml-formatter",
   "/tools/subnet-calculator",
   "/tools/barcode-generator",
+  "/tools/text-to-speech",
 ];
 
 for (const scheme of ["light", "dark"] as const) {

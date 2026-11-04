@@ -4,6 +4,13 @@ All notable changes to Toolwright. The format follows [Keep a Changelog](https:/
 
 ## [Unreleased]
 
+### Added: Text-to-Speech Preview tool
+
+- **New tool: `/tools/text-to-speech`.** Type or paste text and hear it read aloud with any voice available in your browser. Adjust speed, pitch and volume; use the sample to test voices; and pause, resume or stop playback. Everything stays on the device — no upload, no recording.
+- **Core logic** in `packages/core/src/text-to-speech.ts`: text chunking, voice selection, option normalisation and CSP-safe detection of speech synthesis support, with unit tests in `packages/core/tests/text-to-speech.test.ts`.
+- **Shared hook** in `packages/tools/src/shared/use-speech-synthesis.ts` wraps the Web Speech API for React tools.
+- **SEO and docs**: keyword-map entry, generated docs, sitemap `lastmod`, and an e2e test plus a11y coverage for the new page.
+
 ### Fixed: the request board
 
 - **A database outage no longer looks like a bug.** On the live site `GET /api/requests` answered `500 Something went wrong on our side` and the board gave visitors no way forward. A database that cannot be reached, refuses the login or has no tables now gives `503` with `Retry-After: 60` and the code `unavailable`; the board shows "The board is taking a break" with a *Try again* button, and nothing a visitor typed is lost. The app also stops waiting for an unreachable database after 10 seconds.

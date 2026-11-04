@@ -101,6 +101,7 @@ export const toolLoaders: Record<string, ToolLoader> = {
   "text-ciphers": () => import("./tools/text-ciphers/Tool"),
   "text-diff": () => import("./tools/text-diff/Tool"),
   "text-reverser": () => import("./tools/text-reverser/Tool"),
+  "text-to-speech": () => import("./tools/text-to-speech/Tool"),
   "time-zone-converter": () => import("./tools/time-zone-converter/Tool"),
   "timestamp-converter": () => import("./tools/timestamp-converter/Tool"),
   "tip-calculator": () => import("./tools/tip-calculator/Tool"),
