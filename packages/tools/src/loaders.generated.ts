@@ -36,6 +36,7 @@ export const toolLoaders: Record<string, ToolLoader> = {
   "http-header-explainer": () => import("./tools/http-header-explainer/Tool"),
   "http-status-codes": () => import("./tools/http-status-codes/Tool"),
   "image-color-picker": () => import("./tools/image-color-picker/Tool"),
+  "image-compare": () => import("./tools/image-compare/Tool"),
   "image-compressor": () => import("./tools/image-compressor/Tool"),
   "image-converter": () => import("./tools/image-converter/Tool"),
   "image-crop": () => import("./tools/image-crop/Tool"),

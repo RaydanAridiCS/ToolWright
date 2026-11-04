@@ -32,6 +32,7 @@ import meta_html_to_markdown from "./tools/html-to-markdown/meta";
 import meta_http_header_explainer from "./tools/http-header-explainer/meta";
 import meta_http_status_codes from "./tools/http-status-codes/meta";
 import meta_image_color_picker from "./tools/image-color-picker/meta";
+import meta_image_compare from "./tools/image-compare/meta";
 import meta_image_compressor from "./tools/image-compressor/meta";
 import meta_image_converter from "./tools/image-converter/meta";
 import meta_image_crop from "./tools/image-crop/meta";
@@ -146,6 +147,7 @@ export const tools: readonly ToolMeta[] = [
   meta_http_header_explainer,
   meta_http_status_codes,
   meta_image_color_picker,
+  meta_image_compare,
   meta_image_compressor,
   meta_image_converter,
   meta_image_crop,
