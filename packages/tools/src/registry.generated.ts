@@ -44,6 +44,7 @@ import meta_json_diff from "./tools/json-diff/meta";
 import meta_json_formatter from "./tools/json-formatter/meta";
 import meta_json_merge from "./tools/json-merge/meta";
 import meta_json_schema_generator from "./tools/json-schema-generator/meta";
+import meta_json_schema_validator from "./tools/json-schema-validator/meta";
 import meta_json_to_typescript from "./tools/json-to-typescript/meta";
 import meta_json_yaml_converter from "./tools/json-yaml-converter/meta";
 import meta_jsonpath_tester from "./tools/jsonpath-tester/meta";
@@ -156,6 +157,7 @@ export const tools: readonly ToolMeta[] = [
   meta_json_formatter,
   meta_json_merge,
   meta_json_schema_generator,
+  meta_json_schema_validator,
   meta_json_to_typescript,
   meta_json_yaml_converter,
   meta_jsonpath_tester,

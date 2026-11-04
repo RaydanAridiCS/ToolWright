@@ -48,6 +48,7 @@ export const toolLoaders: Record<string, ToolLoader> = {
   "json-formatter": () => import("./tools/json-formatter/Tool"),
   "json-merge": () => import("./tools/json-merge/Tool"),
   "json-schema-generator": () => import("./tools/json-schema-generator/Tool"),
+  "json-schema-validator": () => import("./tools/json-schema-validator/Tool"),
   "json-to-typescript": () => import("./tools/json-to-typescript/Tool"),
   "json-yaml-converter": () => import("./tools/json-yaml-converter/Tool"),
   "jsonpath-tester": () => import("./tools/jsonpath-tester/Tool"),

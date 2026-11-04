@@ -44,6 +44,7 @@
     "json-formatter": "2026-10-31",
     "json-merge": "2026-10-31",
     "json-schema-generator": "2026-10-31",
+    "json-schema-validator": "2026-11-04",
     "json-to-typescript": "2026-10-31",
     "json-yaml-converter": "2026-10-31",
     "jsonpath-tester": "2026-10-31",

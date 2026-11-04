@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@cfworker/json-schema": "^4.1.6",
     "@scure/bip39": "^2.4.0",
     "cronstrue": "^3.33.0",
     "diff": "^8.0.2",
