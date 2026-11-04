@@ -26,6 +26,7 @@ const PAGES = [
   "/tools/color-converter",
   "/tools/contrast-checker",
   "/tools/qr-code-generator",
+  "/tools/apng-maker",
   "/tools/merge-pdf",
   "/tools/image-compressor",
   "/tools/hash-generator",

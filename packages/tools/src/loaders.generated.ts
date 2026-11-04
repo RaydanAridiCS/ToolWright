@@ -4,6 +4,7 @@ import type { ComponentType } from "react";
 export type ToolLoader = () => Promise<{ default: ComponentType }>;
 
 export const toolLoaders: Record<string, ToolLoader> = {
+  "apng-maker": () => import("./tools/apng-maker/Tool"),
   "barcode-generator": () => import("./tools/barcode-generator/Tool"),
   "base64-encoder": () => import("./tools/base64-encoder/Tool"),
   "bmi-calculator": () => import("./tools/bmi-calculator/Tool"),

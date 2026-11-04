@@ -15,6 +15,7 @@
   "dependencies": {
     "@cfworker/json-schema": "^4.1.6",
     "@ltd/j-toml": "^1.38.0",
+    "@pdf-lib/upng": "^1.0.1",
     "@scure/bip39": "^2.4.0",
     "cronstrue": "^3.33.0",
     "diff": "^8.0.2",

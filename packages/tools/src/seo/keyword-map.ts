@@ -47,6 +47,10 @@ export const SERP_CLUSTERS: Record<Cluster, string> = {
 };
 
 export const KEYWORD_MAP: Record<string, KeywordEntry> = {
+  "apng-maker": { primary: "apng maker", intent: "do", volume: "medium", difficulty: "medium", serp: "image",
+    secondary: ["create apng", "png to apng", "animated png maker", "make animated png", "apng creator", "apng animation", "convert png to apng", "apng frames", "animated png online"],
+    modifiers: ["free", "online", "no upload", "browser"],
+    edge: "Combines PNG frames into an animated PNG locally, with frame delay and loop control." },
   "barcode-generator": { primary: "barcode generator", intent: "do", volume: "high", difficulty: "high", serp: "gen",
     secondary: ["free barcode generator", "code 128 barcode generator", "ean 13 barcode generator", "upc a barcode generator", "create barcode online", "barcode generator svg", "barcode generator png", "ean 8 barcode", "itf 14 barcode", "code 39 generator"],
     modifiers: ["free", "online", "no sign-up", "svg", "png"],

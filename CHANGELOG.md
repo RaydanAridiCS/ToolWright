@@ -4,6 +4,11 @@ All notable changes to Toolwright. The format follows [Keep a Changelog](https:/
 
 ## [Unreleased]
 
+### Added: APNG Maker
+
+- **New tool: `/tools/apng-maker`.** Combine two or more PNG frames into a single animated PNG (APNG) with a configurable frame delay and loop count. Frames can be reordered before exporting. Core logic in `packages/core/src/apng-maker.ts` uses `@pdf-lib/upng` to decode frames and encode the animation locally, with unit tests in `packages/core/tests/apng-maker.test.ts`.
+- **SEO and docs**: keyword-map entry, generated docs, sitemap `lastmod`, an e2e test and a11y coverage for the new page.
+
 ### Added: Text-to-Speech Preview tool
 
 - **New tool: `/tools/text-to-speech`.** Type or paste text and hear it read aloud with any voice available in your browser. Adjust speed, pitch and volume; use the sample to test voices; and pause, resume or stop playback. Everything stays on the device — no upload, no recording.
