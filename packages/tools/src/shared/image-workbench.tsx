@@ -3,12 +3,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Alert, Badge, Button, DownloadButton, Field, FileDropzone, Panel, Select, Toggle, cn, formatFileSize, useDebounced } from "@toolwright/ui";
+import { searchImageUnderTarget } from "@toolwright/core/image-target-size";
 import { NumberField, num } from "./number-field";
-import { blobToBytes, fitWithin, loadImage, outputName, renderImage, type OutputFormat } from "./image";
+import { blobToBytes, fitWithin, loadImage, outputName, renderImage, type LoadedImage, type OutputFormat } from "./image";
 import { createZip } from "./zip";
 import { errorMessage } from "./format";
 
-export type WorkbenchMode = "compress" | "convert" | "resize";
+export type WorkbenchMode = "compress" | "convert" | "resize" | "target";
 
 type FormatChoice = "same" | OutputFormat;
 type ResizeMode = "none" | "fit" | "percent" | "exact";
@@ -25,12 +26,15 @@ interface Settings {
   lockAspect: boolean;
   background: string;
   fillTransparent: boolean;
+  targetKB: string;
+  allowDownscale: boolean;
 }
 
 const PRESETS: Record<WorkbenchMode, Partial<Settings>> = {
   compress: { format: "same", quality: 75, resize: "none" },
   convert: { format: "image/webp", quality: 90, resize: "none" },
   resize: { format: "same", quality: 90, resize: "fit", maxWidth: "1280", maxHeight: "" },
+  target: { format: "image/webp", quality: 90, resize: "none", targetKB: "100", allowDownscale: true },
 };
 
 const DEFAULTS: Settings = {
@@ -45,6 +49,8 @@ const DEFAULTS: Settings = {
   lockAspect: true,
   background: "#ffffff",
   fillTransparent: false,
+  targetKB: "100",
+  allowDownscale: true,
 };
 
 interface Result {
@@ -59,6 +65,12 @@ interface Result {
   originalWidth: number;
   originalHeight: number;
   fellBack: boolean;
+  /** Target mode: the original already fit, so it was handed back untouched. */
+  keptOriginal?: boolean;
+  /** Target mode: no encoding could reach the size target. */
+  missedTarget?: boolean;
+  /** Target mode: the quality the search settled on, 0–100. */
+  searchQuality?: number;
   error?: undefined;
 }
 
@@ -114,41 +126,12 @@ export function ImageWorkbench({ mode }: { mode: WorkbenchMode }) {
           const image = await loadImage(file);
           try {
             const s = debounced;
-            let target = { width: image.width, height: image.height };
-            if (s.resize === "fit") target = fitWithin(image.width, image.height, { maxWidth: num(s.maxWidth) || undefined, maxHeight: num(s.maxHeight) || undefined, noUpscale: true });
-            else if (s.resize === "percent") {
-              const p = Math.max(1, Math.min(500, num(s.percent) || 100)) / 100;
-              target = { width: image.width * p, height: image.height * p };
-            } else if (s.resize === "exact") {
-              const w = num(s.width);
-              const h = num(s.height);
-              const ratio = image.width / image.height;
-              if (s.lockAspect) target = Number.isFinite(w) && w > 0 ? { width: w, height: w / ratio } : Number.isFinite(h) && h > 0 ? { width: h * ratio, height: h } : target;
-              else target = { width: Number.isFinite(w) && w > 0 ? w : image.width, height: Number.isFinite(h) && h > 0 ? h : image.height };
+            if (mode === "target") {
+              const outcome = await processToTarget(image, file, s, out, id, urls.current);
+              if (outcome) out.push(outcome);
+            } else {
+              out.push(await encodeOnce(image, file, s, id, mode));
             }
-            const type = resolveFormat(s.format, file);
-            const rendered = await renderImage(image, {
-              width: target.width,
-              height: target.height,
-              type,
-              quality: s.quality / 100,
-              background: type === "image/jpeg" || s.fillTransparent ? s.background : null,
-            });
-            const url = URL.createObjectURL(rendered.blob);
-            urls.current.push(url);
-            out.push({
-              id,
-              name: outputName(file.name, rendered.blob.type || type, mode === "resize" ? `-${rendered.width}x${rendered.height}` : mode === "compress" ? "-compressed" : ""),
-              originalName: file.name,
-              originalSize: file.size,
-              blob: rendered.blob,
-              url,
-              width: rendered.width,
-              height: rendered.height,
-              originalWidth: image.width,
-              originalHeight: image.height,
-              fellBack: rendered.fellBack,
-            });
           } finally {
             image.dispose();
           }
@@ -219,20 +202,29 @@ export function ImageWorkbench({ mode }: { mode: WorkbenchMode }) {
           )}
         </Field>
 
-        <Field label={`Quality: ${settings.quality}%`} hint={lossy ? "Lower values make smaller files." : "PNG is lossless, so quality does not apply."}>
-          {(id) => <input id={id} type="range" min={10} max={100} step={1} value={settings.quality} disabled={!lossy} onChange={(e) => set({ quality: Number(e.target.value) })} className="accent-primary disabled:opacity-40" />}
-        </Field>
+        {mode === "target" ? (
+          <>
+            <NumberField label="Target size" suffix="kB" value={settings.targetKB} onChange={(targetKB) => set({ targetKB })} min={1} />
+            <Toggle label="Shrink the picture if needed" checked={settings.allowDownscale} onCheckedChange={(allowDownscale) => set({ allowDownscale })} hint="When no quality setting can reach the target, the picture is also made smaller." className="items-start" />
+          </>
+        ) : (
+          <>
+            <Field label={`Quality: ${settings.quality}%`} hint={lossy ? "Lower values make smaller files." : "PNG is lossless, so quality does not apply."}>
+              {(id) => <input id={id} type="range" min={10} max={100} step={1} value={settings.quality} disabled={!lossy} onChange={(e) => set({ quality: Number(e.target.value) })} className="accent-primary disabled:opacity-40" />}
+            </Field>
 
-        <Field label="Resize">
-          {(id) => (
-            <Select id={id} value={settings.resize} onChange={(e) => set({ resize: e.target.value as ResizeMode })}>
-              <option value="none">Keep original size</option>
-              <option value="fit">Fit within a maximum size</option>
-              <option value="percent">Scale by percentage</option>
-              <option value="exact">Exact dimensions</option>
-            </Select>
-          )}
-        </Field>
+            <Field label="Resize">
+              {(id) => (
+                <Select id={id} value={settings.resize} onChange={(e) => set({ resize: e.target.value as ResizeMode })}>
+                  <option value="none">Keep original size</option>
+                  <option value="fit">Fit within a maximum size</option>
+                  <option value="percent">Scale by percentage</option>
+                  <option value="exact">Exact dimensions</option>
+                </Select>
+              )}
+            </Field>
+          </>
+        )}
 
         {settings.resize === "fit" ? (
           <>
@@ -255,7 +247,7 @@ export function ImageWorkbench({ mode }: { mode: WorkbenchMode }) {
         </div>
       </div>
 
-      {showPngNote && mode === "compress" ? (
+      {showPngNote && (mode === "compress" || mode === "target") ? (
         <Alert tone="info">PNG files are lossless, so only resizing makes them smaller. To shrink them a lot, choose WebP or JPEG above.</Alert>
       ) : null}
 
@@ -311,7 +303,10 @@ function ResultItem({ r }: { r: Result }) {
         <p className="text-xs text-muted-foreground">
           {r.originalWidth}×{r.originalHeight}
           {r.width !== r.originalWidth || r.height !== r.originalHeight ? ` → ${r.width}×${r.height}` : ""} · {formatFileSize(r.originalSize)} → <span className="text-foreground">{formatFileSize(r.blob.size)}</span>
+          {r.searchQuality !== undefined ? ` · quality ${r.searchQuality}%` : ""}
         </p>
+        {r.keptOriginal ? <p className="text-xs text-muted-foreground">{r.missedTarget ? "Nothing could be encoded under the target, so the original was kept." : "Already under the target, so the original was kept and is not re-encoded."}</p> : null}
+        {!r.keptOriginal && r.missedTarget ? <p className="text-xs text-warning">This is the smallest this tool could encode; a smaller format such as WebP may reach the target.</p> : null}
         {r.fellBack ? <p className="text-xs text-warning">Your browser cannot encode this format, so a PNG was saved instead.</p> : null}
       </div>
       <Badge tone={saved > 0 ? "success" : saved < 0 ? "danger" : "neutral"} className={cn("tabular-nums")}>
@@ -320,5 +315,142 @@ function ResultItem({ r }: { r: Result }) {
       <DownloadButton data={r.blob} filename={r.name} mime={r.blob.type} label="Download" variant="outline" size="sm" />
     </li>
   );
+}
+
+/** The old single-pass encode used by the compress, convert and resize modes. */
+async function encodeOnce(image: LoadedImage, file: File, s: Settings, id: string, mode: WorkbenchMode): Promise<Result> {
+  let target = { width: image.width, height: image.height };
+  if (s.resize === "fit") target = fitWithin(image.width, image.height, { maxWidth: num(s.maxWidth) || undefined, maxHeight: num(s.maxHeight) || undefined, noUpscale: true });
+  else if (s.resize === "percent") {
+    const p = Math.max(1, Math.min(500, num(s.percent) || 100)) / 100;
+    target = { width: image.width * p, height: image.height * p };
+  } else if (s.resize === "exact") {
+    const w = num(s.width);
+    const h = num(s.height);
+    const ratio = image.width / image.height;
+    if (s.lockAspect) target = Number.isFinite(w) && w > 0 ? { width: w, height: w / ratio } : Number.isFinite(h) && h > 0 ? { width: h * ratio, height: h } : target;
+    else target = { width: Number.isFinite(w) && w > 0 ? w : image.width, height: Number.isFinite(h) && h > 0 ? h : image.height };
+  }
+  const type = resolveFormat(s.format, file);
+  const rendered = await renderImage(image, {
+    width: target.width,
+    height: target.height,
+    type,
+    quality: s.quality / 100,
+    background: type === "image/jpeg" || s.fillTransparent ? s.background : null,
+  });
+  const url = URL.createObjectURL(rendered.blob);
+  return {
+    id,
+    name: outputName(file.name, rendered.blob.type || type, mode === "resize" ? `-${rendered.width}x${rendered.height}` : mode === "compress" ? "-compressed" : ""),
+    originalName: file.name,
+    originalSize: file.size,
+    blob: rendered.blob,
+    url,
+    width: rendered.width,
+    height: rendered.height,
+    originalWidth: image.width,
+    originalHeight: image.height,
+    fellBack: rendered.fellBack,
+  };
+}
+
+/**
+ * The target-size encode: the original already fit it is handed back as it is, otherwise the search in
+ * core finds the size and quality to use and one final encode produces the file.
+ */
+async function processToTarget(image: LoadedImage, file: File, s: Settings, out: (Result | Failure)[], id: string, urls: string[]): Promise<Result | null> {
+  const bytes = Math.round((num(s.targetKB) || 0) * 1000);
+  if (bytes <= 0) {
+    out.push({ id, originalName: file.name, error: "Choose a target size of at least 1 kB." });
+    return null;
+  }
+  if (file.size <= bytes) {
+    // Small enough as it is: keep the original file untouched instead of re-encoding it for nothing.
+    const url = URL.createObjectURL(file);
+    urls.push(url);
+    return {
+      id,
+      name: file.name,
+      originalName: file.name,
+      originalSize: file.size,
+      blob: file,
+      url,
+      width: image.width,
+      height: image.height,
+      originalWidth: image.width,
+      originalHeight: image.height,
+      fellBack: false,
+      keptOriginal: true,
+    };
+  }
+  const type = resolveFormat(s.format, file);
+  const background = type === "image/jpeg" || s.fillTransparent ? s.background : null;
+  const search = await searchImageUnderTarget(
+    bytes,
+    { width: image.width, height: image.height },
+    (width, height, quality) => renderImage(image, { width, height, type, quality, background }).then((r) => ({ size: r.blob.size })),
+    { maxRounds: s.allowDownscale ? 4 : 0 },
+  );
+  const best = search.best;
+  if (!best) throw new Error("The image could not be encoded in this browser.");
+  const keepOriginal = (): Result => {
+    // Never offer a bigger file: when every attempt came out larger than the original, hand the original back.
+    const url = URL.createObjectURL(file);
+    urls.push(url);
+    return {
+      id,
+      name: file.name,
+      originalName: file.name,
+      originalSize: file.size,
+      blob: file,
+      url,
+      width: image.width,
+      height: image.height,
+      originalWidth: image.width,
+      originalHeight: image.height,
+      fellBack: false,
+      keptOriginal: true,
+      missedTarget: true,
+    };
+  };
+  if (!search.hit) {
+    if (best.size >= file.size) return keepOriginal();
+    const kept = await renderImage(image, { width: best.width, height: best.height, type, quality: best.quality, background });
+    const smallestUrl = URL.createObjectURL(kept.blob);
+    urls.push(smallestUrl);
+    return {
+      id,
+      name: outputName(file.name, kept.blob.type || type, "-smallest"),
+      originalName: file.name,
+      originalSize: file.size,
+      blob: kept.blob,
+      url: smallestUrl,
+      width: kept.width,
+      height: kept.height,
+      originalWidth: image.width,
+      originalHeight: image.height,
+      fellBack: kept.fellBack,
+      searchQuality: Math.round(best.quality * 100),
+      missedTarget: true,
+    };
+  }
+  const rendered = await renderImage(image, { width: best.width, height: best.height, type, quality: best.quality, background });
+  const url = URL.createObjectURL(rendered.blob);
+  urls.push(url);
+  return {
+    id,
+    name: outputName(file.name, rendered.blob.type || type, "-under-limit"),
+    originalName: file.name,
+    originalSize: file.size,
+    blob: rendered.blob,
+    url,
+    width: rendered.width,
+    height: rendered.height,
+    originalWidth: image.width,
+    originalHeight: image.height,
+    fellBack: rendered.fellBack,
+    searchQuality: Math.round(best.quality * 100),
+  };
 }
 

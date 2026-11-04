@@ -40,6 +40,7 @@ export const toolLoaders: Record<string, ToolLoader> = {
   "image-converter": () => import("./tools/image-converter/Tool"),
   "image-crop": () => import("./tools/image-crop/Tool"),
   "image-resizer": () => import("./tools/image-resizer/Tool"),
+  "image-target-size": () => import("./tools/image-target-size/Tool"),
   "image-to-base64": () => import("./tools/image-to-base64/Tool"),
   "image-to-svg": () => import("./tools/image-to-svg/Tool"),
   "images-to-pdf": () => import("./tools/images-to-pdf/Tool"),

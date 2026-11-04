@@ -36,6 +36,7 @@ import meta_image_compressor from "./tools/image-compressor/meta";
 import meta_image_converter from "./tools/image-converter/meta";
 import meta_image_crop from "./tools/image-crop/meta";
 import meta_image_resizer from "./tools/image-resizer/meta";
+import meta_image_target_size from "./tools/image-target-size/meta";
 import meta_image_to_base64 from "./tools/image-to-base64/meta";
 import meta_image_to_svg from "./tools/image-to-svg/meta";
 import meta_images_to_pdf from "./tools/images-to-pdf/meta";
@@ -149,6 +150,7 @@ export const tools: readonly ToolMeta[] = [
   meta_image_converter,
   meta_image_crop,
   meta_image_resizer,
+  meta_image_target_size,
   meta_image_to_base64,
   meta_image_to_svg,
   meta_images_to_pdf,
