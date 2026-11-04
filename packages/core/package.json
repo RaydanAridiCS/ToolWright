@@ -14,10 +14,12 @@
   },
   "dependencies": {
     "@cfworker/json-schema": "^4.1.6",
+    "@ltd/j-toml": "^1.38.0",
     "@scure/bip39": "^2.4.0",
     "cronstrue": "^3.33.0",
     "diff": "^8.0.2",
     "gifenc": "1.0.3",
+    "graphql": "^17.0.2",
     "imagetracerjs": "1.2.6",
     "js-yaml": "^4.1.0",
     "marked": "^16.4.1",

@@ -13,6 +13,7 @@ import meta_cron_explainer from "./tools/cron-explainer/meta";
 import meta_csv_delimiter_converter from "./tools/csv-delimiter-converter/meta";
 import meta_csv_to_markdown from "./tools/csv-to-markdown/meta";
 import meta_curl_to_fetch from "./tools/curl-to-fetch/meta";
+import meta_data_matrix_generator from "./tools/data-matrix-generator/meta";
 import meta_date_calculator from "./tools/date-calculator/meta";
 import meta_delete_pdf_pages from "./tools/delete-pdf-pages/meta";
 import meta_dockerfile_linter from "./tools/dockerfile-linter/meta";
@@ -25,6 +26,7 @@ import meta_find_and_replace from "./tools/find-and-replace/meta";
 import meta_gif_editor from "./tools/gif-editor/meta";
 import meta_gif_maker from "./tools/gif-maker/meta";
 import meta_graphql_formatter from "./tools/graphql-formatter/meta";
+import meta_graphql_validator from "./tools/graphql-validator/meta";
 import meta_hash_generator from "./tools/hash-generator/meta";
 import meta_hex_binary_converter from "./tools/hex-binary-converter/meta";
 import meta_html_entities from "./tools/html-entities/meta";
@@ -70,6 +72,7 @@ import meta_pdf_page_numbers from "./tools/pdf-page-numbers/meta";
 import meta_pdf_to_images from "./tools/pdf-to-images/meta";
 import meta_pdf_to_text from "./tools/pdf-to-text/meta";
 import meta_pdf_watermark from "./tools/pdf-watermark/meta";
+import meta_pdf417_generator from "./tools/pdf417-generator/meta";
 import meta_percentage_calculator from "./tools/percentage-calculator/meta";
 import meta_port_numbers from "./tools/port-numbers/meta";
 import meta_prime_factors from "./tools/prime-factors/meta";
@@ -101,6 +104,7 @@ import meta_text_to_speech from "./tools/text-to-speech/meta";
 import meta_time_zone_converter from "./tools/time-zone-converter/meta";
 import meta_timestamp_converter from "./tools/timestamp-converter/meta";
 import meta_tip_calculator from "./tools/tip-calculator/meta";
+import meta_toml_validator from "./tools/toml-validator/meta";
 import meta_unicode_escape from "./tools/unicode-escape/meta";
 import meta_unique_id_generator from "./tools/unique-id-generator/meta";
 import meta_unit_converter from "./tools/unit-converter/meta";
@@ -129,6 +133,7 @@ export const tools: readonly ToolMeta[] = [
   meta_csv_delimiter_converter,
   meta_csv_to_markdown,
   meta_curl_to_fetch,
+  meta_data_matrix_generator,
   meta_date_calculator,
   meta_delete_pdf_pages,
   meta_dockerfile_linter,
@@ -141,6 +146,7 @@ export const tools: readonly ToolMeta[] = [
   meta_gif_editor,
   meta_gif_maker,
   meta_graphql_formatter,
+  meta_graphql_validator,
   meta_hash_generator,
   meta_hex_binary_converter,
   meta_html_entities,
@@ -186,6 +192,7 @@ export const tools: readonly ToolMeta[] = [
   meta_pdf_to_images,
   meta_pdf_to_text,
   meta_pdf_watermark,
+  meta_pdf417_generator,
   meta_percentage_calculator,
   meta_port_numbers,
   meta_prime_factors,
@@ -217,6 +224,7 @@ export const tools: readonly ToolMeta[] = [
   meta_time_zone_converter,
   meta_timestamp_converter,
   meta_tip_calculator,
+  meta_toml_validator,
   meta_unicode_escape,
   meta_unique_id_generator,
   meta_unit_converter,

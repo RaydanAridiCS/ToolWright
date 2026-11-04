@@ -72,6 +72,10 @@ const PAGES = [
   "/tools/subnet-calculator",
   "/tools/barcode-generator",
   "/tools/text-to-speech",
+  "/tools/toml-validator",
+  "/tools/graphql-validator",
+  "/tools/data-matrix-generator",
+  "/tools/pdf417-generator",
 ];
 
 for (const scheme of ["light", "dark"] as const) {

@@ -17,6 +17,7 @@
   "dependencies": {
     "@toolwright/core": "*",
     "@toolwright/ui": "*",
+    "bwip-js": "^4.11.4",
     "dompurify": "^3.3.0",
     "exifr": "^7.1.3",
     "fflate": "^0.8.3",

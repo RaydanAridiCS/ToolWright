@@ -11,6 +11,13 @@ All notable changes to Toolwright. The format follows [Keep a Changelog](https:/
 - **Shared hook** in `packages/tools/src/shared/use-speech-synthesis.ts` wraps the Web Speech API for React tools.
 - **SEO and docs**: keyword-map entry, generated docs, sitemap `lastmod`, and an e2e test plus a11y coverage for the new page.
 
+### Added: TOML Validator, GraphQL Query Validator, Data Matrix and PDF417 generators
+
+- **New tool: `/tools/toml-validator`.** Paste a TOML document to validate it against the TOML 1.0 spec and see the equivalent JSON. Errors include line and column numbers. Core logic in `packages/core/src/toml-validator.ts` using `@ltd/j-toml`, with unit tests.
+- **New tool: `/tools/graphql-validator`.** Paste a GraphQL query and an optional SDL schema to check syntax and schema match locally. Errors include line and column numbers. Core logic in `packages/core/src/graphql-validator.ts` using `graphql-js`, with unit tests.
+- **New tools: `/tools/data-matrix-generator` and `/tools/pdf417-generator`.** Type text and generate a Data Matrix or PDF417 barcode as a downloadable SVG. Rendering uses `bwip-js` loaded on demand via `packages/tools/src/shared/barcode-2d.ts` so the main bundle does not pay for it on other pages. Validation and length limits live in `packages/core` with unit tests.
+- **SEO and docs**: keyword-map entries, generated docs, sitemap `lastmod`, and e2e tests plus a11y coverage for all four new pages.
+
 ### Fixed: the request board
 
 - **A database outage no longer looks like a bug.** On the live site `GET /api/requests` answered `500 Something went wrong on our side` and the board gave visitors no way forward. A database that cannot be reached, refuses the login or has no tables now gives `503` with `Retry-After: 60` and the code `unavailable`; the board shows "The board is taking a break" with a *Try again* button, and nothing a visitor typed is lost. The app also stops waiting for an unreachable database after 10 seconds.
