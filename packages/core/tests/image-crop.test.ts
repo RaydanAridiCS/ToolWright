@@ -11,7 +11,9 @@ import {
   insideTilted,
   isNoTurn,
   mapPoint,
+  maskMaxRadius,
   moveRect,
+  normalizeMask,
   normalizeTurn,
   parseAspect,
   rectForAspect,
@@ -460,5 +462,36 @@ describe("checkSize", () => {
 describe("describeSize", () => {
   it("rounds to whole pixels", () => {
     expect(describeSize({ width: 100.4, height: 50.6 })).toBe("100 × 51");
+  });
+});
+
+describe("maskMaxRadius", () => {
+  it("is half of the shorter side", () => {
+    expect(maskMaxRadius({ width: 1000, height: 600 })).toBe(300);
+    expect(maskMaxRadius({ width: 40, height: 60 })).toBe(20);
+    expect(maskMaxRadius({ width: 1, height: 1 })).toBe(0);
+  });
+});
+
+describe("normalizeMask", () => {
+  it("keeps the rectangle untouched", () => {
+    expect(normalizeMask("rect", 50, BOUNDS)).toEqual({ kind: "rect", radius: 0 });
+  });
+  it("makes ovals ignore the radius", () => {
+    expect(normalizeMask("oval", 50, BOUNDS)).toEqual({ kind: "oval", radius: 0 });
+  });
+  it("clamps the roundness between 0 and half of the shorter side", () => {
+    expect(normalizeMask("rounded", -5, BOUNDS)).toEqual({ kind: "rounded", radius: 0 });
+    expect(normalizeMask("rounded", 12.4, BOUNDS)).toEqual({ kind: "rounded", radius: 12 });
+    expect(normalizeMask("rounded", 999, BOUNDS)).toEqual({ kind: "rounded", radius: 300 });
+    expect(normalizeMask("rounded", NaN, BOUNDS)).toEqual({ kind: "rounded", radius: 300 });
+  });
+  it("keeps a full roundness distinct from the oval", () => {
+    // A full-radius box keeps short straight edges, so it must stay a rounded box.
+    expect(normalizeMask("rounded", 300, BOUNDS)).toEqual({ kind: "rounded", radius: 300 });
+    expect(normalizeMask("oval", 300, BOUNDS).kind).toBe("oval");
+  });
+  it("sorts unknown kinds into the plain rectangle", () => {
+    expect(normalizeMask("weird" as never, 10, BOUNDS)).toEqual({ kind: "rect", radius: 0 });
   });
 });

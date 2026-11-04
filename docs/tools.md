@@ -99,7 +99,7 @@ Compress, convert, resize and clean up images.
 | [GIF Maker](../packages/tools/src/tools/gif-maker) | Turn a set of pictures into an animated GIF. |
 | [Image Compressor](../packages/tools/src/tools/image-compressor) ⭐ | Shrink JPG, PNG and WebP images without uploading them anywhere. |
 | [Image Converter](../packages/tools/src/tools/image-converter) ⭐ | Convert between JPG, PNG, WebP and AVIF in your browser. |
-| [Crop, Rotate & Flip Image](../packages/tools/src/tools/image-crop) | Crop a picture, turn it, flip it or straighten it, without an upload. |
+| [Crop, Rotate & Flip Image](../packages/tools/src/tools/image-crop) | Crop a picture, round or straight, turn, flip or straighten it, without an upload. |
 | [Image Resizer](../packages/tools/src/tools/image-resizer) ⭐ | Resize images by pixels or percentage, in bulk. |
 | [Image to Base64 & Data URI](../packages/tools/src/tools/image-to-base64) | Embed an image as a Base64 data URI, or turn Base64 back into an image. |
 | [Image to SVG](../packages/tools/src/tools/image-to-svg) ⭐ | Trace a logo or drawing into a scalable SVG. |

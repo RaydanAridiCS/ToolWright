@@ -107,6 +107,41 @@ export function aspectRatio(id: AspectId, size: Size, custom = ""): number | nul
 
 export const fullRect = (size: Size): Rect => ({ x: 0, y: 0, width: Math.max(1, Math.round(size.width)), height: Math.max(1, Math.round(size.height)) });
 
+/* ----------------------------------------------------------------------------------------------- */
+/* Masks: the shape cut out of the crop box                                                         */
+/* ----------------------------------------------------------------------------------------------- */
+
+/**
+ * The shape the saved pixels cover. "rect" keeps the whole box. "oval" cuts an ellipse that touches
+ * all four edges of the box (a true circle when the box is square, which makes an avatar).
+ * "rounded" softens the box corners with a radius.
+ */
+export type MaskKind = "rect" | "oval" | "rounded";
+
+export interface Mask {
+  kind: MaskKind;
+  /** Corner radius in picture pixels for "rounded". Ignored by the other kinds. */
+  radius: number;
+}
+
+/** The largest corner radius that keeps the four sides straight in a box of this size. */
+export function maskMaxRadius(box: Size): number {
+  return Math.floor(Math.max(1, Math.min(box.width, box.height)) / 2);
+}
+
+/**
+ * Builds the mask to save with: clamps the radius to whole pixels between 0 and half of the box's
+ * shorter side, and sorts out invalid kinds as the plain rectangle.
+ */
+export function normalizeMask(kind: MaskKind, radius: number, box: Size): Mask {
+  if (kind === "oval") return { kind: "oval", radius: 0 };
+  if (kind !== "rounded") return { kind: "rect", radius: 0 };
+  const max = maskMaxRadius(box);
+  const value = !finite(radius) ? max : Math.min(max, Math.max(0, Math.round(radius)));
+  // A full radius keeps short straight edges, so it is not the same shape as the oval: keep both.
+  return { kind: "rounded", radius: value };
+}
+
 /**
  * Forces a box to whole pixels inside the picture. Anything that is not a number falls back to the whole picture,
  * a box that is too small grows to one pixel, and a box that hangs over an edge is pulled back inside.

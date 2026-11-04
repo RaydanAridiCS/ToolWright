@@ -19,15 +19,18 @@ import {
   rectForAspect,
   rectWithoutCorners,
   resizeRect,
+  normalizeMask,
   turnedSize,
+  maskMaxRadius,
   type AspectId,
   type Handle,
+  type MaskKind,
   type Rect,
   type Turn,
 } from "@toolwright/core/image-crop";
 import { NumberField, num } from "../../shared/number-field";
 import { loadImage, outputName, type LoadedImage, type OutputFormat } from "../../shared/image";
-import { drawTurned, renderCropped } from "../../shared/image-crop-render";
+import { drawTurned, maskSilhouette, renderCropped } from "../../shared/image-crop-render";
 import { errorMessage } from "../../shared/format";
 
 type FormatChoice = "same" | OutputFormat;
@@ -79,6 +82,8 @@ export default function Tool() {
   const [quality, setQuality] = useState(90);
   const [fillCorners, setFillCorners] = useState(false);
   const [fillColour, setFillColour] = useState("#ffffff");
+  const [maskKind, setMaskKind] = useState<MaskKind>("rect");
+  const [maskRadius, setMaskRadius] = useState(40);
 
   const [output, setOutput] = useState<Output | null>(null);
   const [rendering, setRendering] = useState(false);
@@ -91,6 +96,7 @@ export default function Tool() {
   const turned = useMemo(() => turnedSize(size, turn), [size, turn]);
   const ratio = aspectRatio(aspect, turned, customAspect);
   const customBad = aspect === "custom" && parseAspect(customAspect) === null;
+  const mask = normalizeMask(maskKind, maskRadius, crop);
 
   useEffect(() => () => image?.dispose(), [image]);
 
@@ -112,6 +118,7 @@ export default function Tool() {
       setImage(loaded);
       setTurn(NO_TURN);
       setAspect("free");
+      setMaskKind("rect");
       setCrop(fullRect({ width: loaded.width, height: loaded.height }));
       setOutput(null);
     } catch (err) {
@@ -161,7 +168,7 @@ export default function Tool() {
 
   /* ---------------------------------- saving ---------------------------------- */
 
-  const wanted = useDebounced({ turn, crop, format, quality, fillCorners, fillColour }, 400);
+  const wanted = useDebounced({ turn, crop, format, quality, fillCorners, fillColour, mask }, 400);
 
   useEffect(() => {
     if (!image || !file) return;
@@ -181,6 +188,7 @@ export default function Tool() {
           type,
           quality: wanted.quality / 100,
           background: wanted.fillCorners || type === "image/jpeg" ? wanted.fillColour : null,
+          mask: wanted.mask,
         });
         if (cancelled) return;
         setError(null);
@@ -249,7 +257,8 @@ export default function Tool() {
   }
 
   const lossy = (format === "same" ? file && sameFormat(file) : format) !== "image/png";
-  const unchanged = isNoTurn(turn) && crop.x === 0 && crop.y === 0 && crop.width === turned.width && crop.height === turned.height;
+  const shaped = mask.kind === "oval" || (mask.kind === "rounded" && mask.radius >= 1);
+  const unchanged = !shaped && isNoTurn(turn) && crop.x === 0 && crop.y === 0 && crop.width === turned.width && crop.height === turned.height;
   const sizeCheck = checkSize(turned);
 
   if (!file || !image) {
@@ -328,6 +337,35 @@ export default function Tool() {
               )}
             </Field>
           ) : null}
+          <SegmentedControl<MaskKind>
+            label="Edges of the cut"
+            value={maskKind}
+            onValueChange={(v) => setMaskKind(v)}
+            options={[
+              { value: "rect", label: "Straight" },
+              { value: "oval", label: "Round" },
+              { value: "rounded", label: "Rounded" },
+            ]}
+          />
+          {maskKind === "rounded" ? (
+            <Field
+              label="Corner roundness (px)"
+              hint={mask.kind === "rounded" ? `${mask.radius} of at most ${maskMaxRadius(crop)} px for this box; roundness is capped so corners cannot cross.` : undefined}
+            >
+              {(id) => (
+                <Input
+                  id={id}
+                  type="number"
+                  min={0}
+                  max={maskMaxRadius(crop)}
+                  step={1}
+                  value={String(maskRadius)}
+                  onChange={(e) => setMaskRadius(num(e.target.value) || 0)}
+                  className="max-w-40"
+                />
+              )}
+            </Field>
+          ) : null}
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -340,11 +378,20 @@ export default function Tool() {
         <div className="flex justify-center overflow-hidden border border-border bg-muted p-3">
           <div className="relative inline-block max-w-full touch-none select-none">
             <canvas ref={canvasRef} role="img" aria-label="The picture as it will be cut" className="block h-auto max-h-[70vh] max-w-full" />
-            {/* Four dark bands cover everything outside the box. */}
-            <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 bg-foreground/55" style={{ height: pct(crop.y, turned.height) }} />
-            <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 bg-foreground/55" style={{ height: pct(turned.height - crop.y - crop.height, turned.height) }} />
-            <div aria-hidden className="pointer-events-none absolute left-0 bg-foreground/55" style={{ top: pct(crop.y, turned.height), height: pct(crop.height, turned.height), width: pct(crop.x, turned.width) }} />
-            <div aria-hidden className="pointer-events-none absolute right-0 bg-foreground/55" style={{ top: pct(crop.y, turned.height), height: pct(crop.height, turned.height), width: pct(turned.width - crop.x - crop.width, turned.width) }} />
+            {shaped ? (
+              // One SVG covers everything outside the round shape, which the plain bands cannot trace.
+              <svg aria-hidden className="pointer-events-none absolute inset-0 h-full w-full" viewBox={`0 0 ${turned.width} ${turned.height}`} preserveAspectRatio="none">
+                <path d={maskSilhouette(crop, mask, turned, mask.kind === "rounded" ? maskRadius : 0)} fillRule="evenodd" className="fill-foreground/55" />
+              </svg>
+            ) : (
+              <>
+                {/* Four dark bands cover everything outside the box. */}
+                <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 bg-foreground/55" style={{ height: pct(crop.y, turned.height) }} />
+                <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 bg-foreground/55" style={{ height: pct(turned.height - crop.y - crop.height, turned.height) }} />
+                <div aria-hidden className="pointer-events-none absolute left-0 bg-foreground/55" style={{ top: pct(crop.y, turned.height), height: pct(crop.height, turned.height), width: pct(crop.x, turned.width) }} />
+                <div aria-hidden className="pointer-events-none absolute right-0 bg-foreground/55" style={{ top: pct(crop.y, turned.height), height: pct(crop.height, turned.height), width: pct(turned.width - crop.x - crop.width, turned.width) }} />
+              </>
+            )}
             <div
               role="group"
               aria-label="Crop box"
@@ -356,7 +403,13 @@ export default function Tool() {
               onPointerUp={end}
               onPointerCancel={end}
               className="absolute cursor-move border-2 border-card outline outline-1 outline-foreground focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
-              style={{ left: pct(crop.x, turned.width), top: pct(crop.y, turned.height), width: pct(crop.width, turned.width), height: pct(crop.height, turned.height) }}
+              style={{
+                left: pct(crop.x, turned.width),
+                top: pct(crop.y, turned.height),
+                width: pct(crop.width, turned.width),
+                height: pct(crop.height, turned.height),
+                borderRadius: mask.kind === "oval" ? "50%" : mask.kind === "rounded" && mask.radius > 0 ? `${(mask.radius / crop.width) * 100}% ${(mask.radius / crop.height) * 100}%` : undefined,
+              }}
             >
               {HANDLES.map((h) => (
                 <span

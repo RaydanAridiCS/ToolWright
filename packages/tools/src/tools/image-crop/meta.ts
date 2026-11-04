@@ -4,27 +4,32 @@ import { defineTool } from "../../define";
 export default defineTool({
   slug: "image-crop",
   name: "Crop, Rotate & Flip Image",
-  tagline: "Crop a picture, turn it, flip it or straighten it, without an upload.",
+  tagline: "Crop a picture, round or straight, turn, flip or straighten it, without an upload.",
   description:
-    "Crop a JPG, PNG or WebP to any shape or a fixed ratio, turn it in quarter steps, flip it, or straighten a crooked photo. The picture is processed in your browser and never leaves your device.",
+    "Crop a JPG, PNG or WebP to any shape or a fixed ratio, make a rounded or circular cut for an avatar, turn it in quarter steps, flip it, or straighten a crooked photo. The picture is processed in your browser and never leaves your device.",
   primaryKeyword: "crop image",
   seoTitle: "Crop Image Online: Crop, Rotate and Flip",
   seoDescription:
-    "Crop a JPG, PNG or WebP to any shape or ratio, rotate, flip or straighten it. Free, and the picture never leaves your device.",
+    "Crop a JPG, PNG or WebP to any shape or ratio, cut a circle for an avatar, rotate, flip or straighten. Free, and the picture never leaves your device.",
   answer:
-    "Crop, Rotate & Flip Image crops a JPG, PNG or WebP to any shape or a fixed ratio, turns it in quarter steps, flips it or straightens a crooked photo. It runs in your browser, so the picture is never uploaded.",
+    "Crop, Rotate & Flip Image crops a JPG, PNG or WebP to any shape or a fixed ratio, cuts a round or rounded shape out of the box, turns it in quarter steps, flips it or straightens a crooked photo. It runs in your browser, so the picture is never uploaded.",
   category: "image",
-  keywords: ["crop image", "rotate image", "flip image", "straighten photo", "image cropper", "crop photo online", "mirror image", "crop to square", "aspect ratio crop"],
+  keywords: ["crop image", "rotate image", "flip image", "straighten photo", "image cropper", "crop photo online", "circle crop", "round photo crop", "avatar crop", "crop to circle", "crop to square", "aspect ratio crop"],
   icon: Crop,
   howTo: [
     "Drop a JPG, PNG or WebP picture.",
     "Turn, flip or straighten it, then drag the box or type its size.",
-    "Pick the format and download the result.",
+    "Choose straight, round or rounded edges, pick the format and download the result.",
   ],
   faq: [
     {
       question: "Is my picture uploaded?",
       answer: "No. The picture is opened, cropped and saved inside this browser tab. Nothing is sent anywhere.",
+    },
+    {
+      question: "How do I crop a picture in a circle?",
+      answer:
+        "Choose Round under the box-shape buttons. The shape is an oval that touches all four edges of the crop box, so with a square box (the 1:1 shape) the cut is a true circle. Save as PNG or WebP to keep the corners transparent.",
     },
     {
       question: "Does cropping lose quality?",
