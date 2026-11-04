@@ -248,6 +248,8 @@ Every tool also carries the copy that search engines and answer engines read. Re
 - **Pointer-only controls need a second way in.** The crop box can be dragged, but it also has typed left, top, width and height fields and arrow keys, because dragging is no use to a keyboard or a screen reader. Handles are `aria-hidden`; the box is a focusable group.
 - **A name that is also a segmented option is not a good label.** In the subnet tool a text field called "Network" shares its name with a tab called "Network". Use `getByRole("textbox", { name, exact: true })` in tests, or give the field a more specific name.
 - **Playwright can read downloads back.** The PDF to Images test opens the ZIP with `unzipSync` from `fflate` and reads the pixel size from the PNG header, so a "download works" test also proves the file is what it says.
+- **`@cfworker/json-schema`'s Validator takes the draft as its second constructor argument and `shortCircuit` as its third.** Pass `undefined` for the draft to follow `$schema` and `false` to keep every problem instead of stopping at the first. Its output mixes wrapper lines ("Property "age" does not match schema", "does not match any subschemas") with precise child errors; drop wrappers that are the pointer-parent of a reported child, and it throws (rather than reporting) for a `$ref` it cannot resolve, so catch and reword it — remote refs can never be fetched here.
+- **`new ImageData` wants a `Uint8ClampedArray<ArrayBuffer>`,** and a `Uint8ClampedArray` built with `.subarray()` or a typed alias fails that overload in strict TypeScript. Copy the bytes (`new Uint8ClampedArray(mask)`) before constructing when the array reaches the tool from core.
 `
 `
 `## Conventions
