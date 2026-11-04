@@ -20,6 +20,7 @@ import meta_delete_pdf_pages from "./tools/delete-pdf-pages/meta";
 import meta_dockerfile_linter from "./tools/dockerfile-linter/meta";
 import meta_exif_remover from "./tools/exif-remover/meta";
 import meta_exif_viewer from "./tools/exif-viewer/meta";
+import meta_extract_pdf_images from "./tools/extract-pdf-images/meta";
 import meta_extract_pdf_pages from "./tools/extract-pdf-pages/meta";
 import meta_favicon_generator from "./tools/favicon-generator/meta";
 import meta_fetch_to_curl from "./tools/fetch-to-curl/meta";
@@ -141,6 +142,7 @@ export const tools: readonly ToolMeta[] = [
   meta_dockerfile_linter,
   meta_exif_remover,
   meta_exif_viewer,
+  meta_extract_pdf_images,
   meta_extract_pdf_pages,
   meta_favicon_generator,
   meta_fetch_to_curl,

@@ -20,6 +20,7 @@
     "dockerfile-linter": "2026-10-31",
     "exif-remover": "2026-10-31",
     "exif-viewer": "2026-10-31",
+    "extract-pdf-images": "2026-11-04",
     "extract-pdf-pages": "2026-10-31",
     "favicon-generator": "2026-10-31",
     "fetch-to-curl": "2026-10-31",

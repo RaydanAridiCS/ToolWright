@@ -24,6 +24,7 @@ export const toolLoaders: Record<string, ToolLoader> = {
   "dockerfile-linter": () => import("./tools/dockerfile-linter/Tool"),
   "exif-remover": () => import("./tools/exif-remover/Tool"),
   "exif-viewer": () => import("./tools/exif-viewer/Tool"),
+  "extract-pdf-images": () => import("./tools/extract-pdf-images/Tool"),
   "extract-pdf-pages": () => import("./tools/extract-pdf-pages/Tool"),
   "favicon-generator": () => import("./tools/favicon-generator/Tool"),
   "fetch-to-curl": () => import("./tools/fetch-to-curl/Tool"),

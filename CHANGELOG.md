@@ -4,6 +4,12 @@ All notable changes to Toolwright. The format follows [Keep a Changelog](https:/
 
 ## [Unreleased]
 
+### Added: Extract PDF Images
+
+- **New tool: `/tools/extract-pdf-images`.** Pull the original embedded pictures out of a PDF as JPG or PNG files. JPEG streams are saved unchanged; lossless images are reconstructed as PNGs; JPEG 2000, CCITT fax and JBIG2 images are skipped with a note. Duplicate images across pages are only listed once. Download individual images or a single ZIP, all in the browser.
+- **Core logic** in `packages/core/src/extract-pdf-images.ts`: walks page resources and image XObjects with pdf-lib, with unit tests in `packages/core/tests/extract-pdf-images.test.ts`.
+- **SEO and docs**: keyword-map entry, generated docs, sitemap `lastmod`, an e2e test and a11y coverage for the new page.
+
 ### Added: APNG Maker
 
 - **New tool: `/tools/apng-maker`.** Combine two or more PNG frames into a single animated PNG (APNG) with a configurable frame delay and loop count. Frames can be reordered before exporting. Core logic in `packages/core/src/apng-maker.ts` uses `@pdf-lib/upng` to decode frames and encode the animation locally, with unit tests in `packages/core/tests/apng-maker.test.ts`.

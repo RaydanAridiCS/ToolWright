@@ -1,0 +1,145 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { describe, expect, it } from "vitest";
+import { PDFDocument } from "pdf-lib";
+import pkg from "@pdf-lib/upng";
+import { ExtractPdfImagesError, EXTRACT_PDF_IMAGES_LIMITS, checkFileSize, extractPdfImages } from "../src/extract-pdf-images";
+
+const UPNG = ((pkg as unknown as { default: typeof pkg }).default ?? pkg) as {
+  encode(imgs: ArrayBuffer[], w: number, h: number, cnum: number): ArrayBuffer;
+  decode(buffer: ArrayBuffer): { width: number; height: number; data: ArrayBuffer };
+};
+
+const FIXTURES = join(import.meta.dirname, "fixtures", "pdf");
+
+function makeRgba(width: number, height: number, fill: [number, number, number, number]): Uint8Array {
+  const out = new Uint8Array(width * height * 4);
+  for (let i = 0; i < width * height; i++) {
+    out[i * 4] = fill[0];
+    out[i * 4 + 1] = fill[1];
+    out[i * 4 + 2] = fill[2];
+    out[i * 4 + 3] = fill[3];
+  }
+  return out;
+}
+
+function makePng(width: number, height: number, fill: [number, number, number, number]): Uint8Array {
+  return new Uint8Array(UPNG.encode([makeRgba(width, height, fill).buffer as ArrayBuffer], width, height, 0));
+}
+
+/** A minimal valid JPEG (gray 2×1) built by hand. */
+function makeJpeg(): Uint8Array {
+  return new Uint8Array([
+    0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00,
+    0x00, 0xff, 0xdb, 0x00, 0x43, 0x00, 0x08, 0x06, 0x06, 0x07, 0x06, 0x05, 0x08, 0x07, 0x07, 0x07, 0x09, 0x09, 0x08,
+    0x0a, 0x0c, 0x14, 0x0d, 0x0c, 0x0b, 0x0b, 0x0c, 0x19, 0x12, 0x13, 0x0f, 0x14, 0x1d, 0x1a, 0x1f, 0x1e, 0x1d, 0x1a,
+    0x1c, 0x1c, 0x20, 0x24, 0x2e, 0x27, 0x20, 0x22, 0x2c, 0x23, 0x1c, 0x1c, 0x28, 0x37, 0x29, 0x2c, 0x30, 0x31, 0x34,
+    0x34, 0x34, 0x1f, 0x27, 0x39, 0x3d, 0x38, 0x32, 0x3c, 0x2e, 0x33, 0x34, 0x32, 0xff, 0xc0, 0x00, 0x0b, 0x08, 0x00,
+    0x01, 0x00, 0x02, 0x01, 0x01, 0x11, 0x00, 0xff, 0xc4, 0x00, 0x1f, 0x00, 0x00, 0x01, 0x05, 0x01, 0x01, 0x01, 0x01,
+    0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,
+    0x0a, 0x0b, 0xff, 0xc4, 0x00, 0xb5, 0x10, 0x00, 0x02, 0x01, 0x03, 0x03, 0x02, 0x04, 0x03, 0x05, 0x05, 0x04, 0x04,
+    0x00, 0x00, 0x01, 0x7d, 0x01, 0x02, 0x03, 0x00, 0x04, 0x11, 0x05, 0x12, 0x21, 0x31, 0x41, 0x06, 0x13, 0x51, 0x61,
+    0x07, 0x22, 0x71, 0x14, 0x32, 0x81, 0x91, 0xa1, 0x08, 0x23, 0x42, 0xb1, 0xc1, 0x15, 0x52, 0xd1, 0xf0, 0x24, 0x33,
+    0x62, 0x72, 0x82, 0x09, 0x0a, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x34, 0x35, 0x36,
+    0x37, 0x38, 0x39, 0x3a, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4a, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59,
+    0x5a, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7a, 0x83, 0x84,
+    0x85, 0x86, 0x87, 0x88, 0x89, 0x8a, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0xa2, 0xa3, 0xa4, 0xa5,
+    0xa6, 0xa7, 0xa8, 0xa9, 0xaa, 0xb2, 0xb3, 0xb4, 0xb5, 0xb6, 0xb7, 0xb8, 0xb9, 0xba, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6,
+    0xc7, 0xc8, 0xc9, 0xca, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7, 0xd8, 0xd9, 0xda, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6,
+    0xe7, 0xe8, 0xe9, 0xea, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa, 0xff, 0xda, 0x00, 0x08, 0x01,
+    0x01, 0x00, 0x00, 0x3f, 0x00, 0x7f, 0xff, 0xd9,
+  ]);
+}
+
+async function makeImagePdf(options: { jpeg?: boolean; png?: boolean; pages?: number; duplicate?: boolean }): Promise<Uint8Array> {
+  const doc = await PDFDocument.create();
+  const pages = options.pages ?? 1;
+  if (options.jpeg) {
+    const image = await doc.embedJpg(makeJpeg());
+    for (let i = 0; i < pages; i++) {
+      const page = doc.addPage([200, 200]);
+      page.drawImage(image, { x: 10, y: 10, width: 100, height: 50 });
+    }
+  } else if (options.png) {
+    const image = await doc.embedPng(makePng(80, 60, [0, 128, 255, 255]));
+    for (let i = 0; i < pages; i++) {
+      const page = doc.addPage([200, 200]);
+      page.drawImage(image, { x: 10, y: 10, width: 80, height: 60 });
+    }
+  }
+  return doc.save();
+}
+
+describe("checkFileSize", () => {
+  it("accepts ordinary files and refuses huge ones", () => {
+    expect(checkFileSize(2 * MB)).toEqual({});
+    expect(checkFileSize(EXTRACT_PDF_IMAGES_LIMITS.maxFileBytes + 1).refuse).toMatch(/200 MB/);
+  });
+});
+
+describe("extractPdfImages", () => {
+  it("extracts a JPEG image from a PDF", async () => {
+    const pdf = await makeImagePdf({ jpeg: true });
+    const images = await extractPdfImages(pdf);
+    expect(images).toHaveLength(1);
+    const jpeg = images[0]!;
+    expect(jpeg).toMatchObject({
+      name: "image-001.jpg",
+      mime: "image/jpeg",
+      extension: "jpg",
+      width: 2,
+      height: 1,
+    });
+    expect(jpeg.bytes[0]).toBe(0xff);
+    expect(jpeg.bytes[1]).toBe(0xd8);
+  });
+
+  it("extracts a PNG image from a PDF as a reconstructed PNG", async () => {
+    const pdf = await makeImagePdf({ png: true });
+    const images = await extractPdfImages(pdf);
+    expect(images).toHaveLength(1);
+    const png = images[0]!;
+    expect(png).toMatchObject({
+      name: "image-001.png",
+      mime: "image/png",
+      extension: "png",
+      width: 80,
+      height: 60,
+    });
+    expect(png.bytes.subarray(0, 8)).toEqual(new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+    const decoded = UPNG.decode(png.bytes.buffer as ArrayBuffer);
+    expect(decoded.width).toBe(80);
+    expect(decoded.height).toBe(60);
+  });
+
+  it("deduplicates an image used on multiple pages", async () => {
+    const pdf = await makeImagePdf({ jpeg: true, pages: 3 });
+    const images = await extractPdfImages(pdf);
+    expect(images).toHaveLength(1);
+  });
+
+  it("reports a PDF with no images", async () => {
+    const doc = await PDFDocument.create();
+    doc.addPage([200, 200]).drawText("No pictures here.");
+    await expect(extractPdfImages(await doc.save())).rejects.toThrow(ExtractPdfImagesError);
+    await expect(extractPdfImages(await doc.save())).rejects.toThrow(/no embedded images/);
+  });
+
+  it("reports a text-only fixture PDF", async () => {
+    const bytes = readFileSync(join(FIXTURES, "text-only.pdf"));
+    await expect(extractPdfImages(bytes)).rejects.toThrow(/no embedded images/);
+  });
+
+  it("reports encrypted PDFs", async () => {
+    const bytes = readFileSync(join(FIXTURES, "encrypted.pdf"));
+    await expect(extractPdfImages(bytes)).rejects.toThrow(ExtractPdfImagesError);
+    await expect(extractPdfImages(bytes)).rejects.toThrow(/password/);
+  });
+
+  it("reports corrupt PDFs", async () => {
+    const bytes = readFileSync(join(FIXTURES, "corrupt.pdf"));
+    await expect(extractPdfImages(bytes)).rejects.toThrow(ExtractPdfImagesError);
+  });
+});
+
+const MB = 1024 * 1024;
