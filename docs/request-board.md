@@ -58,7 +58,7 @@ Add or remove the caller's vote. Both are idempotent and return `{ "votes": numb
 
 ### `GET /api/health`
 
-For deploy checks and uptime monitors (`npm run check:deploy` reads it). It never contains a connection string, host or error text.
+For deploy checks and uptime monitors (`pnpm run check:deploy` reads it). It never contains a connection string, host or error text.
 
 ```json
 { "ok": true, "database": { "mode": "postgres", "state": "ok", "persistent": true } }
@@ -104,11 +104,11 @@ Routes only translate HTTP ⇄ service calls and map `ServiceError` to status co
 
 ```bash
 # change packages/db/src/schema.ts, then:
-npm run db:generate            # writes a new SQL migration into packages/db/drizzle
-npm test -- --project db       # contract tests apply every migration to a real in-process Postgres
+pnpm run db:generate            # writes a new SQL migration into packages/db/drizzle
+pnpm test -- --project db       # contract tests apply every migration to a real in-process Postgres
 
 # apply migrations to a real database
-DATABASE_URL=postgres://… npm run db:migrate
+DATABASE_URL=postgres://… pnpm run db:migrate
 ```
 
 Set `DATABASE_URL` in `apps/web/.env.local` to use Postgres locally; leave it unset for the in-memory store.

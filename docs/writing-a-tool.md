@@ -5,7 +5,7 @@
 `## 1. Scaffold
 `
 ````bash
-`npm run new-tool word-wrap -- --name "Word Wrap" --category text --icon WrapText
+`pnpm run new-tool word-wrap -- --name "Word Wrap" --category text --icon WrapText
 ````
 `
 `| Flag | Default | Meaning |
@@ -67,7 +67,7 @@
 `});
 ````
 `
-`Use known-good vectors where they exist (RFC test vectors for hashes and encodings, published examples for finance formulas). Run `npm run test:watch`.
+`Use known-good vectors where they exist (RFC test vectors for hashes and encodings, published examples for finance formulas). Run `pnpm run test:watch`.
 `
 `## 4. Build the UI
 `
@@ -179,16 +179,16 @@ Every tool also carries the copy that search engines and answer engines read. Re
 - **Answer:** one to three sentences: what it does, that it runs in the browser, and its main limit. It is the first paragraph under the H1.
 - **FAQ and steps:** at least one question and three steps for every tool. Questions are real ones people ask, answers are one to three sentences and honest about limits. Check each step against the controls.
 - **Next step:** required on popular tools; descriptive anchor text, never "click here".
-- `npm run docs:seo` regenerates `docs/keyword-map.md`.
+- `pnpm run docs:seo` regenerates `docs/keyword-map.md`.
 `
 `## 6. Check and ship
 `
 ````bash
-`npm run lint
-`npm run typecheck
-`npm test
-`npm run docs:tools        # updates docs/tools.md
-`npm run e2e               # when you touched UI, routing or file handling
+`pnpm run lint
+`pnpm run typecheck
+`pnpm test
+`pnpm run docs:tools        # updates docs/tools.md
+`pnpm run e2e               # when you touched UI, routing or file handling
 ````
 `
 `Open the tool in the browser too: try keyboard-only use, narrow widths (~360px), light and dark themes, empty input, huge input and garbage input.
@@ -203,10 +203,10 @@ Every tool also carries the copy that search engines and answer engines read. Re
 `- [ ] Built from shared primitives (`ResultSlab` for the headline answer); tokens only, no gradients or tinted result boxes
 `- [ ] `sample` provided for text tools; sensible defaults so the tool does something immediately
 `- [ ] `meta.ts` has accurate copy, synonyms in `keywords`, `related` tools, and `howTo`/`faq` if it's a popular tool
-- [ ] SEO: `primaryKeyword`, `seoTitle`, `seoDescription` and `answer` written for people, a FAQ and steps that match the page, a `nextStep` on popular tools, an entry in `keyword-map.ts`, and `npm run docs:seo` run
+- [ ] SEO: `primaryKeyword`, `seoTitle`, `seoDescription` and `answer` written for people, a FAQ and steps that match the page, a `nextStep` on popular tools, an entry in `keyword-map.ts`, and `pnpm run docs:seo` run
 - [ ] Every claim is true: no ratings, no user counts, no "best" or "#1", and limits stated (a test scans for the first two)
 `- [ ] Honest about limitations (security, lossy formats, browser support)
-`- [ ] `npm run lint && npm run typecheck && npm test` pass; `docs/tools.md` regenerated
+`- [ ] `pnpm run lint && pnpm run typecheck && pnpm test` pass; `docs/tools.md` regenerated
 `
 `## Lessons from recent tools
 `
@@ -220,10 +220,10 @@ Every tool also carries the copy that search engines and answer engines read. Re
 `- **Test the headline rule from the standard**, not only your own examples. Two missing values compare equal in JSONPath filters, which surprised the first set of tests.
 `- **\`Alert\` has \`role="alert"\` only for \`tone="error"\`.** Tests that look for an alert need an error tone. Warnings and notes are plain status regions.
 `- **Playwright labels:** the tool plate and the how-to section also carry the tool name as an accessible label, so \`getByLabel("JSON")\` can match three elements. Prefer \`getByRole("textbox", { name, exact: true })\`.
-`- **Pipe-free test runs:** \`npx playwright test … | tail\` hides the exit code. Read the "failed" line or use \`--reporter=line\` and check \`$?\`.
+`- **Pipe-free test runs:** \`pnpm dlx playwright test … | tail\` hides the exit code. Read the "failed" line or use \`--reporter=line\` and check \`$?\`.
 `- **Heavy libraries load on demand, in one file.** PDF.js (about 1.7 MB) is imported with `await import()` from `shared/pdf-raster.ts` only; `packages/tools/tests/bundle-isolation.test.ts` fails if anything else mentions it. Do the same for any large dependency.
 - **Bundlers rewrite worker entries.** Your own worker (`new Worker(new URL("./x.worker.ts", import.meta.url))`) works, but a third-party worker such as PDF.js's never finished its handshake inside Turbopack's wrapper. Copy it to `apps/web/public/` with a script (see `scripts/copy-pdfjs-assets.mjs`) and start it from a plain URL.
-- **The production CSP has no `'wasm-unsafe-eval'`.** Dev mode has `'unsafe-eval'`, which hides this. Anything that needs WebAssembly must be tested against `npm run build && npm start` (the e2e suite does) and needs a JavaScript fallback or a deliberate CSP change.
+- **The production CSP has no `'wasm-unsafe-eval'`.** Dev mode has `'unsafe-eval'`, which hides this. Anything that needs WebAssembly must be tested against `pnpm run build && pnpm start` (the e2e suite does) and needs a JavaScript fallback or a deliberate CSP change.
 - **Browsers apply the EXIF turn when decoding a JPEG, even with `imageOrientation: "none"`.** PDFs ignore EXIF, so strip the EXIF segment (`stripJpegExif` in core) before drawing the image to a canvas.
 - **Abandoned async work must still reset your "busy" flag.** If an effect starts a slow draw and is replaced before it finishes (the user cleared the text), the old run is ignored, so the new branch has to clear `busy` itself. Otherwise the UI sticks on "Drawing…".
 - **Playwright's `fill()` is very slow for tens of thousands of characters** in a textarea. To test a huge paste, set the value with the native setter and dispatch an `input` event (see `e2e/mermaid.spec.ts`); the tool itself handles it in milliseconds.
@@ -244,7 +244,7 @@ Every tool also carries the copy that search engines and answer engines read. Re
 - **Control characters are not valid in XML, even escaped.** A Code 128 barcode can hold a tab or a bell. Putting it in an SVG `<title>` produced a file that libvips refused, and any strict XML parser would too. Replace such characters when you escape text for SVG.
 - **Maps built from file keys need no prototype.** An XML tag named `__proto__` is legal. `Object.create(null)` makes it an ordinary key instead of changing the object, and `JSON.stringify` handles it.
 - **Cap recursion you do not control.** The XML reader and writer are iterative and survive 50,000 levels, but turning a tree into nested JSON objects recurses (in `JSON.stringify` too), so the converter stops at 1,000 levels with a message. Pretty-printing 50,000 levels would write gigabytes of indentation, so output over 60 million characters is refused.
-- **`ajv` cannot run here.** It builds validators with `new Function`, and the production CSP has no `'unsafe-eval'`. For JSON Schema use a library that interprets the schema (for example `@cfworker/json-schema`) and test it against `npm run build && npm start`.
+- **`ajv` cannot run here.** It builds validators with `new Function`, and the production CSP has no `'unsafe-eval'`. For JSON Schema use a library that interprets the schema (for example `@cfworker/json-schema`) and test it against `pnpm run build && pnpm start`.
 - **Pointer-only controls need a second way in.** The crop box can be dragged, but it also has typed left, top, width and height fields and arrow keys, because dragging is no use to a keyboard or a screen reader. Handles are `aria-hidden`; the box is a focusable group.
 - **A name that is also a segmented option is not a good label.** In the subnet tool a text field called "Network" shares its name with a tab called "Network". Use `getByRole("textbox", { name, exact: true })` in tests, or give the field a more specific name.
 - **Playwright can read downloads back.** The PDF to Images test opens the ZIP with `unzipSync` from `fflate` and reads the pixel size from the PNG header, so a "download works" test also proves the file is what it says.

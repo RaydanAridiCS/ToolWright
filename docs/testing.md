@@ -12,19 +12,19 @@ Toolwright's promise is about trust, so the test suite is part of the product. I
 ## Running tests
 
 ```bash
-npm test                  # all unit/component tests once
-npm run test:watch        # watch mode
-npm run test:coverage     # with a V8 coverage report (text summary + html in ./coverage)
-npx vitest run --project core               # one project: core | db | ui
-npx vitest run packages/core/tests/hash.test.ts   # one file
-npx vitest run -t "md5"                     # by test name
+pnpm test                  # all unit/component tests once
+pnpm run test:watch        # watch mode
+pnpm run test:coverage     # with a V8 coverage report (text summary + html in ./coverage)
+pnpm dlx vitest run --project core               # one project: core | db | ui
+pnpm dlx vitest run packages/core/tests/hash.test.ts   # one file
+pnpm dlx vitest run -t "md5"                     # by test name
 
-npx playwright install chromium             # once
-npm run e2e                                 # builds the site, starts it, runs all specs
-npx playwright test e2e/privacy.spec.ts     # one spec
-npx playwright test --ui                    # interactive runner
-npx playwright show-report                  # open the last HTML report
-E2E_BASE_URL=http://localhost:3000 npm run e2e   # test an already-running server
+pnpm dlx playwright install chromium             # once
+pnpm run e2e                                 # builds the site, starts it, runs all specs
+pnpm dlx playwright test e2e/privacy.spec.ts     # one spec
+pnpm dlx playwright test --ui                    # interactive runner
+pnpm dlx playwright show-report                  # open the last HTML report
+E2E_BASE_URL=http://localhost:3000 pnpm run e2e   # test an already-running server
 ```
 
 The e2e suite runs against the **production build** (`next build && next start`) because that is what users get: the real security headers, the service worker and static rendering.
@@ -43,7 +43,7 @@ These are the most numerous and the cheapest. Principles:
 - **Hostile and extreme inputs have tests.** The SVG sanitizer is tested with script, `on*` handlers, `foreignObject`, obfuscated `javascript:` links, external hrefs, CSS `@import`/`url()` and animation that targets `href` (`packages/tools/tests/svg-sanitize.test.ts`, run in jsdom). The XML reader is tested with 50,000-deep nesting and the optimizer with 4,000 elements (those two slow tests have explicit 60 s timeouts so a busy full run does not flake).
 - **Generated code is compiled.** The SVG to React tests transpile the output with the TypeScript compiler, so invalid JSX or TSX fails.
 - **`e2e/svg-gif.spec.ts`** drives the 11 SVG and GIF tools in the production build: workers under the real security policy, downloads (file name and first bytes: `PNG`, `GIF89a`, `PK`) and no request leaving the site. It uses `process.cwd()` for fixture paths, because Playwright loads specs as CommonJS and `import.meta` is not available.
-- **Readers that did not write the output.** The PDF to Text tests open the PDF fixtures with PDF.js itself (its Node build, `pdfjs-dist/legacy/build/pdf.mjs`, with `useWasm: false`; close the document with the loading task's `destroy()`). The barcode tests decode Code 128 and Interleaved 2 of 5 with their own small decoders and compare the Code 128 symbol count with a separate exhaustive search. The module strings for EAN-13, UPC-A, EAN-8 and Code 39 were also compared by hand, outside the repository, with python-barcode, and pictures of every type were decoded with ZXing-C++ (see owner note 05); that check is not part of `npm test`.
+- **Readers that did not write the output.** The PDF to Text tests open the PDF fixtures with PDF.js itself (its Node build, `pdfjs-dist/legacy/build/pdf.mjs`, with `useWasm: false`; close the document with the loading task's `destroy()`). The barcode tests decode Code 128 and Interleaved 2 of 5 with their own small decoders and compare the Code 128 symbol count with a separate exhaustive search. The module strings for EAN-13, UPC-A, EAN-8 and Code 39 were also compared by hand, outside the repository, with python-barcode, and pictures of every type were decoded with ZXing-C++ (see owner note 05); that check is not part of `pnpm test`.
 - **Property tests use a seeded generator, not a library.** Crop boxes stay inside the picture, keep their shape and use whole pixels for every handle and drag size; a range turned into CIDR blocks covers exactly that range with no neighbours that could merge; merging a list covers exactly what went in (checked against a bitmap); IPv6 addresses round-trip through both the short and full forms.
 - **Real XML.** `packages/core/tests/fixtures/xml/` holds files written by NetBeans and IntelliJ IDEA, and samples from the Atom RFC, a W3C SOAP note and the RSS 2.0 specification. The tests also feed in a billion-laughs file, an external-entity file and a 50,000-deep file.
 - **`e2e/more-tools.spec.ts`** drives the six tools from this round in the production build: it checks the downloads (file name, first bytes and the real pixel size read from the PNG and JPEG headers), that no request leaves the site, and runs the axe scan on each tool after a file is open, not only on the empty page.
@@ -67,7 +67,7 @@ These are the most numerous and the cheapest. Principles:
 - `packages/tools/tests/keyword-map.test.ts` — the keyword map covers every tool, its primary matches the tool's, 5-15 unique secondary queries, and no tool lists another tool's primary query (no cannibalisation).
 - `apps/web/tests/seo.test.ts` — parses the JSON-LD builders (required WebApplication fields, price 0, FAQ and HowTo equal to the visible text, breadcrumbs, ItemList, Organization, WebSite, Article dates), the guides (length bands, true dates, real tools, 350+ words), the crawler policy and its switch, `robots.txt`, and `llms.txt` / `llms-full.txt`. `indexnow.test.ts` covers the IndexNow script's pure parts.
 - `apps/web/tests/health.test.ts` — `/api/health` in demo mode and against a dead database (503, named state, no secrets), and that a database outage on `/api/requests` is a 503 `unavailable` with `Retry-After`, not a 500.
-- `apps/web/tests/check-deploy.test.ts` — the helpers behind `npm run check:deploy`: meta-tag and PNG parsing, outside-script detection, and that the policy next.config.ts really sends passes the script's own policy check.
+- `apps/web/tests/check-deploy.test.ts` — the helpers behind `pnpm run check:deploy`: meta-tag and PNG parsing, outside-script detection, and that the policy next.config.ts really sends passes the script's own policy check.
 - `packages/tools/tests/smoke.test.tsx` — **every tool mounts** without errors, plus behaviour tests for representative tools (calculators, formatters, chmod, reference tables).
 
 Tips:
@@ -87,10 +87,10 @@ Tips:
 | `a11y.spec.ts` | axe-core (WCAG 2.0/2.1 A + AA) on ~22 pages in **light and dark** themes, the command palette, focus visibility, reduced motion. |
 | `responsive.spec.ts` | No horizontal scroll on key pages at desktop and phone widths; mobile menu; tap-target size. |
 | `offline.spec.ts` | After a tool is opened, it keeps working with the network off; unvisited pages fall back to the offline page. |
-| `visual.spec.ts` | Optional `@visual` snapshots (home, catalogue, two tools, request board, light and dark). Baselines are per-OS, so they are excluded from the default run and from CI: `npm run e2e:visual -- --update-snapshots`, then `npm run e2e:visual`. |
+| `visual.spec.ts` | Optional `@visual` snapshots (home, catalogue, two tools, request board, light and dark). Baselines are per-OS, so they are excluded from the default run and from CI: `pnpm run e2e:visual -- --update-snapshots`, then `pnpm run e2e:visual`. |
 | `home.spec.ts` | Home page (headline, working bench, network ledger reads 0, "Try to make it leak" is blocked, no gradient/blur in computed styles), command palette (keyboard and pointer), theme switching, static pages, 404, sitemap/robots/manifest. |
 | `more-tools.spec.ts` | Crop, Rotate & Flip, PDF to Images, PDF to Text, XML Formatter, IP & Subnet Calculator and Barcode Generator in the production build: downloads with correct bytes and sizes, the EXIF turn of a photo, ZIP contents read back with fflate, keyboard use of the crop box, errors in words, no outside requests, and an axe scan of each tool with content on screen. |
-| `seo.spec.ts` | Fetches raw HTML **without running JavaScript** for a sample of tool pages, a category, `/tools`, the home page and a guide, and checks the title (60 characters or fewer, brand once), description, canonical, one H1, the answer paragraph, FAQ and JSON-LD (FAQ and steps in the markup equal the markup's data, no ratings); that every URL in the sitemap answers 200 with a self-canonical and one H1; `robots.txt`, `llms.txt`, `llms-full.txt` and the sitemap dates; the 308 for a trailing slash and for the www host; a real 404; noindex on the API and the offline page; and that the CSP is intact. Also checks link previews: every page in the sitemap names a card that answers 200 as a 1200x630 PNG under 300 KB, and requests that identify as WhatsApp, Facebook, X, LinkedIn, Telegram, Slack and Discord get the tags inside `<head>`, near the top. |
+| `seo.spec.ts` | Fetches raw HTML **without running JavaScript** for a sample of tool pages, a category, `/tools`, the home page and a guide, and checks the title (60 characters or fewer, brand once), description, canonical, one H1, the answer paragraph, FAQ and JSON-LD (FAQ and steps in the markup equal the markup's data, no ratings); that every URL in the sitemap answers 200 with a self-canonical and one H1; `robots.txt`, `llms.txt`, `llms-full.txt` and the sitemap dates; the 308 for a trailing slash and for the www host; a real 404; noindex on the API and the offline page; and that the CSP is intact. Also checks link previews: every page in the sitemap names a card that answers 200 as a 1200x630 PNG under 300 KB, and requests that identify as WhatsApp, Facebook, X, LinkedIn, Telegram, Slack and Discord get the tags inside `<head>`, near the top.
 
 Helpers in `e2e/helpers.ts`: `trackRequests(page)` records every request (to assert none leave the origin or contain a canary), `makePng(page)` builds a PNG in the browser, `appAlert(page)` selects app alerts while ignoring Next's route announcer.
 
@@ -107,10 +107,10 @@ expect(tracker.external(baseURL!)).toEqual([]);
 
 ## Coverage
 
-`npm run test:coverage` reports coverage for `packages/*/src` (generated files and barrel `index.ts` files excluded). Coverage is a tool for finding untested code, not a target to game — prefer a test that would catch a real bug over one that merely executes a line.
+`pnpm run test:coverage` reports coverage for `packages/*/src` (generated files and barrel `index.ts` files excluded). Coverage is a tool for finding untested code, not a target to game — prefer a test that would catch a real bug over one that merely executes a line.
 
 ## When tests fail in CI
 
-1. Reproduce locally with the same command CI uses (`npm run lint && npm run typecheck && npm run test:coverage`, then `npm run e2e`).
-2. For e2e failures, download the `playwright-report` artifact from the run: it includes traces (`npx playwright show-trace trace.zip`) and screenshots.
-3. "Generated registry is out of date": run `node scripts/gen-registry.mjs` (and `npm run docs:tools`) and commit the result.
+1. Reproduce locally with the same command CI uses (`pnpm run lint && pnpm run typecheck && pnpm run test:coverage`, then `pnpm run e2e`).
+2. For e2e failures, download the `playwright-report` artifact from the run: it includes traces (`pnpm dlx playwright show-trace trace.zip`) and screenshots.
+3. "Generated registry is out of date": run `node scripts/gen-registry.mjs` (and `pnpm run docs:tools`) and commit the result.

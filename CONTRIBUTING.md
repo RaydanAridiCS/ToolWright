@@ -19,17 +19,17 @@ These are what make Toolwright *Toolwright*. Pull requests that break them can't
 ```bash
 git clone https://github.com/RaydanAridiCS/toolwright.git
 cd toolwright
-npm install
-npm run dev                          # http://localhost:3000
-npx playwright install chromium      # once, for end-to-end tests
+pnpm install
+pnpm dev                             # http://localhost:3000
+pnpm dlx playwright install chromium # once, for end-to-end tests
 ```
 
-You need Node.js 20+ and npm 10+. We use **npm workspaces** — please don't introduce pnpm or yarn lockfiles.
+You need Node.js 20+ and pnpm 10+. We use **pnpm workspaces**.
 
 ## Your first contribution: add a tool
 
 ```bash
-npm run new-tool word-wrap -- --name "Word Wrap" --category text
+pnpm run new-tool word-wrap -- --name "Word Wrap" --category text
 ```
 
 The scaffold creates the metadata, UI, logic and tests and registers the tool. Then:
@@ -44,11 +44,11 @@ The complete guide, including the conventions for file and PDF tools, is in [doc
 ## Before you open a pull request
 
 ```bash
-npm run lint
-npm run typecheck
-npm test
-npm run docs:tools        # if you added or renamed a tool
-npm run e2e               # when you changed UI, routing, security headers or file handling
+pnpm run lint
+pnpm run typecheck
+pnpm test
+pnpm run docs:tools        # if you added or renamed a tool
+pnpm run e2e               # when you changed UI, routing, security headers or file handling
 ```
 
 CI runs the same checks plus a coverage report and the full Playwright suite (including accessibility audits in light and dark themes).

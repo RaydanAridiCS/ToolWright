@@ -19,8 +19,8 @@ export default function ContributePage() {
           <pre>
             <code>{`git clone ${SITE.repo}
 cd toolwright
-npm install
-npm run new-tool my-tool-name`}</code>
+pnpm install
+pnpm run new-tool my-tool-name`}</code>
           </pre>
         </li>
         <li>
@@ -32,7 +32,7 @@ npm run new-tool my-tool-name`}</code>
         <li>
           <strong>Run the checks</strong> and open a pull request:
           <pre>
-            <code>{`npm run lint && npm run typecheck && npm test`}</code>
+            <code>{`pnpm run lint && pnpm run typecheck && pnpm test`}</code>
           </pre>
         </li>
       </ol>

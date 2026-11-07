@@ -8,7 +8,7 @@
  *
  * Rules: one primary query per page (`primary` must equal the tool's `primaryKeyword`, which a test checks);
  * 5 to 15 secondary queries; when two tools overlap, `owns` says which one owns the query and the other links to it.
- * The Markdown view is generated: `npm run docs:seo`.
+ * The Markdown view is generated: `pnpm run docs:seo`.
  */
 export type Intent = "do" | "learn" | "look-up";
 export type Tier = "low" | "medium" | "high" | "very-high";

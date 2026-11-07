@@ -5,7 +5,7 @@
  *
  *   node scripts/check-deploy.mjs                          check https://toolwright.com
  *   node scripts/check-deploy.mjs https://staging.example  check another host
- *   npm run check:deploy
+ *   pnpm run check:deploy
  *
  * Exit code 0 when nothing FAILED (warnings are advice), 1 otherwise, so it can gate a deploy.
  * What each check means, and how to fix it, is in docs/maintainers.md ("Go-live checklist").
@@ -59,7 +59,7 @@ export function cspProblems(csp) {
 export const DATABASE_HINTS = {
   unreachable: "The server cannot reach Postgres. Check DATABASE_URL (host and port), that the database is running, and that its firewall allows this server.",
   rejected: "Postgres refused the connection. Check the user, password and database name in DATABASE_URL, and add ?sslmode=require if your provider needs SSL.",
-  not_migrated: "The database is empty. Run the migrations once: docker build --target migrate -t toolwright-migrate . && docker run --rm -e DATABASE_URL=... toolwright-migrate (or DATABASE_URL=... npm run db:migrate).",
+  not_migrated: "The database is empty. Run the migrations once: docker build --target migrate -t toolwright-migrate . && docker run --rm -e DATABASE_URL=... toolwright-migrate (or DATABASE_URL=... pnpm run db:migrate).",
   error: "The database answered with an error. Read the server log line that starts with 'Request board database problem'.",
 };
 

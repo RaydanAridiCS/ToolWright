@@ -4,19 +4,16 @@
   "private": true,
   "description": "Toolwright: free, open-source, privacy-first tools that run entirely in your browser.",
   "license": "MIT",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "packageManager": "pnpm@11.5.0",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "dev": "npm run dev -w @toolwright/web",
-    "build": "npm run build -w @toolwright/web",
-    "start": "npm run start -w @toolwright/web",
+    "dev": "pnpm --filter @toolwright/web dev",
+    "build": "pnpm --filter @toolwright/web build",
+    "start": "pnpm --filter @toolwright/web start",
     "lint": "eslint .",
-    "typecheck": "npm run typecheck --workspaces --if-present",
+    "typecheck": "pnpm -r --if-present run typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -27,8 +24,8 @@
     "docs:tools": "node scripts/gen-tool-docs.mjs",
     "docs:seo": "node scripts/gen-seo-docs.mjs",
     "check:deploy": "node scripts/check-deploy.mjs",
-    "db:generate": "npm run generate -w @toolwright/db",
-    "db:migrate": "npm run migrate -w @toolwright/db"
+    "db:generate": "pnpm --filter @toolwright/db generate",
+    "db:migrate": "pnpm --filter @toolwright/db migrate"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",

@@ -15,8 +15,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@toolwright/core": "*",
-    "@toolwright/ui": "*",
+    "@toolwright/core": "workspace:*",
+    "@toolwright/ui": "workspace:*",
     "bwip-js": "^4.11.4",
     "dompurify": "^3.3.0",
     "exifr": "^7.1.3",

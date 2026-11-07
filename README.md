@@ -44,33 +44,33 @@ See the [full catalogue](docs/tools.md). Missing something? [Request it](#reques
 
 ## Getting started
 
-Requirements: **Node.js 20+** and **npm 10+**.
+Requirements: **Node.js 20+** and **pnpm 10+**.
 
 ```bash
 git clone https://github.com/RaydanAridiCS/toolwright.git
 cd toolwright
-npm install
-npm run dev          # http://localhost:3000
+pnpm install
+pnpm dev             # http://localhost:3000
 ```
 
 ### Everyday commands
 
 | Command | What it does |
 | --- | --- |
-| `npm run dev` | Start the Next.js dev server |
-| `npm run build` / `npm start` | Production build and server |
-| `npm test` | Unit and component tests (Vitest) |
-| `npm run test:coverage` | Same, with a coverage report |
-| `npm run e2e` | End-to-end tests (Playwright, runs against a production build) |
-| `npm run lint` / `npm run typecheck` | ESLint and TypeScript |
-| `npm run new-tool <slug>` | Scaffold a new tool |
-| `npm run docs:tools` | Regenerate [docs/tools.md](docs/tools.md) |
-| `npm run docs:seo` | Regenerate [docs/keyword-map.md](docs/keyword-map.md), the keyword and intent map |
-| `npm run screenshots` | Regenerate the images in `docs/images` (needs a running production server) |
-| `npm run e2e:visual` | Optional visual snapshots (per-OS baselines, not run in CI) |
-| `npm run db:generate` | Generate a SQL migration after changing the database schema |
+| `pnpm dev` | Start the Next.js dev server |
+| `pnpm run build` / `pnpm start` | Production build and server |
+| `pnpm test` | Unit and component tests (Vitest) |
+| `pnpm run test:coverage` | Same, with a coverage report |
+| `pnpm run e2e` | End-to-end tests (Playwright, runs against a production build) |
+| `pnpm run lint` / `pnpm run typecheck` | ESLint and TypeScript |
+| `pnpm run new-tool <slug>` | Scaffold a new tool |
+| `pnpm run docs:tools` | Regenerate [docs/tools.md](docs/tools.md) |
+| `pnpm run docs:seo` | Regenerate [docs/keyword-map.md](docs/keyword-map.md), the keyword and intent map |
+| `pnpm run screenshots` | Regenerate the images in `docs/images` (needs a running production server) |
+| `pnpm run e2e:visual` | Optional visual snapshots (per-OS baselines, not run in CI) |
+| `pnpm run db:generate` | Generate a SQL migration after changing the database schema |
 
-First time running the end-to-end tests? Install the browser once: `npx playwright install chromium`.
+First time running the end-to-end tests? Install the browser once: `pnpm dlx playwright install chromium`.
 
 ## Project layout
 
@@ -90,7 +90,7 @@ Read [docs/architecture.md](docs/architecture.md) for how the pieces fit togethe
 ## Adding a tool
 
 ```bash
-npm run new-tool my-tool-name -- --name "My Tool" --category developer
+pnpm run new-tool my-tool-name -- --name "My Tool" --category developer
 ```
 
 This scaffolds the metadata, UI, logic and tests, and registers the tool. Then follow [docs/writing-a-tool.md](docs/writing-a-tool.md). For simple text-in/text-out tools the whole UI is about 20 lines.
@@ -105,7 +105,7 @@ Tools do their work in your browser. The site sets `Content-Security-Policy: con
 
 ## Tech stack
 
-Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Bricolage Grotesque, Instrument Sans and Geist Mono (self-hosted) · Drizzle ORM + Postgres (request board only) · Vitest + Testing Library · Playwright + axe-core · npm workspaces
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Bricolage Grotesque, Instrument Sans and Geist Mono (self-hosted) · Drizzle ORM + Postgres (request board only) · Vitest + Testing Library · Playwright + axe-core · pnpm workspaces
 
 ## Contributing
 

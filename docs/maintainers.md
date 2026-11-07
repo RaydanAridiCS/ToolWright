@@ -15,7 +15,7 @@ Operational details for people who run the official toolwright.com deployment or
 ## Database
 
 - Schema lives in `packages/db/src/schema.ts`; SQL migrations are generated into `packages/db/drizzle/` and **committed**.
-- Create a migration: `npm run db:generate`. Apply: `DATABASE_URL=… npm run db:migrate`.
+- Create a migration: `pnpm run db:generate`. Apply: `DATABASE_URL=… pnpm run db:migrate`.
 - Review the generated SQL before committing. CI applies every migration to an in-process Postgres (PGlite) in the test suite.
 - Use a pooled connection string on serverless platforms. The app opens one connection per instance (`max: 1`, `prepare: false` for pooler compatibility).
 - Hosted Postgres (Neon, Supabase, Railway, RDS and others) normally requires SSL: end the connection string with `?sslmode=require`.
@@ -46,7 +46,7 @@ The site is a standard Next.js app: static pages plus two small Node route handl
 
 ## Container image
 
-The repository's `Dockerfile` builds the web app as a small production image, for deploying the official site to any container platform. It uses Next.js's *standalone* output (enabled only for the image build via `NEXT_OUTPUT=standalone`, so `npm run build` / `npm start` are unchanged).
+The repository's `Dockerfile` builds the web app as a small production image, for deploying the official site to any container platform. It uses Next.js's *standalone* output (enabled only for the image build via `NEXT_OUTPUT=standalone`, so `pnpm run build` / `pnpm start` are unchanged).
 
 ```bash
 docker build -t toolwright \
@@ -66,7 +66,7 @@ docker run -p 3000:3000 -e DATABASE_URL=postgres://… toolwright
 
 Runtime environment: `DATABASE_URL` (optional; without it the request board uses its in-memory demo store), `PORT` (default `3000`).
 
-What you get: a multi-stage build (~350 MB), running as a non-root user (`nextjs`, uid 1001), with a `HEALTHCHECK` that requests `/`. The security headers and service worker are served by the app itself, so they are present in the container exactly as in `npm start`.
+What you get: a multi-stage build (~350 MB), running as a non-root user (`nextjs`, uid 1001), with a `HEALTHCHECK` that requests `/`. The security headers and service worker are served by the app itself, so they are present in the container exactly as in `pnpm start`.
 
 ### Migrations
 
@@ -83,14 +83,14 @@ The end-to-end suite can run against any running instance, including a container
 
 ```bash
 docker run -d -p 3000:3000 --name tw toolwright
-E2E_BASE_URL=http://localhost:3000 npx playwright test e2e/privacy.spec.ts e2e/home.spec.ts e2e/requests.spec.ts
+E2E_BASE_URL=http://localhost:3000 pnpm dlx playwright test e2e/privacy.spec.ts e2e/home.spec.ts e2e/requests.spec.ts
 ```
 
 Remember to place a TLS-terminating reverse proxy or platform load balancer in front: the app serves plain HTTP and its CSP includes `upgrade-insecure-requests`. Keep any proxy from injecting scripts or analytics (see the hosting requirements above).
 
 ## Go-live checklist
 
-`npm run check:deploy` reads the live site and prints PASS, WARN or FAIL for every line below, with the fix for each one that is not a PASS. It only makes GET requests and changes nothing. Pass a URL to check another host (`node scripts/check-deploy.mjs https://staging.example`). It exits 1 when anything FAILED, so it can gate a deploy.
+`pnpm run check:deploy` reads the live site and prints PASS, WARN or FAIL for every line below, with the fix for each one that is not a PASS. It only makes GET requests and changes nothing. Pass a URL to check another host (`node scripts/check-deploy.mjs https://staging.example`). It exits 1 when anything FAILED, so it can gate a deploy.
 
 | Check | What it proves | If it is not a PASS |
 | --- | --- | --- |
@@ -140,16 +140,16 @@ Checked on the live site on 31 October 2026: the page HTML carried no injected s
 
 - Turn on your provider's automatic Postgres backups. The tables are small and hold only hashed tokens, titles and descriptions.
 - Point an uptime monitor at `https://toolwright.com/api/health`.
-- Run `npm run check:deploy` after every deploy.
+- Run `pnpm run check:deploy` after every deploy.
 
 ## Releasing
 
 1. Make sure `main` is green: lint, typecheck, unit tests, e2e (including accessibility).
-2. `npm run docs:tools` and commit if `docs/tools.md` changed.
-   Also `npm run docs:seo` (the keyword map) and `node scripts/gen-lastmod.mjs` (sitemap dates; commit `apps/web/src/lib/lastmod.generated.json` if it changed).
+2. `pnpm run docs:tools` and commit if `docs/tools.md` changed.
+   Also `pnpm run docs:seo` (the keyword map) and `node scripts/gen-lastmod.mjs` (sitemap dates; commit `apps/web/src/lib/lastmod.generated.json` if it changed).
 3. Bump `CACHE_VERSION` in `apps/web/public/sw.js` **only** if the caching strategy changed (build assets are content-hashed, so normal releases don't need it).
 4. Tag the release (`vX.Y.Z`) and publish release notes grouped as *New tools · Improvements · Fixes*.
-5. After deploy, run `npm run check:deploy` (see the go-live checklist above) and spot-check a tool page and `/requests` in a browser.
+5. After deploy, run `pnpm run check:deploy` (see the go-live checklist above) and spot-check a tool page and `/requests` in a browser.
 6. Optional: tell Bing about the changes with `node scripts/indexnow.mjs submit --since <date>` (see [seo.md](seo.md#indexnow)), and request indexing of new pages in Google Search Console.
 
 ## Dependency hygiene
@@ -157,7 +157,7 @@ Checked on the live site on 31 October 2026: the page HTML carried no injected s
 - Review updates monthly. Prefer small, widely-used libraries. Current runtime dependencies of note: `pdf-lib` (PDF), `qrcode`, `marked` + `dompurify` (Markdown), `diff`, `js-yaml`, `papaparse`, `sql-formatter`, `cronstrue`, `exifr`, `fflate`, `@scure/bip39` (passphrase word list), `cmdk`, `zod`, `drizzle-orm`, `postgres`. Loaded on demand and kept behind one file each: `pdfjs-dist` (PDF page images), `mermaid` (diagrams), `svgo` (SVG optimizer, about 800 KB), `gifenc` and `omggif` (GIF encode and decode) and `imagetracerjs` (image tracing). `imagetracerjs` has had no release for years and ships no types (it is wrapped in `core/src/image-trace.ts` with one `@ts-expect-error`); if it ever becomes a problem, Image to SVG is the only tool that needs replacing.
 - The crop, PDF to Images, PDF to Text, XML, subnet and barcode tools added no dependencies. PDF to Images and PDF to Text reuse `pdfjs-dist` (through `shared/pdf-raster.ts`) and `fflate` (ZIP), so a PDF.js upgrade is the thing to re-test for them: run `e2e/more-tools.spec.ts` and `e2e/files.spec.ts`. Their unit tests also read the PDF fixtures with PDF.js's Node build.
 - Anything that handles untrusted input (`marked`, `dompurify`, `js-yaml`, `pdf-lib`, `exifr`) deserves prompt security updates. The XML reader is our own code; its tests include a billion-laughs file, an external-entity file and 50,000-deep nesting, so run them before changing it.
-- `npm audit` runs against the lockfile; investigate anything reachable from user input.
+- `pnpm audit` runs against the lockfile; investigate anything reachable from user input.
 
 ## Monitoring ideas
 

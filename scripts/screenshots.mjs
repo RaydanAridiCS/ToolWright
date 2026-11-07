@@ -2,8 +2,8 @@
 /**
  * Takes the screenshots used in the README and design docs from a running production server.
  *
- *   npm run build && npm start            # in one terminal
- *   npm run screenshots                   # in another  (writes docs/images/*.png)
+ *   pnpm run build && pnpm start            # in one terminal
+ *   pnpm run screenshots                   # in another  (writes docs/images/*.png)
  *   node scripts/screenshots.mjs http://localhost:3000 some/other/dir
  */
 import { mkdirSync } from "node:fs";

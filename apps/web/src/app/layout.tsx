@@ -11,21 +11,21 @@ import "./globals.css";
 // All three typefaces are served from our own origin (the CSP forbids third-party fonts).
 // Paths point at the files shipped by the @fontsource-variable packages and geist.
 const display = localFont({
-  src: "../../../../node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-opsz-normal.woff2",
+  src: "../../node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-opsz-normal.woff2",
   weight: "200 800",
   variable: "--font-display",
   display: "swap",
   adjustFontFallback: "Arial", // size-adjusted fallback so the swap to the real font does not reflow headings
 });
 const body = localFont({
-  src: "../../../../node_modules/@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2",
+  src: "../../node_modules/@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2",
   weight: "400 700",
   variable: "--font-body",
   display: "swap",
   adjustFontFallback: "Arial", // size-adjusted fallback so the swap to the real font does not reflow headings
 });
 const mono = localFont({
-  src: "../../../../node_modules/geist/dist/fonts/geist-mono/GeistMono-Variable.woff2",
+  src: "../../node_modules/geist/dist/fonts/geist-mono/GeistMono-Variable.woff2",
   weight: "100 900",
   variable: "--font-mono",
   display: "swap",

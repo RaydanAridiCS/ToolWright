@@ -2,8 +2,8 @@
 /**
  * Scaffold a new tool.
  *
- *   npm run new-tool my-tool-name -- --name "My Tool" --category developer --icon Wrench
- *   npm run new-tool my-tool-name -- --template custom --no-core
+ *   pnpm run new-tool my-tool-name -- --name "My Tool" --category developer --icon Wrench
+ *   pnpm run new-tool my-tool-name -- --template custom --no-core
  *
  * Creates:
  *   packages/tools/src/tools/<slug>/meta.ts      what the site needs to know about the tool
@@ -48,7 +48,7 @@ function fail(message) {
 
 const { positional, flags } = parseArgs(process.argv.slice(2));
 const slug = positional[0];
-if (!slug) fail("Usage: npm run new-tool <slug> [-- --name \"My Tool\" --category developer --icon Wrench --template transform|custom --no-core]");
+if (!slug) fail("Usage: pnpm run new-tool <slug> [-- --name \"My Tool\" --category developer --icon Wrench --template transform|custom --no-core]");
 if (!SLUG.test(slug)) fail(`"${slug}" is not a valid slug. Use lowercase letters, digits and single hyphens, e.g. "json-diff".`);
 
 const categories = [...readFileSync(join(root, "packages/tools/src/categories.ts"), "utf8").matchAll(/id: "([a-z]+)"/g)].map((m) => m[1]);
@@ -183,7 +183,7 @@ generate();
 
 console.log(`\n✔ Created the "${name}" tool:\n${created.map((f) => `   ${f}`).join("\n")}\n`);
 console.log("Next steps:");
-console.log(`  1. npm run dev, then open http://localhost:3000/tools/${slug}`);
+console.log(`  1. pnpm dev, then open http://localhost:3000/tools/${slug}`);
 console.log("  2. Fill in the TODOs: the tagline, description and keywords in meta.ts, and the logic in core.");
-console.log("  3. npm run lint && npm run typecheck && npm test");
+console.log("  3. pnpm run lint && pnpm run typecheck && pnpm test");
 console.log("  4. Read docs/writing-a-tool.md for conventions, then open a pull request.\n");

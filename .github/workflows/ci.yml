@@ -15,18 +15,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-      - run: npm ci
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - name: Generated files are up to date
         run: |
           node scripts/gen-registry.mjs --check
           node scripts/gen-tool-docs.mjs --check
-      - run: npm run lint
-      - run: npm run typecheck
-      - run: npm run test:coverage
+      - run: pnpm run lint
+      - run: pnpm run typecheck
+      - run: pnpm run test:coverage
 
   e2e:
     name: End-to-end tests
@@ -34,13 +35,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - run: npm run e2e
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm dlx playwright install --with-deps chromium
+      - run: pnpm run e2e
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

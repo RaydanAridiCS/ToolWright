@@ -139,7 +139,7 @@ To add a card for a new kind of page, put an `opengraph-image.tsx` next to its `
 
 Tests: `apps/web/tests/seo.test.ts` (tags, article dates, tagline shortening) and, in `e2e/seo.spec.ts`, a check that every page in the sitemap names a card, that every card answers 200 as a 1200x630 PNG under 300 KB, and that requests that identify themselves as WhatsApp, Facebook, X, LinkedIn, Telegram, Slack and Discord get the tags inside `<head>`, near the top of the HTML.
 
-What code cannot check: how each app draws the card, and whether bot protection in front of the server lets the crawlers in. `npm run check:deploy` makes a WhatsApp-style request against the live site and fetches the home card, which catches a block, but it is not WhatsApp. The apps also keep their own cache of a link's preview, often for days. To see a changed preview straight away: Facebook and Messenger have the [Sharing Debugger](https://developers.facebook.com/tools/debug/) with "Scrape Again"; LinkedIn has the [Post Inspector](https://www.linkedin.com/post-inspector/); Telegram refreshes through the `@WebpageBot` bot; for WhatsApp and the rest, sharing the link with a throwaway query string (`https://toolwright.com/tools/merge-pdf?v=2`) normally gets a fresh preview. Sharing a link to yourself is the quickest way to look.
+What code cannot check: how each app draws the card, and whether bot protection in front of the server lets the crawlers in. `pnpm run check:deploy` makes a WhatsApp-style request against the live site and fetches the home card, which catches a block, but it is not WhatsApp. The apps also keep their own cache of a link's preview, often for days. To see a changed preview straight away: Facebook and Messenger have the [Sharing Debugger](https://developers.facebook.com/tools/debug/) with "Scrape Again"; LinkedIn has the [Post Inspector](https://www.linkedin.com/post-inspector/); Telegram refreshes through the `@WebpageBot` bot; for WhatsApp and the rest, sharing the link with a throwaway query string (`https://toolwright.com/tools/merge-pdf?v=2`) normally gets a fresh preview. Sharing a link to yourself is the quickest way to look.
 
 ## IndexNow
 
@@ -149,8 +149,8 @@ What code cannot check: how each app draws the card, and whether bot protection 
 
 - **Raw HTML, as a crawler without JavaScript sees it:** `curl -s https://toolwright.com/tools/merge-pdf` and look for the `<title>`, description, canonical, one `<h1>`, the answer paragraph, the FAQ and the `application/ld+json` blocks. `e2e/seo.spec.ts` does this for a sample of pages and for every URL in the sitemap.
 - **Structured data:** the [Schema.org validator](https://validator.schema.org) and Google's Rich Results Test accept a URL or pasted HTML. They are outside tools, run by you.
-- **Lighthouse:** `npx lighthouse@12.8.2 http://localhost:3100/ --only-categories=performance,accessibility,best-practices,seo` against `npm run build && npm start`, with Chrome. Run it from a scratch folder; it is not a dependency of the project. Results from this round are in `owner-notes/06-seo-and-aeo.md`.
-- **Accessibility:** `npm run e2e` runs axe on every kind of page in light and dark themes.
+- **Lighthouse:** `pnpm dlx lighthouse@12.8.2 http://localhost:3100/ --only-categories=performance,accessibility,best-practices,seo` against `pnpm run build && pnpm start`, with Chrome. Run it from a scratch folder; it is not a dependency of the project. Results from this round are in `owner-notes/06-seo-and-aeo.md`.
+- **Accessibility:** `pnpm run e2e` runs axe on every kind of page in light and dark themes.
 
 ## What was measured, and what was not
 

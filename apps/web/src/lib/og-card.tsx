@@ -1,11 +1,21 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { ImageResponse } from "next/og";
 import { OG_SIZE } from "./seo";
 
 // Satori can read WOFF (not WOFF2). Loaded at build time; the routes that use this are statically generated.
-const fontFile = (weight: 700 | 800) =>
-  readFileSync(path.join(process.cwd(), "../../node_modules/@fontsource/bricolage-grotesque/files", `bricolage-grotesque-latin-${weight}-normal.woff`));
+const fontFile = (weight: 700 | 800) => {
+  const rel = path.join("@fontsource", "bricolage-grotesque", "files", `bricolage-grotesque-latin-${weight}-normal.woff`);
+  const candidates = [
+    path.join(process.cwd(), "node_modules", rel),
+    path.join(process.cwd(), "apps", "web", "node_modules", rel),
+    path.join(process.cwd(), "..", "..", "node_modules", rel),
+  ];
+  for (const c of candidates) {
+    if (existsSync(/*turbopackIgnore: true*/ c)) return readFileSync(/*turbopackIgnore: true*/ c);
+  }
+  throw new Error(`Font file not found in candidates: ${candidates.join(", ")}`);
+};
 
 const PAPER = "#f4f0e6";
 const INK = "#1b1a15";

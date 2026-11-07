@@ -19,18 +19,16 @@ ARG NODE_VERSION=22
 FROM node:${NODE_VERSION}-alpine AS build
 WORKDIR /app
 
+RUN corepack enable
+
 # Copy only the manifests first so the dependency layer is cached until they change.
-COPY package.json package-lock.json .npmrc ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY apps/web/package.json apps/web/
 COPY packages/core/package.json packages/core/
 COPY packages/db/package.json packages/db/
 COPY packages/tools/package.json packages/tools/
 COPY packages/ui/package.json packages/ui/
-# Retries make the install resilient to flaky networks in CI.
-ENV npm_config_fetch_retries=5 \
-    npm_config_fetch_retry_mintimeout=20000 \
-    npm_config_fetch_retry_maxtimeout=120000
-RUN --mount=type=cache,target=/root/.npm npm ci
+RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile
 
 COPY . .
 
@@ -44,12 +42,12 @@ ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
     NEXT_BUILD_CPUS=$NEXT_BUILD_CPUS \
     NEXT_TELEMETRY_DISABLED=1 \
     NEXT_OUTPUT=standalone
-RUN npm run build
+RUN pnpm run build
 
 # ---------- migrate: optional one-off job that applies SQL migrations ----------
 FROM build AS migrate
 ENV NODE_ENV=production
-CMD ["npm", "run", "db:migrate"]
+CMD ["pnpm", "run", "db:migrate"]
 
 # ---------- runner: the small image that actually serves traffic ----------
 FROM node:${NODE_VERSION}-alpine AS runner

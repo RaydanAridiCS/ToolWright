@@ -12,10 +12,10 @@
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
-    "@toolwright/core": "*",
-    "@toolwright/db": "*",
-    "@toolwright/tools": "*",
-    "@toolwright/ui": "*",
+    "@toolwright/core": "workspace:*",
+    "@toolwright/db": "workspace:*",
+    "@toolwright/tools": "workspace:*",
+    "@toolwright/ui": "workspace:*",
     "cmdk": "^1.1.1",
     "geist": "^1.5.1",
     "lucide-react": "^0.545.0",

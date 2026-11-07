@@ -2,8 +2,8 @@ import { expect, test } from "@playwright/test";
 
 /**
  * Visual snapshots. Baselines are per-OS (fonts and anti-aliasing differ), so these are not part of CI:
- *   npm run e2e:visual -- --update-snapshots   # first run on your machine writes baselines
- *   npm run e2e:visual                         # later runs compare against them
+ *   pnpm run e2e:visual -- --update-snapshots   # first run on your machine writes baselines
+ *   pnpm run e2e:visual                         # later runs compare against them
  */
 const PAGES = [
   ["home", "/"],

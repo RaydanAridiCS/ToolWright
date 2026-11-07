@@ -1,6 +1,6 @@
 # Architecture
 
-Toolwright is a TypeScript monorepo managed with **npm workspaces**. This document explains how the pieces fit together so you can find your way around and make changes confidently.
+Toolwright is a TypeScript monorepo managed with **pnpm workspaces**. This document explains how the pieces fit together so you can find your way around and make changes confidently.
 
 ```
 ┌──────────────────────────── apps/web (Next.js 16, App Router) ────────────────────────────┐
@@ -56,7 +56,7 @@ Each tool is a folder under `src/tools/<slug>/`:
 | `meta.ts` | Pure data (`defineTool({...})`): name, tagline, description, category, keywords, icon, optional `howTo`, `faq`, `related`. Safe to import on the server; drives routing, search, SEO and sitemap. |
 | `Tool.tsx` | The UI (default export). Client component, loaded lazily. |
 
-`meta.ts` also holds the search fields (`primaryKeyword`, `seoTitle`, `seoDescription`, `answer`, `nextStep`). The research behind them (secondary queries, intent, estimates) is `src/seo/keyword-map.ts`, the category landing copy is `src/seo/category-content.ts`, and `docs/keyword-map.md` is generated from the first (`npm run docs:seo`).
+`meta.ts` also holds the search fields (`primaryKeyword`, `seoTitle`, `seoDescription`, `answer`, `nextStep`). The research behind them (secondary queries, intent, estimates) is `src/seo/keyword-map.ts`, the category landing copy is `src/seo/category-content.ts`, and `docs/keyword-map.md` is generated from the first (`pnpm run docs:seo`).
 
 `scripts/gen-registry.mjs` scans the folders and writes two generated files (committed, and verified by a test):
 
@@ -82,7 +82,7 @@ See [request-board.md](request-board.md).
 
 Next.js App Router. Key points:
 
-- **Static by default.** Home, catalogue, category and every tool page are prerendered (`generateStaticParams`). Only the `/api/requests` routes and `/api/health` (the database check used by `npm run check:deploy`) are dynamic; both are `noindex`, `no-store` and disallowed in `robots.txt`.
+- **Static by default.** Home, catalogue, category and every tool page are prerendered (`generateStaticParams`). Only the `/api/requests` routes and `/api/health` (the database check used by `pnpm run check:deploy`) are dynamic; both are `noindex`, `no-store` and disallowed in `robots.txt`.
 - **Tool pages** render server-side metadata, description, FAQ, JSON-LD and related tools. The interactive tool itself mounts on the client (`ToolLoader`), because tools read the URL hash, localStorage and other browser-only APIs. It is wrapped in a Suspense boundary and an error boundary (for a friendly message if a chunk can't load offline).
 - **Security headers** (`next.config.ts`): a Content Security Policy that restricts connections to the site's own origin, plus `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` and framing protection. See [privacy-model.md](privacy-model.md).
 - **Design layer.** All tokens live in `app/globals.css` (light "paper" and dark "ink"; Tailwind's `--radius-*` and `--shadow-*` are remapped there, so every tool inherits sharp corners and flat, hard shadows). Fonts (Bricolage Grotesque, Instrument Sans, Geist Mono) are self-hosted through `next/font/local` in `layout.tsx`. The default theme is light for everyone; `THEME_INIT_SCRIPT` sets it before paint. Site components: `Ledger` (numbered rows that replace card grids), `ToolGlyph`, `Ruler`, `Logo`, and the home page's `HeroBench`, `ProofLog` and `Ticket`.
@@ -108,12 +108,12 @@ Next.js App Router. Key points:
 | URL hash for shareable state | Keeps privacy intact (fragments aren't sent to servers) with no backend. |
 | CSP instead of a promise | The browser enforces the privacy guarantee; tests verify it. |
 | Tokens remapped, not rewritten | Re-pointing `--radius-*`, `--shadow-*` and the color tokens restyled 71 tools without touching them; the design rules are tested so new tools cannot drift. |
-| In-memory fallback for the request board | A fresh clone works with `npm install && npm run dev` — no database needed. |
+| In-memory fallback for the request board | A fresh clone works with `pnpm install && pnpm dev` — no database needed. |
 | No accounts | Less to secure, nothing personal to store. Votes use a random browser token that is hashed server-side. |
 
 ## Adding to the architecture
 
 - New **domain logic** → `packages/core/src/<name>.ts` + tests.
-- New **tool** → `npm run new-tool`. See [writing-a-tool.md](writing-a-tool.md).
+- New **tool** → `pnpm run new-tool`. See [writing-a-tool.md](writing-a-tool.md).
 - New **shared UI** → `packages/ui` (with a component test) if generic; `packages/tools/src/shared` if only tools use it.
 - New **page** → `apps/web/src/app/...`, with metadata and an e2e or accessibility check.
