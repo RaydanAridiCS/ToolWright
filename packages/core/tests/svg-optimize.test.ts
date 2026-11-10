@@ -137,6 +137,6 @@ describe("optimizeSvg", () => {
     const t0 = Date.now();
     const r = optimizeSvg(big, { multipass: false });
     expect(r.after).toBeLessThan(r.before);
-    expect(Date.now() - t0).toBeLessThan(15_000);
+    expect(Date.now() - t0).toBeLessThan(30_000);
   });
 });

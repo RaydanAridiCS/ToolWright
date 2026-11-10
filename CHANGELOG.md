@@ -4,6 +4,14 @@ All notable changes to Toolwright. The format follows [Keep a Changelog](https:/
 
 ## [Unreleased]
 
+### Enhanced: Extract PDF Pages, Delete PDF Pages, Mermaid Editor, and SVG Optimizer
+
+- **Interactive Page Previews in PDF Page Tools**: Added [`PdfPageSelector`](packages/tools/src/shared/pdf-page-selector.tsx) to both `/tools/extract-pdf-pages` and `/tools/delete-pdf-pages`. Renders on-demand page thumbnails with PDF.js and provides bidirectional synchronization between the text range input and interactive thumbnail cards. Includes *Select all*, *Clear*, *Invert* actions, and live page counters.
+- **Range Formatter Logic**: Added [`formatPageRanges`](packages/core/src/pdf.ts) in `@toolwright/core/pdf` to format zero-based page indexes into sorted, deduplicated range strings (e.g. `1-3, 5, 7-8`), with unit tests.
+- **Copy PNG in Mermaid Editor**: Added direct clipboard PNG copying to `/tools/mermaid-editor` via the Web Clipboard API (`ClipboardItem`).
+- **Cleaned SVGO Plugins**: Cleaned up SVGO plugin configuration in [`packages/core/src/svg-optimize.ts`](packages/core/src/svg-optimize.ts) to eliminate SVGO warnings.
+- **Updated Catalogue Count**: Synchronised the total tool count to 120 in `README.md`.
+
 ### Added: Extract PDF Images
 
 - **New tool: `/tools/extract-pdf-images`.** Pull the original embedded pictures out of a PDF as JPG or PNG files. JPEG streams are saved unchanged; lossless images are reconstructed as PNGs; JPEG 2000, CCITT fax and JBIG2 images are skipped with a note. Duplicate images across pages are only listed once. Download individual images or a single ZIP, all in the browser.

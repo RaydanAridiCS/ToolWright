@@ -59,8 +59,8 @@ export function useThumbnails(file: File) {
 
 export type { ThumbStore };
 
-/** A 64px square holding a page picture, or the page icon until (or unless) the picture is ready. Decorative: the row names the page. */
-export function PageThumb({ store, pageIndex, turn }: { store: ThumbStore | null; pageIndex: number; turn: number }) {
+/** A 64px square (or custom size) holding a page picture, or the page icon until (or unless) the picture is ready. Decorative: the row names the page. */
+export function PageThumb({ store, pageIndex, turn = 0, className }: { store: ThumbStore | null; pageIndex: number; turn?: number; className?: string }) {
   const box = useRef<HTMLSpanElement>(null);
   const [url, setUrl] = useState<string | null>(null);
 
@@ -97,7 +97,11 @@ export function PageThumb({ store, pageIndex, turn }: { store: ThumbStore | null
   }, [store, pageIndex]);
 
   return (
-    <span ref={box} aria-hidden className="grid size-16 shrink-0 place-items-center overflow-hidden border border-border bg-muted">
+    <span
+      ref={box}
+      aria-hidden
+      className={className ?? "grid size-16 shrink-0 place-items-center overflow-hidden border border-border bg-muted"}
+    >
       {url && store ? (
         // eslint-disable-next-line @next/next/no-img-element -- a blob URL made in this tab; next/image cannot optimise it
         <img src={url} alt="" className="max-h-full max-w-full object-contain transition-transform" style={{ transform: `rotate(${turn}deg)` }} />

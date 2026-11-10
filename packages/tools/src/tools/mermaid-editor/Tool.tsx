@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Download, Minus, Plus } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Check, Copy, Download, Minus, Plus } from "lucide-react";
 import { Alert, Button, CopyButton, Field, Panel, Select, Textarea, downloadBlob, useDebounced, useShareableState } from "@toolwright/ui";
 import { checkDiagramText, DIAGRAM_SAMPLES, detectDiagram, diagramFileName, pngSize, standaloneSvg, svgSize } from "@toolwright/core/mermaid-tools";
 import { renderMermaid, type MermaidTheme } from "../../shared/mermaid-render";
@@ -91,6 +91,41 @@ export default function Tool() {
       if (target.capped) setExportError(`The picture was made smaller than asked (${target.width} × ${target.height}) because this drawing is very large.`);
     } catch (err) {
       setExportError(errorMessage(err, "The PNG could not be made."));
+    } finally {
+      URL.revokeObjectURL(blobUrl);
+    }
+  };
+
+  const [copiedPng, setCopiedPng] = useState(false);
+  const copyPngTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(copyPngTimer.current), []);
+
+  const copyPng = async () => {
+    if (!file) return;
+    setExportError(null);
+    const target = pngSize(file.size.width, file.size.height, Number(pngScale));
+    const blobUrl = URL.createObjectURL(new Blob([file.text], { type: "image/svg+xml;charset=utf-8" }));
+    try {
+      const img = new Image();
+      img.src = blobUrl;
+      await img.decode();
+      const canvas = document.createElement("canvas");
+      canvas.width = target.width;
+      canvas.height = target.height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("This browser cannot make PNG pictures.");
+      ctx.drawImage(img, 0, 0, target.width, target.height);
+      const png = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
+      if (!png) throw new Error("The PNG could not be made.");
+      if (typeof ClipboardItem === "undefined" || !navigator.clipboard?.write) {
+        throw new Error("This browser does not allow copying pictures to the clipboard.");
+      }
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": png })]);
+      setCopiedPng(true);
+      clearTimeout(copyPngTimer.current);
+      copyPngTimer.current = setTimeout(() => setCopiedPng(false), 1600);
+    } catch (err) {
+      setExportError(errorMessage(err, "Could not copy PNG to clipboard."));
     } finally {
       URL.revokeObjectURL(blobUrl);
     }
@@ -201,6 +236,10 @@ export default function Tool() {
               <Download /> Download PNG
             </Button>
             <CopyButton text={file?.text ?? ""} label="Copy SVG" disabled={!file} />
+            <Button size="sm" variant="outline" disabled={!file} onClick={copyPng}>
+              {copiedPng ? <Check className="text-success" /> : <Copy />}
+              <span aria-live="polite">{copiedPng ? "Copied PNG" : "Copy PNG"}</span>
+            </Button>
           </div>
           {exportError ? <Alert tone="warning">{exportError}</Alert> : null}
         </Panel>

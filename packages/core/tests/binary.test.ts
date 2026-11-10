@@ -5,6 +5,7 @@ import {
   addTextWatermark,
   deletePages,
   extractPages,
+  formatPageRanges,
   getPdfInfo,
   imagesToPdf,
   isPdf,
@@ -45,6 +46,20 @@ describe("parsePageRanges", () => {
     expect(() => parsePageRanges("0", 5)).toThrow(/out of range/);
     expect(() => parsePageRanges("6", 5)).toThrow(/out of range/);
     expect(() => parsePageRanges("x", 5)).toThrow(/not a valid page/);
+  });
+});
+
+describe("formatPageRanges", () => {
+  it("formats indexes into human-readable ranges", () => {
+    expect(formatPageRanges([])).toBe("");
+    expect(formatPageRanges([0])).toBe("1");
+    expect(formatPageRanges([0, 1, 2])).toBe("1-3");
+    expect(formatPageRanges([0, 1, 2, 4])).toBe("1-3, 5");
+    expect(formatPageRanges([0, 2, 4, 5, 6])).toBe("1, 3, 5-7");
+  });
+
+  it("handles unsorted and duplicate indexes", () => {
+    expect(formatPageRanges([4, 1, 0, 1])).toBe("1-2, 5");
   });
 });
 

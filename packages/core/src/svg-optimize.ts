@@ -54,12 +54,7 @@ export function optimizeSvg(source: string, options: OptimizeOptions = {}): Opti
       name: "preset-default",
       params: {
         floatPrecision: precision,
-        overrides: {
-          // The viewBox is what lets an SVG scale. It stays.
-          removeViewBox: false,
-          ...(keepAccessibleText ? { removeTitle: false, removeDesc: false } : {}),
-          ...(keepIds ? { cleanupIds: false } : {}),
-        },
+        ...(keepIds ? { overrides: { cleanupIds: false } } : {}),
       },
     },
   ];

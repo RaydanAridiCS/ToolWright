@@ -57,6 +57,29 @@ export function parsePageRanges(spec: string, pageCount: number): number[] {
   return out;
 }
 
+/** Turn zero-based page indexes into a human-readable range string like "1-3, 5, 7-8". Deduplicates and sorts. */
+export function formatPageRanges(indexes: number[]): string {
+  if (indexes.length === 0) return "";
+  const unique = Array.from(new Set(indexes.filter((n) => Number.isInteger(n) && n >= 0))).sort((a, b) => a - b);
+  if (unique.length === 0) return "";
+
+  const ranges: string[] = [];
+  let start = unique[0]! + 1;
+  let prev = start;
+
+  for (let i = 1; i < unique.length; i++) {
+    const curr = unique[i]! + 1;
+    if (curr === prev + 1) {
+      prev = curr;
+    } else {
+      ranges.push(start === prev ? `${start}` : `${start}-${prev}`);
+      start = prev = curr;
+    }
+  }
+  ranges.push(start === prev ? `${start}` : `${start}-${prev}`);
+  return ranges.join(", ");
+}
+
 export async function mergePdfs(files: Uint8Array[]): Promise<Uint8Array> {
   if (files.length < 2) throw new PdfError("Add at least two PDFs to merge.");
   const merged = await PDFDocument.create();
