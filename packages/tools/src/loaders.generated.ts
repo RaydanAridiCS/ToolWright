@@ -59,6 +59,7 @@ export const toolLoaders: Record<string, ToolLoader> = {
   "json-yaml-converter": () => import("./tools/json-yaml-converter/Tool"),
   "jsonpath-tester": () => import("./tools/jsonpath-tester/Tool"),
   "jwt-decoder": () => import("./tools/jwt-decoder/Tool"),
+  "jwt-generator": () => import("./tools/jwt-generator/Tool"),
   "line-tools": () => import("./tools/line-tools/Tool"),
   "loan-calculator": () => import("./tools/loan-calculator/Tool"),
   "lorem-ipsum": () => import("./tools/lorem-ipsum/Tool"),

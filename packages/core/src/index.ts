@@ -14,6 +14,7 @@ export * as ids from "./ids";
 export * as imageMeta from "./image-meta";
 export * as json from "./json";
 export * as jwt from "./jwt";
+export * as jwtGenerator from "./jwt-generator";
 export * as lorem from "./lorem";
 export * as markdown from "./markdown";
 export * as password from "./password";

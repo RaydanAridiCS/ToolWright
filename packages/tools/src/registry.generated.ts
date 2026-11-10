@@ -55,6 +55,7 @@ import meta_json_to_typescript from "./tools/json-to-typescript/meta";
 import meta_json_yaml_converter from "./tools/json-yaml-converter/meta";
 import meta_jsonpath_tester from "./tools/jsonpath-tester/meta";
 import meta_jwt_decoder from "./tools/jwt-decoder/meta";
+import meta_jwt_generator from "./tools/jwt-generator/meta";
 import meta_line_tools from "./tools/line-tools/meta";
 import meta_loan_calculator from "./tools/loan-calculator/meta";
 import meta_lorem_ipsum from "./tools/lorem-ipsum/meta";
@@ -177,6 +178,7 @@ export const tools: readonly ToolMeta[] = [
   meta_json_yaml_converter,
   meta_jsonpath_tester,
   meta_jwt_decoder,
+  meta_jwt_generator,
   meta_line_tools,
   meta_loan_calculator,
   meta_lorem_ipsum,

@@ -4,6 +4,12 @@ All notable changes to Toolwright. The format follows [Keep a Changelog](https:/
 
 ## [Unreleased]
 
+### Added: JWT Generator & Signer
+
+- **New tool: `/tools/jwt-generator`.** Build, sign, and verify JSON Web Tokens entirely inside your browser using the native Web Crypto API (`crypto.subtle`). Supports HMAC algorithms (`HS256`, `HS384`, `HS512`) and unsecured tokens (`none`). Features live JSON validation for header and payload, quick expiration presets (+15m, +1h, +24h, +7d) and automatic `iat` updates, custom or cryptographically random secret key generation, and one-click token and cURL copy actions.
+- **Core logic** in `packages/core/src/jwt-generator.ts`: validates JSON schemas, manages time-based claims (`exp`, `nbf`, `iat`), generates secure HMAC keys, and calculates HMAC-SHA signatures via Web Crypto. 100% unit test coverage in `packages/core/tests/jwt-generator.test.ts`.
+- **SEO and docs**: keyword-map entry, generated docs, catalog count updated to 121 tools, smoke test coverage, and a11y compliance.
+
 ### Enhanced: Compress PDF with Photographic Detection and Visual Comparison Slider
 
 - **Photographic Detection & Diagram Protection**: Added [`assessPhotographic`](packages/core/src/pdf-compress.ts) to evaluate Shannon entropy, color diversity, and gradient variance. Integrated into the background compression worker to detect photos versus graphics/line art: photographs are compressed according to user settings while diagrams, screenshots, and logos are automatically protected with a high quality floor to eliminate ringing artifacts. Fully tested in `packages/core/tests/pdf-compress.test.ts`.

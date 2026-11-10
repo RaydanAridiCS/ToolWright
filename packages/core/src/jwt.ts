@@ -66,3 +66,5 @@ export async function verifyJwtHmac(token: string, secret: string): Promise<bool
   }
   return expected === actual;
 }
+
+export * from "./jwt-generator";
