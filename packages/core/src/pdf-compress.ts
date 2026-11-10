@@ -607,11 +607,116 @@ export interface ImageJob {
   quality: number;
 }
 
+export interface PhotographicAssessment {
+  /** True when the image is determined to be a photograph rather than line art, text, or a graphic. */
+  isPhoto: boolean;
+  /** Shannon entropy of the luminance channel in bits, 0 to 8. */
+  entropy: number;
+  /** Standard deviation of luminance, 0 to 128. */
+  stdDev: number;
+  /** Fraction of unique colors among sampled pixels, 0 to 1. */
+  uniqueColorRatio: number;
+  /** Fraction of adjacent pixel transitions that are flat/uniform, 0 to 1. */
+  flatTransitionRatio: number;
+}
+
+/**
+ * Evaluates an RGBA pixel buffer to determine whether an image is photographic or graphic/line art.
+ * Uses Shannon entropy of luminance, unique color density, and local gradient smoothness.
+ */
+export function assessPhotographic(
+  pixels: Uint8ClampedArray | Uint8Array,
+  width: number,
+  height: number,
+): PhotographicAssessment {
+  const totalPixels = width * height;
+  if (totalPixels <= 0 || pixels.length < totalPixels * 4) {
+    return { isPhoto: true, entropy: 8, stdDev: 64, uniqueColorRatio: 1, flatTransitionRatio: 0 };
+  }
+
+  // Sample up to 4,000 pixels across the image grid
+  const step = Math.max(1, Math.floor(totalPixels / 4000));
+  const histogram = new Uint32Array(256);
+  let sampleCount = 0;
+  let sumY = 0;
+  let sumY2 = 0;
+  let flatTransitions = 0;
+  let transitionChecks = 0;
+  const uniqueColors = new Set<number>();
+
+  let prevY = -1;
+
+  for (let i = 0; i < totalPixels; i += step) {
+    const offset = i * 4;
+    const r = pixels[offset] ?? 0;
+    const g = pixels[offset + 1] ?? 0;
+    const b = pixels[offset + 2] ?? 0;
+
+    // Luminance Y in 0..255 (ITU-R BT.601)
+    const y = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+    histogram[y] = (histogram[y] ?? 0) + 1;
+    sumY += y;
+    sumY2 += y * y;
+    sampleCount++;
+
+    // Quantize RGB to 15-bit (5 bits per channel) to detect color palette depth
+    const colorKey = ((r >> 3) << 10) | ((g >> 3) << 5) | (b >> 3);
+    uniqueColors.add(colorKey);
+
+    if (prevY >= 0) {
+      if (Math.abs(y - prevY) <= 2) {
+        flatTransitions++;
+      }
+      transitionChecks++;
+    }
+    prevY = y;
+  }
+
+  if (sampleCount === 0) {
+    return { isPhoto: true, entropy: 8, stdDev: 64, uniqueColorRatio: 1, flatTransitionRatio: 0 };
+  }
+
+  // Calculate Shannon entropy: H = -sum(p * log2(p))
+  let entropy = 0;
+  for (let val = 0; val < 256; val++) {
+    const count = histogram[val]!;
+    if (count > 0) {
+      const p = count / sampleCount;
+      entropy -= p * Math.log2(p);
+    }
+  }
+
+  // Calculate standard deviation: sqrt(E[Y^2] - (E[Y])^2)
+  const meanY = sumY / sampleCount;
+  const variance = Math.max(0, sumY2 / sampleCount - meanY * meanY);
+  const stdDev = Math.sqrt(variance);
+
+  const uniqueColorRatio = uniqueColors.size / sampleCount;
+  const flatTransitionRatio = transitionChecks > 0 ? flatTransitions / transitionChecks : 0;
+
+  // Decision rule:
+  // Photographs: high entropy, diverse colors, low ratio of flat transitions.
+  // Diagrams / line art / screenshots: low entropy, limited color palette, high flat transitions.
+  const isPhoto =
+    (entropy >= 5.0 && uniqueColorRatio >= 0.1 && flatTransitionRatio <= 0.65) ||
+    (uniqueColorRatio >= 0.22 && entropy >= 4.2);
+
+  return {
+    isPhoto,
+    entropy: Math.round(entropy * 100) / 100,
+    stdDev: Math.round(stdDev * 10) / 10,
+    uniqueColorRatio: Math.round(uniqueColorRatio * 1000) / 1000,
+    flatTransitionRatio: Math.round(flatTransitionRatio * 1000) / 1000,
+  };
+}
+
 export interface RecompressedImage {
   data: Uint8Array;
   width: number;
   height: number;
   components: 1 | 3;
+  /** Whether the image was assessed as photographic. */
+  isPhoto?: boolean;
 }
 
 /** Decodes the JPEG in a job, resizes it to the target and encodes it again. Return null if it cannot be read. */
@@ -641,6 +746,10 @@ export interface CompressReport {
   /** Image streams in the file, including masks. */
   images: number;
   recompressed: number;
+  /** Images identified as photographs. */
+  photos: number;
+  /** Images identified as graphics/diagrams whose quality was preserved. */
+  graphics: number;
   /** The new image was not at least 10% smaller, so the original was kept. */
   keptOriginal: number;
   /** The browser could not read or re-encode the image, so the original was kept. */
@@ -682,6 +791,8 @@ export async function compressPdfImages(bytes: Uint8Array, settings: CompressSet
   const report: CompressReport = {
     images: collected.length,
     recompressed: 0,
+    photos: 0,
+    graphics: 0,
     keptOriginal: 0,
     unreadable: 0,
     skipped: collected.length - jobs.length,
@@ -714,6 +825,10 @@ export async function compressPdfImages(bytes: Uint8Array, settings: CompressSet
       dict.delete(NAME("DecodeParms"));
       doc.context.assign(ref, PDFRawStream.of(dict, result.data));
       report.recompressed++;
+      if (result.isPhoto !== undefined) {
+        if (result.isPhoto) report.photos++;
+        else report.graphics++;
+      }
       report.imageBytesAfter += result.data.length - stream.contents.length;
     }
     options.onProgress?.({ done: ++done, total: jobs.length });

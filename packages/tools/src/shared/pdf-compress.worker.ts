@@ -4,7 +4,7 @@
  * that would freeze the tab, and a worker can be terminated instantly when the user cancels.
  * The bytes arrive once, are kept here, and are never sent anywhere else.
  */
-import { analyzePdf, compressPdfImages, CompressCancelled, stripJpegExif, type CompressSettings, type PdfAnalysis, type Recompress } from "@toolwright/core/pdf-compress";
+import { analyzePdf, assessPhotographic, compressPdfImages, CompressCancelled, stripJpegExif, type CompressSettings, type PdfAnalysis, type Recompress } from "@toolwright/core/pdf-compress";
 
 export type WorkerRequest =
   | { type: "load"; bytes: Uint8Array }
@@ -28,15 +28,31 @@ const recompress: Recompress = async (job) => {
     // so the tag is cut out first. If the decoded size still differs from the PDF's, leave the image alone.
     bitmap = await createImageBitmap(new Blob([stripJpegExif(job.data) as BlobPart], { type: "image/jpeg" }), { imageOrientation: "none" });
     if (bitmap.width !== job.width || bitmap.height !== job.height) return null;
+
+    // Fast photographic assessment: sample at 64x64 to measure entropy and variance
+    const sampleWidth = Math.min(64, job.width);
+    const sampleHeight = Math.min(64, job.height);
+    const sampleCanvas = new OffscreenCanvas(sampleWidth, sampleHeight);
+    const sampleCtx = sampleCanvas.getContext("2d");
+    let isPhoto = true;
+    if (sampleCtx) {
+      sampleCtx.drawImage(bitmap, 0, 0, sampleWidth, sampleHeight);
+      const imgData = sampleCtx.getImageData(0, 0, sampleWidth, sampleHeight);
+      isPhoto = assessPhotographic(imgData.data, sampleWidth, sampleHeight).isPhoto;
+    }
+
+    // Preserve sharpness on line art, diagrams and logos by keeping quality at 85% or higher
+    const quality = isPhoto ? job.quality : Math.max(job.quality, 0.85);
+
     const canvas = new OffscreenCanvas(job.targetWidth, job.targetHeight);
     const context = canvas.getContext("2d");
     if (!context) return null;
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = "high";
     context.drawImage(bitmap, 0, 0, job.targetWidth, job.targetHeight);
-    const blob = await canvas.convertToBlob({ type: "image/jpeg", quality: job.quality });
+    const blob = await canvas.convertToBlob({ type: "image/jpeg", quality });
     if (blob.type !== "image/jpeg") return null;
-    return { data: new Uint8Array(await blob.arrayBuffer()), width: job.targetWidth, height: job.targetHeight, components: 3 };
+    return { data: new Uint8Array(await blob.arrayBuffer()), width: job.targetWidth, height: job.targetHeight, components: 3, isPhoto };
   } catch {
     return null;
   } finally {
