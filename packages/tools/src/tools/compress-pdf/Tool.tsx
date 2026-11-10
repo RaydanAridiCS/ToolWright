@@ -26,6 +26,7 @@ import { rasterizePdf } from "../../shared/pdf-raster";
 import { JobError, RunButton, RunProgress, useJob } from "../../shared/pdf-ui";
 import { NumberField, num } from "../../shared/number-field";
 import { errorMessage, formatInt, pluralize } from "../../shared/format";
+import { PdfCompareSlider } from "../../shared/pdf-compare-slider";
 
 type Outcome =
   | { kind: "cancelled" }
@@ -144,6 +145,12 @@ export default function Tool() {
           const { data, outcome, report } = await task.promise;
           const notes: string[] = [];
           if (report.recompressed > 0) notes.push(`Recompressed ${pluralize(report.recompressed, "image")} of ${formatInt(report.images)}, from ${formatFileSize(report.imageBytesBefore)} of images to ${formatFileSize(report.imageBytesAfter)}.`);
+          if (report.photos > 0 || report.graphics > 0) {
+            const parts: string[] = [];
+            if (report.photos > 0) parts.push(`${pluralize(report.photos, "photograph")} recompressed`);
+            if (report.graphics > 0) parts.push(`${pluralize(report.graphics, "graphic/diagram")} kept at high quality`);
+            notes.push(`Photographic detection: ${parts.join(", ")}.`);
+          }
           if (report.keptOriginal > 0) notes.push(`${pluralize(report.keptOriginal, "image")} kept as they were, because the new version was not at least 10% smaller.`);
           if (report.unreadable > 0) notes.push(`${pluralize(report.unreadable, "image")} could not be read by this browser and were kept as they were.`);
           for (const skip of skips) notes.push(`${pluralize(skip.count, "image")} (${formatFileSize(skip.bytes)}) skipped: ${skip.reason}.`);
@@ -323,6 +330,17 @@ export default function Tool() {
               </div>
               <DownloadButton data={done.data} filename={`${baseName(file.name)}-compressed.pdf`} mime="application/pdf" variant="primary" size="md" label="Download" />
             </div>
+            {analysis ? (
+              <PdfCompareSlider
+                originalFile={file}
+                modifiedBytes={done.data}
+                pageCount={analysis.pageCount}
+                originalLabel="Original"
+                modifiedLabel="Compressed"
+                originalSize={done.outcome.before}
+                modifiedSize={done.outcome.after}
+              />
+            ) : null}
           </>
         ) : (
           <>

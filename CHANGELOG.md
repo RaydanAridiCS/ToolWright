@@ -4,6 +4,11 @@ All notable changes to Toolwright. The format follows [Keep a Changelog](https:/
 
 ## [Unreleased]
 
+### Enhanced: Compress PDF with Photographic Detection and Visual Comparison Slider
+
+- **Photographic Detection & Diagram Protection**: Added [`assessPhotographic`](packages/core/src/pdf-compress.ts) to evaluate Shannon entropy, color diversity, and gradient variance. Integrated into the background compression worker to detect photos versus graphics/line art: photographs are compressed according to user settings while diagrams, screenshots, and logos are automatically protected with a high quality floor to eliminate ringing artifacts. Fully tested in `packages/core/tests/pdf-compress.test.ts`.
+- **Side-by-Side & Split Comparison Slider**: Added [`PdfCompareSlider`](packages/tools/src/shared/pdf-compare-slider.tsx) to `/tools/compress-pdf`. Enables interactive split-screen overlay and side-by-side comparison across any page of the PDF before downloading, rendered locally with PDF.js.
+
 ### Enhanced: Extract PDF Pages, Delete PDF Pages, Mermaid Editor, and SVG Optimizer
 
 - **Interactive Page Previews in PDF Page Tools**: Added [`PdfPageSelector`](packages/tools/src/shared/pdf-page-selector.tsx) to both `/tools/extract-pdf-pages` and `/tools/delete-pdf-pages`. Renders on-demand page thumbnails with PDF.js and provides bidirectional synchronization between the text range input and interactive thumbnail cards. Includes *Select all*, *Clear*, *Invert* actions, and live page counters.
