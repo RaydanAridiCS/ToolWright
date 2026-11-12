@@ -6,7 +6,7 @@ import { parsePageRanges } from "@toolwright/core/pdf";
 import { cropPdf, detectBlankMargins, fromPoints, pageDisplaySizes, toPoints, tooMuchCropped, type CropMargins, type CropUnit } from "@toolwright/core/crop-pdf";
 import { DownloadResult, JobError, PdfDrop, PdfSourceCard, RunButton, useJob, usePdfSource } from "../../shared/pdf-ui";
 import { NumberField, num } from "../../shared/number-field";
-import { createThumbnailer, type PageThumbnailer } from "../../shared/pdf-raster";
+import { usePagePreview } from "../../shared/pdf-page-preview";
 import { errorMessage } from "../../shared/format";
 
 type Side = keyof CropMargins;
@@ -17,59 +17,7 @@ const SIDES: { side: Side; label: string }[] = [
   { side: "left", label: "Left" },
 ];
 
-const PREVIEW_SIDE = 640;
-
 const format = (points: number, unit: CropUnit) => String(Math.round(fromPoints(points, unit) * (unit === "pt" ? 10 : 100)) / (unit === "pt" ? 10 : 100));
-
-/** Draws one page of the PDF as a picture for the preview; the picture is kept as a Blob so it can also be measured. */
-function usePagePreview(file: File | null, pageIndex: number) {
-  const [thumbnailer, setThumbnailer] = useState<PageThumbnailer | null>(null);
-  const [blob, setBlob] = useState<Blob | null>(null);
-  const [url, setUrl] = useState<string | null>(null);
-  const [failed, setFailed] = useState(false);
-
-  useEffect(() => {
-    if (!file) return;
-    let cancelled = false;
-    let made: PageThumbnailer | null = null;
-    setFailed(false);
-    createThumbnailer(file, PREVIEW_SIDE).then(
-      (t) => {
-        made = t;
-        if (cancelled) t.dispose();
-        else setThumbnailer(t);
-      },
-      () => !cancelled && setFailed(true),
-    );
-    return () => {
-      cancelled = true;
-      made?.dispose();
-      setThumbnailer(null);
-      setBlob(null);
-    };
-  }, [file]);
-
-  useEffect(() => {
-    if (!thumbnailer) return;
-    let live = true;
-    thumbnailer.render(pageIndex).then(
-      (b) => live && setBlob(b),
-      () => live && setFailed(true),
-    );
-    return () => {
-      live = false;
-    };
-  }, [thumbnailer, pageIndex]);
-
-  useEffect(() => {
-    if (!blob) return setUrl(null);
-    const made = URL.createObjectURL(blob);
-    setUrl(made);
-    return () => URL.revokeObjectURL(made);
-  }, [blob]);
-
-  return { blob, url, failed };
-}
 
 async function measureBlankBorders(blob: Blob) {
   const bitmap = await createImageBitmap(blob);

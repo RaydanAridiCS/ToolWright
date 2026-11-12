@@ -30,6 +30,7 @@ export const toolLoaders: Record<string, ToolLoader> = {
   "extract-pdf-pages": () => import("./tools/extract-pdf-pages/Tool"),
   "favicon-generator": () => import("./tools/favicon-generator/Tool"),
   "fetch-to-curl": () => import("./tools/fetch-to-curl/Tool"),
+  "fill-pdf-form": () => import("./tools/fill-pdf-form/Tool"),
   "find-and-replace": () => import("./tools/find-and-replace/Tool"),
   "gif-editor": () => import("./tools/gif-editor/Tool"),
   "gif-maker": () => import("./tools/gif-maker/Tool"),

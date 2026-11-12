@@ -73,6 +73,7 @@ const PAGES = [
   "/tools/crop-pdf",
   "/tools/remove-blank-pages",
   "/tools/compare-pdf",
+  "/tools/fill-pdf-form",
   "/tools/xml-formatter",
   "/tools/subnet-calculator",
   "/tools/barcode-generator",

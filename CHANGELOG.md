@@ -4,6 +4,12 @@ All notable changes to Toolwright. The format follows [Keep a Changelog](https:/
 
 ## [Unreleased]
 
+### Added: Fill PDF Form
+
+- **New tool: `/tools/fill-pdf-form`.** Lists the fields of a fillable PDF grouped by page (text and multi-line boxes, checkboxes, radio buttons, dropdowns and lists, with required, read-only and maximum-length hints) and fills them. *Flatten the form* turns the entries into permanent page content. For flat forms with no fields, *Type on the page* lets you click where text belongs, set its size and colour, add an X mark, and move it with position fields and nudge buttons (a keyboard route as well as the pointer). Warns about digital signatures, dynamic XFA forms and signature fields, and names the exact field when a character cannot be printed in the standard font.
+- **Core logic** in `packages/core/src/fill-pdf-form.ts` (`readForm`, `fillPdfForm`, `changedValues`) with the rotation-aware text placement from `displayToPageSpace`. Only fields you change are touched. Unit tests in `packages/core/tests/fill-pdf-form.test.ts`; e2e and a11y in `e2e/fill-pdf-form.spec.ts`. Writing the tests caught two problems before release: pdf-lib removes a form's XFA entry as soon as the form is opened (so it is now checked first), and it only reports an unprintable character when the file is saved (so each value is now checked up front and the message names the field).
+- **Shared:** the page-preview hook used by Crop PDF moved to `packages/tools/src/shared/pdf-page-preview.ts` and both tools use it.
+
 ### Added: Compare PDFs
 
 - **New tool: `/tools/compare-pdf`.** Drop an original (A) and a new version (B). *Text changes* lists the lines removed, added or edited with their page numbers, marks the edited words inside a changed line, hides long unchanged stretches, can ignore case and extra spaces, and copies the list as plain text. *Page pictures* draws each page of both files, reports how much of every page differs, opens the first changed page, and shows it as a red difference over the faded old page or side by side, with next and previous change buttons. Three sensitivities ignore faint changes. Pages are compared by position; extra pages in one file are listed; pages of different proportions are flagged as changed. Scanned files are called out, since there is no OCR.

@@ -26,6 +26,7 @@ import meta_extract_pdf_images from "./tools/extract-pdf-images/meta";
 import meta_extract_pdf_pages from "./tools/extract-pdf-pages/meta";
 import meta_favicon_generator from "./tools/favicon-generator/meta";
 import meta_fetch_to_curl from "./tools/fetch-to-curl/meta";
+import meta_fill_pdf_form from "./tools/fill-pdf-form/meta";
 import meta_find_and_replace from "./tools/find-and-replace/meta";
 import meta_gif_editor from "./tools/gif-editor/meta";
 import meta_gif_maker from "./tools/gif-maker/meta";
@@ -152,6 +153,7 @@ export const tools: readonly ToolMeta[] = [
   meta_extract_pdf_pages,
   meta_favicon_generator,
   meta_fetch_to_curl,
+  meta_fill_pdf_form,
   meta_find_and_replace,
   meta_gif_editor,
   meta_gif_maker,
