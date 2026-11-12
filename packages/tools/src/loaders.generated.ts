@@ -88,6 +88,7 @@ export const toolLoaders: Record<string, ToolLoader> = {
   "prime-factors": () => import("./tools/prime-factors/Tool"),
   "qr-code-generator": () => import("./tools/qr-code-generator/Tool"),
   "readability-score": () => import("./tools/readability-score/Tool"),
+  "redact-pdf": () => import("./tools/redact-pdf/Tool"),
   "regex-tester": () => import("./tools/regex-tester/Tool"),
   "remove-blank-pages": () => import("./tools/remove-blank-pages/Tool"),
   "roman-numerals": () => import("./tools/roman-numerals/Tool"),

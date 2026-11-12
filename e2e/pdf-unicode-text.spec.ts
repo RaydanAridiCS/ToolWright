@@ -26,6 +26,17 @@ async function download(page: Page): Promise<string> {
   return (await file.path())!;
 }
 
+/** Opens a PDF in Redact PDF (which draws it with PDF.js) and returns the warnings PDF.js printed about its fonts. */
+async function fontWarnings(page: Page, path: string): Promise<string[]> {
+  const warnings: string[] = [];
+  page.on("console", (m) => /font|loca|glyf|table/i.test(m.text()) && warnings.push(m.text()));
+  await page.goto("/tools/redact-pdf");
+  await page.locator('input[type="file"]').setInputFiles({ name: "result.pdf", mimeType: "application/pdf", buffer: await readFile(path) });
+  await expect(page.locator('img[src^="blob:"]').first()).toBeVisible();
+  await page.waitForTimeout(500);
+  return warnings;
+}
+
 test.describe("Text in other alphabets on PDF pages, in a real browser", () => {
   test("a Cyrillic watermark fetches its font from this site and embeds it", async ({ page, baseURL }) => {
     const tracker = trackRequests(page);
@@ -35,9 +46,12 @@ test.describe("Text in other alphabets on PDF pages, in a real browser", () => {
     await page.getByRole("button", { name: "Add watermark" }).click();
     await expect(page.getByText("Done! Your file is ready.")).toBeVisible();
 
-    expect(await embeddedFonts(await download(page))).toHaveLength(1);
-    expect(tracker.all.some((r) => r.url().includes("/fonts/noto-sans/noto-sans-cyrillic-700-normal.woff2"))).toBe(true);
+    const path = await download(page);
+    expect(await embeddedFonts(path)).toHaveLength(1);
+    expect(tracker.all.some((r) => r.url().includes("/fonts/noto-sans/noto-sans-cyrillic-700-normal.woff"))).toBe(true);
     expect(tracker.external(baseURL!)).toEqual([]);
+    // PDF.js can read the embedded font: it prints no warning about a broken font file.
+    expect(await fontWarnings(page, path)).toEqual([]);
   });
 
   test("plain English text loads no font at all", async ({ page }) => {

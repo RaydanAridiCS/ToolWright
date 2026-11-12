@@ -2,7 +2,7 @@
 
 **Free, open-source tools that never see your data.**
 
-Toolwright is a collection of 125 everyday online tools — format JSON, merge PDFs, compress images, generate passwords, decode JWTs, and more — where **every tool runs entirely in your browser**. Nothing you type or drop in is uploaded, there are no accounts, and a strict Content Security Policy means a page physically cannot send your input to a third party.
+Toolwright is a collection of 126 everyday online tools — format JSON, merge PDFs, compress images, generate passwords, decode JWTs, and more — where **every tool runs entirely in your browser**. Nothing you type or drop in is uploaded, there are no accounts, and a strict Content Security Policy means a page physically cannot send your input to a third party.
 
 [Browse the tools](docs/tools.md) · [How privacy works](docs/privacy-model.md) · [Design language](docs/design-language.md) · [Contribute](CONTRIBUTING.md)
 

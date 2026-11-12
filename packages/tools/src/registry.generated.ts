@@ -84,6 +84,7 @@ import meta_port_numbers from "./tools/port-numbers/meta";
 import meta_prime_factors from "./tools/prime-factors/meta";
 import meta_qr_code_generator from "./tools/qr-code-generator/meta";
 import meta_readability_score from "./tools/readability-score/meta";
+import meta_redact_pdf from "./tools/redact-pdf/meta";
 import meta_regex_tester from "./tools/regex-tester/meta";
 import meta_remove_blank_pages from "./tools/remove-blank-pages/meta";
 import meta_roman_numerals from "./tools/roman-numerals/meta";
@@ -211,6 +212,7 @@ export const tools: readonly ToolMeta[] = [
   meta_prime_factors,
   meta_qr_code_generator,
   meta_readability_score,
+  meta_redact_pdf,
   meta_regex_tester,
   meta_remove_blank_pages,
   meta_roman_numerals,

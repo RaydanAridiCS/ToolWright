@@ -10,6 +10,7 @@ import { COMPRESS_LIMITS, CompressCancelled, createImagePdfBuilder, planRaster, 
 import { PdfError } from "@toolwright/core/pdf";
 import { PdfCancelled, PAGE_IMAGE_LIMITS, formatInfo, normalizeQuality, overBudget, planPageImage, type PageImageFormat } from "@toolwright/core/pdf-to-images";
 import { TEXT_LIMITS, assemblePage, toPieces, type TextOptions } from "@toolwright/core/pdf-to-text";
+import { QUALITIES, REDACT_LIMITS, boxPixelRects, matchBoxes, type RasterPage, type RedactBox, type RedactQuality, type SearchSpec, type ShareOfPiece } from "@toolwright/core/redact-pdf";
 
 export interface RasterResult {
   data: Uint8Array;
@@ -350,6 +351,201 @@ export async function extractPdfText(file: File, options: PdfTextOptions): Promi
     onProgress?.({ done: pages.length, total: pdf.numPages });
     return { pages, pageCount: pdf.numPages, truncated };
   } finally {
+    await open?.close();
+  }
+}
+
+/* ----------------------------------------------------------------------------------------------- */
+/* Redact PDF                                                                                       */
+/* ----------------------------------------------------------------------------------------------- */
+
+export interface FoundText extends RedactBox {
+  /** The text that was found inside the box. */
+  text: string;
+}
+
+export interface FindTextResult {
+  found: FoundText[];
+  pageCount: number;
+  /** Pages with no text layer at all (scans and pictures), which a search cannot see into. */
+  pagesWithoutText: number[];
+}
+
+/** Searches the text layer of every page and returns a box around each match, in points on the page as shown. */
+export async function findTextBoxes(file: File, spec: SearchSpec, options: { signal?: AbortSignal; onProgress?: (progress: CompressProgress) => void } = {}): Promise<FindTextResult> {
+  const { signal, onProgress } = options;
+  if (signal?.aborted) throw new PdfCancelled();
+  let open: OpenPdf | null = null;
+  try {
+    open = await openPdf(file);
+    const { pdf, pdfjs } = open;
+    if (pdf.numPages > TEXT_LIMITS.maxPages) throw new PdfError(`This PDF has ${pdf.numPages} pages. At most ${TEXT_LIMITS.maxPages} can be searched at once.`);
+    const canvas = document.createElement("canvas");
+    const found: FoundText[] = [];
+    const pagesWithoutText: number[] = [];
+    for (let number = 1; number <= pdf.numPages; number++) {
+      if (signal?.aborted) throw new PdfCancelled();
+      onProgress?.({ done: number - 1, total: pdf.numPages });
+      try {
+        const page = await pdf.getPage(number);
+        const viewport = page.getViewport({ scale: 1 });
+        const content = await page.getTextContent();
+        const items = (content.items as unknown[]).flatMap((item) => {
+          const it = item as { str?: unknown; transform?: unknown; width?: unknown; dir?: unknown; fontName?: unknown };
+          return typeof it.str === "string" && Array.isArray(it.transform) && typeof it.width === "number"
+            ? [{ str: it.str, transform: it.transform as number[], width: it.width, dir: typeof it.dir === "string" ? it.dir : undefined, font: typeof it.fontName === "string" ? it.fontName : undefined }]
+            : [];
+        });
+        if (!items.some((i) => i.str.trim() !== "")) pagesWithoutText.push(number - 1);
+        else {
+          const measure = await letterMeasurer(page, pdfjs, canvas);
+          for (const box of matchBoxes(items, viewport.transform, 1, spec, 1.5, measure)) found.push({ page: number - 1, left: box.left, top: box.top, width: box.width, height: box.height, text: box.text });
+        }
+        page.cleanup();
+      } catch {
+        if (signal?.aborted) throw new PdfCancelled();
+        throw new PdfError(`The text on page ${number} could not be read.`);
+      }
+    }
+    onProgress?.({ done: pdf.numPages, total: pdf.numPages });
+    canvas.width = canvas.height = 0;
+    return { found, pageCount: pdf.numPages, pagesWithoutText };
+  } finally {
+    await open?.close();
+  }
+}
+
+type PdfPage = Awaited<ReturnType<PdfDocument["getPage"]>>;
+
+/**
+ * Where inside a piece of text each letter sits. Splitting a piece in proportion to its letter count is wrong for ordinary
+ * fonts (an "i" is narrower than an "m"), and a box that stops short leaves the end of a word readable. So the page is drawn
+ * once, tiny, which makes PDF.js load its fonts; then the real letters of the real font are measured on a canvas, and
+ * the result is scaled to the width PDF.js reports for the whole piece (which already counts letter and word spacing).
+ * When a piece's font cannot be found, or the text runs right to left, the whole piece is covered.
+ */
+async function letterMeasurer(page: PdfPage, pdfjs: Pdfjs, canvas: HTMLCanvasElement): Promise<ShareOfPiece> {
+  const natural = page.getViewport({ scale: 1 });
+  const viewport = page.getViewport({ scale: 16 / Math.max(natural.width, natural.height, 1) });
+  canvas.width = Math.max(1, Math.ceil(viewport.width));
+  canvas.height = Math.max(1, Math.ceil(viewport.height));
+  const context = canvas.getContext("2d", { alpha: false });
+  if (!context) return () => null;
+  try {
+    await page.render({ canvas, canvasContext: context, viewport, annotationMode: pdfjs.AnnotationMode.DISABLE }).promise;
+  } catch {
+    return () => null;
+  }
+  const loaded = new Set<string>();
+  for (const face of document.fonts) if (face.status === "loaded") loaded.add(face.family.replace(/^["']|["']$/g, ""));
+  const families = new Map<string, string | null>();
+  const familyOf = (fontName: string | undefined): string | null => {
+    if (!fontName) return null;
+    if (!families.has(fontName)) {
+      let family: string | null = null;
+      try {
+        const loadedName = (page.commonObjs.get(fontName) as { loadedName?: unknown } | undefined)?.loadedName;
+        if (typeof loadedName === "string" && loaded.has(loadedName)) family = loadedName;
+      } catch {
+        family = null;
+      }
+      families.set(fontName, family);
+    }
+    return families.get(fontName) ?? null;
+  };
+  const measuring = document.createElement("canvas").getContext("2d");
+  if (!measuring) return () => null;
+
+  return (item, from, to) => {
+    const family = familyOf(item.font);
+    if (!family || item.str.length === 0) return null;
+    measuring.font = `100px "${family}"`;
+    // One letter at a time: PDF.js places letters by their advance widths, with no kerning or ligatures.
+    const edges = new Array<number>(item.str.length + 1).fill(0);
+    let at = 0;
+    for (const ch of item.str) {
+      const w = measuring.measureText(ch).width;
+      const base = edges[at] as number;
+      for (let k = 0; k < ch.length; k++) edges[at + k + 1] = base + (w * (k + 1)) / ch.length;
+      at += ch.length;
+    }
+    const total = edges[item.str.length] as number;
+    if (!(total > 0)) return null;
+    return [(edges[from] as number) / total, (edges[to] as number) / total];
+  };
+}
+
+export interface RedactRenderOptions {
+  /** Zero-based pages to draw as pictures. */
+  pageIndexes: number[];
+  boxes: readonly RedactBox[];
+  quality: RedactQuality;
+  signal?: AbortSignal;
+  onProgress?: (progress: CompressProgress) => void;
+}
+
+export interface RedactRenderResult {
+  pages: Map<number, RasterPage>;
+  /** Pages drawn at a lower resolution than asked, to stay under the canvas size limit. */
+  cappedPages: number;
+}
+
+/** Draws each page, paints its boxes solid black into the pixels, and encodes the result. Nothing else of the page survives. */
+export async function renderRedactedPages(file: File, options: RedactRenderOptions): Promise<RedactRenderResult> {
+  const { pageIndexes, boxes, quality, signal, onProgress } = options;
+  const cancelled = () => signal?.aborted === true;
+  if (cancelled()) throw new PdfCancelled();
+  const info = QUALITIES[quality];
+  if (pageIndexes.length > REDACT_LIMITS.maxRasterPages) throw new PdfError(`${pageIndexes.length} pages would be drawn as pictures. At most ${REDACT_LIMITS.maxRasterPages} can be done at once; mark fewer pages or split the file first.`);
+
+  const canvas = document.createElement("canvas");
+  let rendering: { cancel(): void } | null = null;
+  const onAbort = () => rendering?.cancel();
+  signal?.addEventListener("abort", onAbort);
+  let open: OpenPdf | null = null;
+  try {
+    open = await openPdf(file);
+    const { pdfjs, pdf } = open;
+    const context = canvas.getContext("2d", { alpha: false });
+    if (!context) throw new PdfError("This browser cannot draw pages.");
+    const pages = new Map<number, RasterPage>();
+    let cappedPages = 0;
+    for (const [position, pageIndex] of pageIndexes.entries()) {
+      if (cancelled()) throw new PdfCancelled();
+      onProgress?.({ done: position, total: pageIndexes.length });
+      try {
+        if (pageIndex < 0 || pageIndex >= pdf.numPages) throw new PdfError(`Page ${pageIndex + 1} does not exist in this PDF.`);
+        const page = await pdf.getPage(pageIndex + 1);
+        const plan = planRaster(page.view as [number, number, number, number], page.rotate, info.dpi);
+        if (plan.capped) cappedPages++;
+        const viewport = page.getViewport({ scale: plan.scale });
+        canvas.width = Math.max(1, Math.ceil(viewport.width - 1e-4));
+        canvas.height = Math.max(1, Math.ceil(viewport.height - 1e-4));
+        context.fillStyle = "#ffffff";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        const task = page.render({ canvas, canvasContext: context, viewport, annotationMode: pdfjs.AnnotationMode.ENABLE });
+        rendering = task;
+        await task.promise;
+        rendering = null;
+        // Paint last, over everything, in pure black and with no transparency.
+        context.fillStyle = "#000000";
+        for (const r of boxPixelRects(boxes.filter((b) => b.page === pageIndex), { width: plan.widthPt, height: plan.heightPt }, canvas.width, canvas.height)) {
+          context.fillRect(r.x, r.y, r.width, r.height);
+        }
+        const blob = await toBlob(canvas, info.format === "png" ? "image/png" : "image/jpeg", info.jpeg);
+        pages.set(pageIndex, { image: new Uint8Array(await blob.arrayBuffer()), kind: info.format, widthPt: plan.widthPt, heightPt: plan.heightPt });
+        page.cleanup();
+      } catch (err) {
+        if (cancelled()) throw new PdfCancelled();
+        if (err instanceof PdfError) throw err;
+        throw new PdfError(`Page ${pageIndex + 1} could not be drawn. Your original file is untouched.`);
+      }
+    }
+    onProgress?.({ done: pageIndexes.length, total: pageIndexes.length });
+    return { pages, cappedPages };
+  } finally {
+    signal?.removeEventListener("abort", onAbort);
+    canvas.width = canvas.height = 0;
     await open?.close();
   }
 }
