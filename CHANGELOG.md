@@ -4,6 +4,12 @@ All notable changes to Toolwright. The format follows [Keep a Changelog](https:/
 
 ## [Unreleased]
 
+### Added: Remove Blank Pages
+
+- **New tool: `/tools/remove-blank-pages`.** Draws every page small in the tab, measures how much of it is clearly darker than the paper, and marks the blank ones. Three sensitivities (Strict: only empty pages; Normal: also scanner dust and a lone page number; Loose: also a footer line or stamp), page previews with the measured share of content, a per-page override, and a filter that shows only the pages to be removed. Checking has progress and can be stopped; unchecked pages are kept. Limited to 1,000 pages.
+- **Core logic** in `packages/core/src/remove-blank-pages.ts` (`inkRatio`, `pagesToRemove`, `removeBlankPages`). The paper colour is taken as the most common brightness, so cream or grey scans are not mistaken for content; the page edge and lone dark pixels are ignored. The sensitivity limits were set from measured pages (empty 0, dust about 0.004%, a lone page number about 0.005%, a footer line about 0.04%, a short heading about 0.3%) and are documented next to `BLANK_LIMITS`. Unit tests in `packages/core/tests/remove-blank-pages.test.ts`; e2e and a11y in `e2e/remove-blank-pages.spec.ts`.
+- Delete PDF Pages no longer lists "remove blank pages from pdf" as a secondary query, because the new tool owns it.
+
 ### Added: Crop PDF; fixes to the PDF tools
 
 - **New tool: `/tools/crop-pdf`.** Trim margins off every page, or only the pages you choose, in millimetres, inches or points. A live preview shades the part that will be removed, and *Detect blank borders* measures the white border of a page for you. Margins are measured on the page as you see it, so rotated pages and pages whose box does not start at 0,0 are cropped correctly. It sets the CropBox (and, by default, the MediaBox); the trimmed parts stay in the file and the tool says so.

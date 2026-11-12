@@ -22,5 +22,5 @@ export default defineTool({
     { question: "Does it work on password-protected PDFs?", answer: "No. Encrypted files are refused. Remove the password first, then try again." },
   ],
   nextStep: { slug: "pdf-organizer", text: "Want to see the pages while you decide? Use the PDF Page Organizer." },
-  related: ["extract-pdf-pages", "split-pdf", "merge-pdf"],
+  related: ["remove-blank-pages", "extract-pdf-pages", "split-pdf", "merge-pdf"],
 });

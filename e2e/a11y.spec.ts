@@ -71,6 +71,7 @@ const PAGES = [
   "/tools/pdf-to-text",
   "/tools/extract-pdf-images",
   "/tools/crop-pdf",
+  "/tools/remove-blank-pages",
   "/tools/xml-formatter",
   "/tools/subnet-calculator",
   "/tools/barcode-generator",

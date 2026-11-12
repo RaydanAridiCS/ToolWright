@@ -83,6 +83,7 @@ import meta_prime_factors from "./tools/prime-factors/meta";
 import meta_qr_code_generator from "./tools/qr-code-generator/meta";
 import meta_readability_score from "./tools/readability-score/meta";
 import meta_regex_tester from "./tools/regex-tester/meta";
+import meta_remove_blank_pages from "./tools/remove-blank-pages/meta";
 import meta_roman_numerals from "./tools/roman-numerals/meta";
 import meta_rotate_pdf from "./tools/rotate-pdf/meta";
 import meta_salary_converter from "./tools/salary-converter/meta";
@@ -207,6 +208,7 @@ export const tools: readonly ToolMeta[] = [
   meta_qr_code_generator,
   meta_readability_score,
   meta_regex_tester,
+  meta_remove_blank_pages,
   meta_roman_numerals,
   meta_rotate_pdf,
   meta_salary_converter,
