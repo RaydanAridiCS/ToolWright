@@ -1,6 +1,6 @@
 /** PDF manipulation with pdf-lib. Everything operates on in-memory bytes; nothing is uploaded. */
 
-import { degrees, PDFDict, PDFDocument, PDFName, rgb, StandardFonts } from "pdf-lib";
+import { degrees, PDFDict, PDFDocument, PDFHexString, PDFName, rgb, StandardFonts, type PDFPage } from "pdf-lib";
 
 export class PdfError extends Error {
   constructor(message: string) {
@@ -93,7 +93,11 @@ export async function mergePdfs(files: Uint8Array[]): Promise<Uint8Array> {
 
 /** Build a new PDF from the given zero-based page indexes (in order). */
 export async function extractPages(bytes: Uint8Array, pageIndexes: number[]): Promise<Uint8Array> {
-  const src = await load(bytes);
+  return extractFromDocument(await load(bytes), pageIndexes);
+}
+
+/** Copy pages out of an already-parsed document, so callers that need several outputs parse the file once. */
+async function extractFromDocument(src: PDFDocument, pageIndexes: number[]): Promise<Uint8Array> {
   if (pageIndexes.length === 0) throw new PdfError("No pages selected.");
   const out = await PDFDocument.create();
   const pages = await out.copyPages(src, pageIndexes);
@@ -106,7 +110,7 @@ export async function deletePages(bytes: Uint8Array, pageIndexes: number[]): Pro
   const remove = new Set(pageIndexes);
   const keep = src.getPageIndices().filter((i) => !remove.has(i));
   if (keep.length === 0) throw new PdfError("You cannot delete every page.");
-  return extractPages(bytes, keep);
+  return extractFromDocument(src, keep);
 }
 
 export type SplitMode = { type: "each" } | { type: "every"; pages: number } | { type: "ranges"; spec: string };
@@ -139,14 +143,15 @@ export async function splitPdf(bytes: Uint8Array, mode: SplitMode, baseName = "s
   const parts: SplitPart[] = [];
   for (let i = 0; i < groups.length; i++) {
     const pages = groups[i] as number[];
-    parts.push({ name: `${baseName}-${String(i + 1).padStart(pad, "0")}.pdf`, data: await extractPages(bytes, pages), pages: pages.map((p) => p + 1) });
+    parts.push({ name: `${baseName}-${String(i + 1).padStart(pad, "0")}.pdf`, data: await extractFromDocument(src, pages), pages: pages.map((p) => p + 1) });
   }
   return parts;
 }
 
 export async function rotatePdf(bytes: Uint8Array, angle: 90 | 180 | 270, pageIndexes?: number[]): Promise<Uint8Array> {
   const doc = await load(bytes);
-  const targets = pageIndexes ?? doc.getPageIndices();
+  // A page listed twice (for example "1-3, 2") must still only be turned once.
+  const targets = pageIndexes ? Array.from(new Set(pageIndexes)) : doc.getPageIndices();
   for (const i of targets) {
     const page = doc.getPage(i);
     page.setRotation(degrees((page.getRotation().angle + angle) % 360));
@@ -281,7 +286,14 @@ export async function setPdfMetadata(bytes: Uint8Array, meta: PdfMetadata): Prom
   if (meta.title !== undefined) doc.setTitle(meta.title);
   if (meta.author !== undefined) doc.setAuthor(meta.author);
   if (meta.subject !== undefined) doc.setSubject(meta.subject);
-  if (meta.keywords !== undefined) doc.setKeywords(meta.keywords === "" ? [] : meta.keywords.split(",").map((k) => k.trim()));
+  if (meta.keywords !== undefined) {
+    // pdf-lib's setKeywords() joins an array with spaces, which destroys comma-separated lists, so write the string as typed.
+    const keywords = meta.keywords.split(",").map((k) => k.trim()).filter(Boolean).join(", ");
+    // getInfoDict() is private in pdf-lib's types but is what its own setters use; it creates the dictionary when missing.
+    const info = (doc as unknown as { getInfoDict(): PDFDict }).getInfoDict();
+    if (keywords === "") info.delete(PDFName.of("Keywords"));
+    else info.set(PDFName.of("Keywords"), PDFHexString.fromText(keywords));
+  }
   if (meta.creator !== undefined) doc.setCreator(meta.creator);
   if (meta.producer !== undefined) doc.setProducer(meta.producer);
   return doc.save({ useObjectStreams: true });
@@ -305,6 +317,46 @@ export interface PageNumberOptions {
   margin?: number;
 }
 
+/** A page as the reader sees it: the visible (crop) box with `/Rotate` applied. */
+export interface PageView {
+  /** Visible width and height after rotation. */
+  width: number;
+  height: number;
+  /** Clockwise rotation of the page, 0, 90, 180 or 270. */
+  rotation: 0 | 90 | 180 | 270;
+}
+
+/**
+ * Convert a point on the page as displayed (origin bottom-left, y up) into the page's own coordinate space,
+ * so text can be stamped upright on rotated pages and on pages whose box does not start at 0,0.
+ * `rotate` is the angle (counter-clockwise, degrees) to draw text at so it reads at `angle` on screen.
+ */
+export function displayToPageSpace(
+  box: { x: number; y: number; width: number; height: number },
+  rotation: number,
+  dx: number,
+  dy: number,
+  angle = 0,
+): { x: number; y: number; rotate: number; view: PageView } {
+  const r = ((Math.round(rotation / 90) * 90) % 360 + 360) % 360;
+  const rot = r as PageView["rotation"];
+  const swap = r === 90 || r === 270;
+  const view: PageView = { width: swap ? box.height : box.width, height: swap ? box.width : box.height, rotation: rot };
+  let x: number;
+  let y: number;
+  if (r === 90) [x, y] = [box.width - dy, dx];
+  else if (r === 180) [x, y] = [box.width - dx, box.height - dy];
+  else if (r === 270) [x, y] = [dy, box.height - dx];
+  else [x, y] = [dx, dy];
+  return { x: box.x + x, y: box.y + y, rotate: angle + r, view };
+}
+
+function pageViewOf(page: PDFPage): { box: { x: number; y: number; width: number; height: number }; rotation: number; view: PageView } {
+  const box = page.getCropBox();
+  const rotation = page.getRotation().angle;
+  return { box, rotation, view: displayToPageSpace(box, rotation, 0, 0).view };
+}
+
 export async function addPageNumbers(bytes: Uint8Array, options: PageNumberOptions = {}): Promise<Uint8Array> {
   const { position = "bottom-center", format = "n", startAt = 1, fontSize = 10, margin = 28 } = options;
   const doc = await load(bytes);
@@ -314,10 +366,11 @@ export async function addPageNumbers(bytes: Uint8Array, options: PageNumberOptio
     const n = startAt + i;
     const text = format === "n-of-total" ? `${n} of ${total + startAt - 1}` : format === "page-n" ? `Page ${n}` : String(n);
     const width = font.widthOfTextAtSize(text, fontSize);
-    const { width: pw, height: ph } = page.getSize();
-    const x = position.endsWith("left") ? margin : position.endsWith("right") ? pw - margin - width : (pw - width) / 2;
-    const y = position.startsWith("top") ? ph - margin : margin - fontSize / 2;
-    page.drawText(text, { x, y, size: fontSize, font, color: rgb(0.2, 0.2, 0.2) });
+    const { box, rotation, view } = pageViewOf(page);
+    const dx = position.endsWith("left") ? margin : position.endsWith("right") ? view.width - margin - width : (view.width - width) / 2;
+    const dy = position.startsWith("top") ? view.height - margin : margin - fontSize / 2;
+    const at = displayToPageSpace(box, rotation, dx, dy);
+    page.drawText(text, { x: at.x, y: at.y, size: fontSize, font, color: rgb(0.2, 0.2, 0.2), rotate: degrees(at.rotate) });
   });
   return doc.save({ useObjectStreams: true });
 }
@@ -339,11 +392,12 @@ export async function addTextWatermark(bytes: Uint8Array, options: WatermarkOpti
   const textWidth = font.widthOfTextAtSize(text, fontSize);
   const rad = (angle * Math.PI) / 180;
   for (const page of doc.getPages()) {
-    const { width, height } = page.getSize();
-    // Rotate around the text centre so it lands in the middle of the page.
-    const x = width / 2 - (Math.cos(rad) * textWidth) / 2 + (Math.sin(rad) * fontSize) / 3;
-    const y = height / 2 - (Math.sin(rad) * textWidth) / 2 - (Math.cos(rad) * fontSize) / 3;
-    page.drawText(text, { x, y, size: fontSize, font, color: rgb(color.r, color.g, color.b), opacity, rotate: degrees(angle) });
+    const { box, rotation, view } = pageViewOf(page);
+    // Rotate around the text centre so it lands in the middle of the page as displayed.
+    const dx = view.width / 2 - (Math.cos(rad) * textWidth) / 2 + (Math.sin(rad) * fontSize) / 3;
+    const dy = view.height / 2 - (Math.sin(rad) * textWidth) / 2 - (Math.cos(rad) * fontSize) / 3;
+    const at = displayToPageSpace(box, rotation, dx, dy, angle);
+    page.drawText(text, { x: at.x, y: at.y, size: fontSize, font, color: rgb(color.r, color.g, color.b), opacity, rotate: degrees(at.rotate) });
   }
   return doc.save({ useObjectStreams: true });
 }

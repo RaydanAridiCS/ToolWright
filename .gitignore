@@ -17,3 +17,6 @@ apps/web/public/pdfjs/
 
 # Private notes from the assistant to the owner (decisions, concerns, things to look at)
 owner-notes/
+
+# Promotional video project (standalone Remotion workspace)
+motion-videos/

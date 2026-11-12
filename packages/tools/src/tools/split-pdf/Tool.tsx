@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Alert, DownloadButton, Field, FileListItem, Input, SegmentedControl, baseName } from "@toolwright/ui";
-import { splitPdf, type SplitMode, type SplitPart } from "@toolwright/core/pdf";
+import { formatPageRanges, splitPdf, type SplitMode, type SplitPart } from "@toolwright/core/pdf";
 import { JobError, PdfDrop, PdfSourceCard, RunButton, useJob, usePdfSource } from "../../shared/pdf-ui";
 import { NumberField, num } from "../../shared/number-field";
 import { createZip } from "../../shared/zip";
@@ -37,10 +37,10 @@ export default function Tool() {
                 { value: "ranges", label: "Custom ranges" },
               ]}
             />
-            {kind === "every" ? <NumberField label="Pages per file" value={every} onChange={setEvery} min={1} step={1} className="max-w-48" /> : null}
+            {kind === "every" ? <NumberField label="Pages per file" value={every} onChange={(v) => (setEvery(v), job.reset())} min={1} step={1} className="max-w-48" /> : null}
             {kind === "ranges" ? (
               <Field label="Page ranges" hint={`Separate files with semicolons. Example: 1-3; 4; 5-${source.info.pageCount}. The PDF has ${source.info.pageCount} pages.`}>
-                {(id) => <Input id={id} mono value={ranges} onChange={(e) => setRanges(e.target.value)} />}
+                {(id) => <Input id={id} mono value={ranges} onChange={(e) => (setRanges(e.target.value), job.reset())} />}
               </Field>
             ) : null}
           </div>
@@ -67,7 +67,7 @@ export default function Tool() {
           </div>
           <ul className="grid gap-2 sm:grid-cols-2">
             {job.result.map((part) => (
-              <FileListItem key={part.name} name={part.name} size={part.data.length} detail={part.pages.length === 1 ? `page ${part.pages[0]}` : `pages ${part.pages[0]}–${part.pages[part.pages.length - 1]}`}>
+              <FileListItem key={part.name} name={part.name} size={part.data.length} detail={`${part.pages.length === 1 ? "page" : "pages"} ${formatPageRanges(part.pages.map((p) => p - 1))}`}>
                 <DownloadButton data={part.data} filename={part.name} mime="application/pdf" label="" aria-label={`Download ${part.name}`} variant="ghost" size="sm" />
               </FileListItem>
             ))}

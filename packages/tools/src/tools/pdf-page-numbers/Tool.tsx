@@ -47,7 +47,7 @@ export default function Tool() {
             <NumberField label="Start at" value={startAt} onChange={setStartAt} min={0} step={1} />
             <NumberField label="Font size" suffix="pt" value={fontSize} onChange={setFontSize} min={6} max={48} />
           </div>
-          <RunButton busy={job.busy} onClick={() => job.run(() => addPageNumbers(source.bytes, { position, format, startAt: Math.floor(num(startAt)) || 1, fontSize: num(fontSize) || 10 }))}>
+          <RunButton busy={job.busy} onClick={() => job.run(() => addPageNumbers(source.bytes, { position, format, startAt: Number.isFinite(num(startAt)) && startAt.trim() !== "" ? Math.floor(num(startAt)) : 1, fontSize: num(fontSize) || 10 }))}>
             Add page numbers
           </RunButton>
         </>

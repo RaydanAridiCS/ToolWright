@@ -113,7 +113,7 @@ describe("PDF operations", () => {
     const pdf = await makePdf(1, "Secret plans");
     expect(await getPdfInfo(pdf)).toMatchObject({ title: "Secret plans", author: "Ada" });
     const edited = await setPdfMetadata(pdf, { title: "Public", keywords: "a, b" });
-    expect(await getPdfInfo(edited)).toMatchObject({ title: "Public", author: "Ada", keywords: "a b" });
+    expect(await getPdfInfo(edited)).toMatchObject({ title: "Public", author: "Ada", keywords: "a, b" });
     const stripped = await getPdfInfo(await stripPdfMetadata(pdf));
     expect(stripped.title).toBeUndefined();
     expect(stripped.author).toBeUndefined();
