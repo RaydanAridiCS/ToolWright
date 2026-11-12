@@ -2,7 +2,7 @@
 
 **Free, open-source tools that never see your data.**
 
-Toolwright is a collection of 123 everyday online tools — format JSON, merge PDFs, compress images, generate passwords, decode JWTs, and more — where **every tool runs entirely in your browser**. Nothing you type or drop in is uploaded, there are no accounts, and a strict Content Security Policy means a page physically cannot send your input to a third party.
+Toolwright is a collection of 124 everyday online tools — format JSON, merge PDFs, compress images, generate passwords, decode JWTs, and more — where **every tool runs entirely in your browser**. Nothing you type or drop in is uploaded, there are no accounts, and a strict Content Security Policy means a page physically cannot send your input to a third party.
 
 [Browse the tools](docs/tools.md) · [How privacy works](docs/privacy-model.md) · [Design language](docs/design-language.md) · [Contribute](CONTRIBUTING.md)
 
@@ -31,7 +31,7 @@ Toolwright looks like **a tool catalogue kept by a careful workshop**: warm pape
 | Category | Examples |
 | --- | --- |
 | **Developer** | JSON formatter & validator, JWT decoder, regex tester, cron explainer, SQL formatter, timestamp converter, JSON → TypeScript, XML formatter & XML ↔ JSON, IP & subnet calculator (IPv4 and IPv6) |
-| **PDF** | Merge, split, rotate, crop, extract/delete pages, remove blank pages, images → PDF, PDF → images, PDF → text, page numbers, watermark, metadata editor |
+| **PDF** | Merge, split, rotate, crop, extract/delete pages, remove blank pages, compare, images → PDF, PDF → images, PDF → text, page numbers, watermark, metadata editor |
 | **Image** | Compressor, converter, resizer, crop / rotate / flip, EXIF remover & viewer, SVG → PNG, image → Base64, color picker, image → SVG tracing, animated GIF maker & editor |
 | **SVG** | Optimizer (SVGO), editor with live preview, sanitizer, data URI, SVG → React/TSX, path tools, recolor, blob/wave/polygon/star generator |
 | **Text** | Word counter, diff checker, case converter, find & replace, sort/dedupe lines, Markdown preview |

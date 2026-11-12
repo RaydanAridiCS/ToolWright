@@ -4,6 +4,11 @@ All notable changes to Toolwright. The format follows [Keep a Changelog](https:/
 
 ## [Unreleased]
 
+### Added: Compare PDFs
+
+- **New tool: `/tools/compare-pdf`.** Drop an original (A) and a new version (B). *Text changes* lists the lines removed, added or edited with their page numbers, marks the edited words inside a changed line, hides long unchanged stretches, can ignore case and extra spaces, and copies the list as plain text. *Page pictures* draws each page of both files, reports how much of every page differs, opens the first changed page, and shows it as a red difference over the faded old page or side by side, with next and previous change buttons. Three sensitivities ignore faint changes. Pages are compared by position; extra pages in one file are listed; pages of different proportions are flagged as changed. Scanned files are called out, since there is no OCR.
+- **Core logic** in `packages/core/src/compare-pdf.ts` (`compareText`, `collapseRows`, `pairPages`, `nextChangedPage`) on top of the existing `diffText` and `diffPixels`. Writing its tests caught a bug before release: a line diff treated a last line without a trailing newline as different from the same line followed by more text, so adding a line wrongly marked the line before it as changed. Unit tests in `packages/core/tests/compare-pdf.test.ts`; e2e and a11y in `e2e/compare-pdf.spec.ts`.
+
 ### Added: Remove Blank Pages
 
 - **New tool: `/tools/remove-blank-pages`.** Draws every page small in the tab, measures how much of it is clearly darker than the paper, and marks the blank ones. Three sensitivities (Strict: only empty pages; Normal: also scanner dust and a lone page number; Loose: also a footer line or stamp), page previews with the measured share of content, a per-page override, and a filter that shows only the pages to be removed. Checking has progress and can be stopped; unchecked pages are kept. Limited to 1,000 pages.

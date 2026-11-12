@@ -7,6 +7,7 @@ import meta_bmi_calculator from "./tools/bmi-calculator/meta";
 import meta_case_converter from "./tools/case-converter/meta";
 import meta_chmod_calculator from "./tools/chmod-calculator/meta";
 import meta_color_converter from "./tools/color-converter/meta";
+import meta_compare_pdf from "./tools/compare-pdf/meta";
 import meta_compound_interest_calculator from "./tools/compound-interest-calculator/meta";
 import meta_compress_pdf from "./tools/compress-pdf/meta";
 import meta_contrast_checker from "./tools/contrast-checker/meta";
@@ -132,6 +133,7 @@ export const tools: readonly ToolMeta[] = [
   meta_case_converter,
   meta_chmod_calculator,
   meta_color_converter,
+  meta_compare_pdf,
   meta_compound_interest_calculator,
   meta_compress_pdf,
   meta_contrast_checker,
