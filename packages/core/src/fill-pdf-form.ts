@@ -12,14 +12,12 @@ import {
   PDFRadioGroup,
   PDFSignature,
   PDFTextField,
-  rgb,
-  StandardFonts,
-  degrees,
   type PDFDocument,
   type PDFField,
 } from "pdf-lib";
 import { displayToPageSpace, loadPdf, PdfError } from "./pdf";
 import { looksDigitallySigned } from "./pdf-sign";
+import { createTextPainter, standardFont, type FontLoader } from "./pdf-text";
 
 export type FieldKind = "text" | "checkbox" | "radio" | "dropdown" | "list";
 export type FieldValue = string | boolean | string[];
@@ -127,6 +125,8 @@ export interface FillOptions {
   stamps?: TextStamp[];
   /** Turn the fields into ordinary page content, so the entries cannot be edited any more. */
   flatten?: boolean;
+  /** Supplies the font files for typed text the standard PDF font cannot print. Form field values always use the standard font. */
+  loadFont?: FontLoader;
 }
 
 export const STAMP_LIMITS = { minSize: 4, maxSize: 144 } as const;
@@ -171,19 +171,19 @@ function setField(field: PDFField, value: FieldValue): void {
   } catch (err) {
     if (err instanceof PdfError) throw err;
     const message = err instanceof Error ? err.message : String(err);
-    if (ENCODING.test(message)) throw new PdfError(`“${name}” has characters the form's font cannot print. Use plain letters, digits and punctuation.`);
+    if (ENCODING.test(message)) throw new PdfError(`“${name}” has characters the form's font cannot print. Use plain letters, digits and punctuation, or type it onto the page instead.`);
     throw new PdfError(`“${name}” could not be filled.`);
   }
 }
 
 /** Fill the chosen fields, optionally flatten, and print any typed text. Throws readable errors; the input is never changed. */
 export async function fillPdfForm(bytes: Uint8Array, options: FillOptions): Promise<Uint8Array> {
-  const { values = {}, stamps = [], flatten = false } = options;
+  const { values = {}, stamps = [], flatten = false, loadFont } = options;
   const doc = await loadPdf(bytes);
   const form = doc.getForm();
   // pdf-lib draws filled fields with Helvetica when the file is saved, and only then reports a character it cannot print.
   // Checking each value now lets the message name the field.
-  const font = await doc.embedFont(StandardFonts.Helvetica);
+  const font = await standardFont(doc);
 
   for (const [name, value] of Object.entries(values)) {
     const field = form.getFieldMaybe(name);
@@ -193,7 +193,7 @@ export async function fillPdfForm(bytes: Uint8Array, options: FillOptions): Prom
         // Line breaks in a multi-line field are split off by pdf-lib before drawing, so check line by line.
         for (const line of value.split("\n").flatMap((l) => l.split("\r"))) font.encodeText(line);
       } catch {
-        throw new PdfError(`“${name}” has characters the form's font cannot print. Use plain letters, digits and punctuation.`);
+        throw new PdfError(`“${name}” has characters the form's font cannot print. Use plain letters, digits and punctuation, or type it onto the page instead.`);
       }
     }
     setField(field, value);
@@ -207,18 +207,17 @@ export async function fillPdfForm(bytes: Uint8Array, options: FillOptions): Prom
     }
   }
 
-  if (stamps.length > 0) await drawStamps(doc, stamps);
+  if (stamps.length > 0) await drawStamps(doc, stamps, loadFont);
   try {
     return await doc.save({ useObjectStreams: true });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    if (ENCODING.test(message)) throw new PdfError("Some text has characters the form's font cannot print. Use plain letters, digits and punctuation.");
+    if (ENCODING.test(message)) throw new PdfError("Some text has characters the form's font cannot print. Use plain letters, digits and punctuation, or type it onto the page instead.");
     throw new PdfError("The filled form could not be saved.");
   }
 }
 
-async function drawStamps(doc: PDFDocument, stamps: TextStamp[]): Promise<void> {
-  const font = await doc.embedFont(StandardFonts.Helvetica);
+async function drawStamps(doc: PDFDocument, stamps: TextStamp[], loadFont?: FontLoader): Promise<void> {
   const pages = doc.getPages();
   for (const stamp of stamps) {
     if (stamp.text === "") continue;
@@ -226,11 +225,7 @@ async function drawStamps(doc: PDFDocument, stamps: TextStamp[]): Promise<void> 
     if (!page) throw new PdfError(`Page ${stamp.page + 1} does not exist (this PDF has ${pages.length} pages).`);
     if (!Number.isFinite(stamp.left) || !Number.isFinite(stamp.top)) throw new PdfError("Each piece of text needs a position on the page.");
     if (!(stamp.size >= STAMP_LIMITS.minSize && stamp.size <= STAMP_LIMITS.maxSize)) throw new PdfError(`Text size must be between ${STAMP_LIMITS.minSize} and ${STAMP_LIMITS.maxSize} points.`);
-    try {
-      font.widthOfTextAtSize(stamp.text, stamp.size);
-    } catch {
-      throw new PdfError(`“${stamp.text.slice(0, 30)}” has characters the standard PDF font cannot print. Use plain letters, digits and punctuation.`);
-    }
+    const painter = await createTextPainter(doc, stamp.text, { loadFont });
     const box = page.getCropBox();
     const rotation = page.getRotation().angle;
     const view = displayToPageSpace(box, rotation, 0, 0).view;
@@ -239,8 +234,7 @@ async function drawStamps(doc: PDFDocument, stamps: TextStamp[]): Promise<void> 
     }
     // `top` counts down from the top of the page as shown; the page's own space counts up from the bottom.
     const at = displayToPageSpace(box, rotation, stamp.left, view.height - stamp.top);
-    const c = stamp.color ?? { r: 0, g: 0, b: 0 };
-    page.drawText(stamp.text, { x: at.x, y: at.y, size: stamp.size, font, color: rgb(c.r, c.g, c.b), rotate: degrees(at.rotate) });
+    painter.draw(page, { x: at.x, y: at.y, size: stamp.size, color: stamp.color ?? { r: 0, g: 0, b: 0 }, rotate: at.rotate });
   }
 }
 

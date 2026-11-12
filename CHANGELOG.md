@@ -4,6 +4,13 @@ All notable changes to Toolwright. The format follows [Keep a Changelog](https:/
 
 ## [Unreleased]
 
+### Added: Cyrillic, Greek, Polish and Vietnamese text on PDF pages
+
+- **Add Watermark to PDF, Fill PDF Form (Type on the page) and Sign PDF (date line) can print text the standard PDF font could not.** Polish, Czech, Turkish, Vietnamese, Russian, Ukrainian, Bulgarian, Greek and the like now work. Plain English and Western European text still uses the font built into the PDF, so nothing is downloaded and the file stays as small as before.
+- **How it works:** `packages/core/src/pdf-text.ts` (`createTextPainter`, `standardFont`, `checkPrintable`) picks, per character, the first of seven Noto Sans script files that has it (Latin, Latin Extended, Vietnamese, Cyrillic and Cyrillic Extended, Greek and Greek Extended), embeds each used file once per document with `@pdf-lib/fontkit`, and draws the text as runs, including on rotated pages and at an angle. Font files are fetched only when the text needs them, from this site (`/fonts/noto-sans/`, copied from `@fontsource/noto-sans` by `scripts/copy-font-assets.mjs`; SIL Open Font License 1.1, licence file copied beside them). 5 to 60 KB each. The core stays free of the DOM and network: the browser supplies the loader.
+- **Not covered, and said so:** Chinese, Japanese, Korean, Arabic, Hebrew and Indic scripts (they need shaping or multi-megabyte fonts). The message names the characters that cannot be printed. Values typed into the form fields of a fillable PDF still use the PDF's own Helvetica; the error now points to Type on the page.
+- **Found while testing:** fontkit's subsetter throws an uncaught error from a timer on these font files, so whole files are embedded instead; and its default `ccmp` feature turned a letter such as "ẹ" into a letter plus a loosely placed mark, so it is switched off.
+- New dependency: `@pdf-lib/fontkit` (MIT), loaded on demand. New dev dependency: `@fontsource/noto-sans` (OFL-1.1).
 ### Added: Fill PDF Form
 
 - **New tool: `/tools/fill-pdf-form`.** Lists the fields of a fillable PDF grouped by page (text and multi-line boxes, checkboxes, radio buttons, dropdowns and lists, with required, read-only and maximum-length hints) and fills them. *Flatten the form* turns the entries into permanent page content. For flat forms with no fields, *Type on the page* lets you click where text belongs, set its size and colour, add an X mark, and move it with position fields and nudge buttons (a keyboard route as well as the pointer). Warns about digital signatures, dynamic XFA forms and signature fields, and names the exact field when a character cannot be printed in the standard font.

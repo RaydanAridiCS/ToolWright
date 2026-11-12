@@ -1,6 +1,7 @@
 /** PDF manipulation with pdf-lib. Everything operates on in-memory bytes; nothing is uploaded. */
 
 import { degrees, PDFDict, PDFDocument, PDFHexString, PDFName, rgb, StandardFonts, type PDFPage } from "pdf-lib";
+import { createTextPainter, type FontLoader } from "./pdf-text";
 
 export class PdfError extends Error {
   constructor(message: string) {
@@ -382,14 +383,16 @@ export interface WatermarkOptions {
   /** Rotation in degrees, counter-clockwise. */
   angle?: number;
   color?: { r: number; g: number; b: number };
+  /** Supplies the font files for text the standard PDF font cannot print (Cyrillic, Greek, Polish, Vietnamese…). */
+  loadFont?: FontLoader;
 }
 
 export async function addTextWatermark(bytes: Uint8Array, options: WatermarkOptions): Promise<Uint8Array> {
-  const { text, fontSize = 64, opacity = 0.2, angle = 45, color = { r: 0.5, g: 0.5, b: 0.5 } } = options;
+  const { text, fontSize = 64, opacity = 0.2, angle = 45, color = { r: 0.5, g: 0.5, b: 0.5 }, loadFont } = options;
   if (!text.trim()) throw new PdfError("Enter the watermark text.");
   const doc = await load(bytes);
-  const font = await doc.embedFont(StandardFonts.HelveticaBold);
-  const textWidth = font.widthOfTextAtSize(text, fontSize);
+  const painter = await createTextPainter(doc, text, { bold: true, loadFont });
+  const textWidth = painter.width(fontSize);
   const rad = (angle * Math.PI) / 180;
   for (const page of doc.getPages()) {
     const { box, rotation, view } = pageViewOf(page);
@@ -397,7 +400,7 @@ export async function addTextWatermark(bytes: Uint8Array, options: WatermarkOpti
     const dx = view.width / 2 - (Math.cos(rad) * textWidth) / 2 + (Math.sin(rad) * fontSize) / 3;
     const dy = view.height / 2 - (Math.sin(rad) * textWidth) / 2 - (Math.cos(rad) * fontSize) / 3;
     const at = displayToPageSpace(box, rotation, dx, dy, angle);
-    page.drawText(text, { x: at.x, y: at.y, size: fontSize, font, color: rgb(color.r, color.g, color.b), opacity, rotate: degrees(at.rotate) });
+    painter.draw(page, { x: at.x, y: at.y, size: fontSize, color, opacity, rotate: at.rotate });
   }
   return doc.save({ useObjectStreams: true });
 }

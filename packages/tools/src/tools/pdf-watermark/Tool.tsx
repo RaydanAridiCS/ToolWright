@@ -6,6 +6,7 @@ import { addTextWatermark } from "@toolwright/core/pdf";
 import { parseColor } from "@toolwright/core/color";
 import { DownloadResult, JobError, PdfDrop, PdfSourceCard, RunButton, useJob, usePdfSource } from "../../shared/pdf-ui";
 import { NumberField, num } from "../../shared/number-field";
+import { loadPdfFont } from "../../shared/pdf-fonts";
 
 export default function Tool() {
   const pdf = usePdfSource();
@@ -46,6 +47,7 @@ export default function Tool() {
                   opacity: Math.min(1, Math.max(0.01, (num(opacity) || 20) / 100)),
                   angle: num(angle) || 0,
                   color: { r: c.r / 255, g: c.g / 255, b: c.b / 255 },
+                  loadFont: loadPdfFont,
                 });
               })
             }

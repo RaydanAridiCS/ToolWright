@@ -9,6 +9,7 @@ import { DownloadResult, JobError, PdfDrop, PdfSourceCard, RunButton, useJob, us
 import { NumberField, num } from "../../shared/number-field";
 import { usePagePreview } from "../../shared/pdf-page-preview";
 import { errorMessage } from "../../shared/format";
+import { loadPdfFont } from "../../shared/pdf-fonts";
 
 /* ----------------------------------------------------------------------------------------------- */
 /* Reading the form                                                                                 */
@@ -365,7 +366,7 @@ export default function Tool() {
   const nothing = Object.keys(changed).length === 0 && outStamps.length === 0 && !flatten;
   const hasFields = (info?.fields.length ?? 0) > 0;
 
-  const run = () => job.run(() => fillPdfForm(source!.bytes, { values: changed, stamps: outStamps, flatten: flatten && hasFields }));
+  const run = () => job.run(() => fillPdfForm(source!.bytes, { values: changed, stamps: outStamps, flatten: flatten && hasFields, loadFont: loadPdfFont }));
 
   const touch = <T,>(setter: (v: T) => void) => (v: T) => (setter(v), job.reset());
 

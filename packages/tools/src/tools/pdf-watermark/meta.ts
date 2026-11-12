@@ -18,6 +18,7 @@ export default defineTool({
   howTo: ["Drop a PDF into the box.", "Type the watermark text and set the size, opacity, angle and color.", "Download the watermarked PDF."],
   faq: [
     { question: "How do I add a watermark to a PDF?", answer: "Drop the PDF, type the watermark text, adjust the size, opacity, angle and color, and download the result." },
+    { question: "Can I use a watermark in Russian, Greek or Polish?", answer: "Yes. Latin letters with accents, Polish, Czech, Turkish and Vietnamese, plus Cyrillic and Greek, all work. Chinese, Japanese, Korean, Arabic, Hebrew and Indic scripts are not supported, and the tool names any character it cannot print." },
     { question: "Can I use an image as a watermark?", answer: "No. This tool stamps text only." },
     { question: "Does the free version add its own watermark?", answer: "No. The only watermark is the text you type. There is no paid version." },
   ],

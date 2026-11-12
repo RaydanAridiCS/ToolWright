@@ -7,6 +7,7 @@ import { displaySize, looksDigitallySigned, pagesFromSpec, readPageGeometry, sig
 import { DownloadResult, JobError, PdfDrop, PdfSourceCard, RunButton, useJob, usePdfSource } from "../../shared/pdf-ui";
 import { createThumbnailer, type PageThumbnailer } from "../../shared/pdf-raster";
 import { SignatureMaker, type Signature } from "../../shared/signature-maker";
+import { loadPdfFont } from "../../shared/pdf-fonts";
 
 type Scope = "this" | "all" | "last" | "pick";
 
@@ -163,6 +164,7 @@ export default function Tool() {
       signPdf(source.bytes, {
         image: signature.png,
         caption: captionOn && caption.trim() ? caption.trim() : undefined,
+        loadFont: loadPdfFont,
         placements: targets.pages.map((p) => {
           const size = displaySize(geometry[p] as PageGeometry);
           return { page: p, left: place.left * size.width, top: place.top * size.height, width: place.width * size.width };

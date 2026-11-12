@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { degrees, PDFArray, PDFDict, PDFDocument, PDFName, PDFString } from "pdf-lib";
 import { changedValues, fillPdfForm, readForm } from "../src/fill-pdf-form";
+import { fontsFromDisk, readBack } from "./pdf-read-back";
 
 /** A two-page PDF with one field of every kind; page 1 holds the text, checkbox and radio fields, page 2 the choices. */
 async function formPdf(): Promise<Uint8Array> {
@@ -144,6 +145,27 @@ describe("fillPdfForm", () => {
 
   it("refuses characters the standard font cannot print", async () => {
     await expect(fillPdfForm(await formPdf(), { values: { name: "名前" } })).rejects.toThrow(/characters the form's font cannot print/);
+  });
+
+  it("types Cyrillic, Greek and accented text onto a page when it is given the fonts", async () => {
+    const doc = await PDFDocument.create();
+    doc.addPage([400, 500]);
+    const stamps = [
+      { page: 0, text: "Иван Петров", left: 40, top: 60, size: 14 },
+      { page: 0, text: "Ελένη Παπά", left: 40, top: 100, size: 14 },
+      { page: 0, text: "Łódź, Žilina", left: 40, top: 140, size: 14 },
+    ];
+    const out = await fillPdfForm(await doc.save(), { stamps, loadFont: fontsFromDisk });
+    const text = await readBack(out);
+    expect(text).toContain("Иван Петров");
+    expect(text).toContain("Ελένη Παπά");
+    expect(text).toContain("Łódź, Žilina");
+  });
+
+  it("names a typed character that no font can print", async () => {
+    const doc = await PDFDocument.create();
+    doc.addPage([400, 500]);
+    await expect(fillPdfForm(await doc.save(), { stamps: [{ page: 0, text: "名前", left: 40, top: 60, size: 14 }], loadFont: fontsFromDisk })).rejects.toThrow(/cannot be printed: 名 前/);
   });
 
   it("explains encrypted and corrupt files", async () => {

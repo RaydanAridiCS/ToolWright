@@ -24,8 +24,8 @@ export default defineTool({
   faq: [
     { question: "How do I fill out a PDF form?", answer: "Drop the PDF. A form with fields lists them for you to fill in; a flat form lets you click the page and type where the text belongs. Then download the result." },
     { question: "What does flatten do?", answer: "It turns the fields into ordinary page content, so the entries are permanent and cannot be edited, and the form looks the same in every viewer." },
-    { question: "What if the PDF has no form fields?", answer: "Use Type on the page: click where text should go, type it, and set the size. Letters, digits and standard punctuation are supported." },
-    { question: "Can I fill in Chinese, Arabic or other non-Latin text?", answer: "Not yet. The standard PDF font only prints Latin letters, digits and common punctuation, and the tool tells you which field has a character it cannot print." },
+    { question: "What if the PDF has no form fields?", answer: "Use Type on the page: click where text should go, type it, and set the size. English and European text is supported, including accents, Polish, Vietnamese, Russian and Greek letters." },
+    { question: "Can I fill in Chinese, Arabic or other scripts?", answer: "Not yet. Text typed onto the page covers Latin, Cyrillic and Greek letters. Chinese, Japanese, Korean, Arabic, Hebrew and Indic scripts need fonts and letter shaping this tool does not include, and it names any character it cannot print. Values inside form fields use the PDF's own standard font, so for Cyrillic or Greek in a fillable form, use Type on the page." },
     { question: "Will this keep a digital signature valid?", answer: "No. Any change to a signed PDF breaks its signature, and the tool warns you when it finds one. To add your own signature picture, use Sign PDF." },
   ],
   nextStep: { slug: "sign-pdf", text: "Form filled? Add your signature to the PDF next." },

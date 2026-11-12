@@ -15,6 +15,7 @@ import {
   userToDisplay,
   type PageGeometry,
 } from "../src/pdf-sign";
+import { fontsFromDisk, readBack } from "./pdf-read-back";
 
 /** A real PNG (RGBA, all one colour) of the given size, built with node's zlib. */
 function makePng(width: number, height: number, rgba = [0, 0, 0, 255]): Uint8Array {
@@ -180,6 +181,13 @@ describe("signPdf: the signature lands where it was placed", () => {
     await expect(signPdf(bytes, { image: png, placements: [{ page: 0, left: 5000, top: 0, width: 50 }] })).rejects.toThrow(/outside page 1/);
     await expect(signPdf(bytes, { image: png, placements: [{ page: 0, left: 0, top: 0, width: 50 }], caption: "日本語" })).rejects.toThrow(/caption/);
     await expect(signPdf(new Uint8Array([1, 2, 3, 4, 5]), { image: png, placements: [{ page: 0, left: 0, top: 0, width: 10 }] })).rejects.toThrow(/could not be read/);
+  });
+
+  it("prints a Cyrillic or Greek caption when it is given the fonts", async () => {
+    const placements = [{ page: 0, left: 50, top: 100, width: 100 }];
+    const out = await signPdf(await makePdf([0]), { image: png, placements, caption: "Подписано 15.03.2026", loadFont: fontsFromDisk });
+    expect(await readBack(out)).toBe("Подписано 15.03.2026");
+    await expect(signPdf(await makePdf([0]), { image: png, placements, caption: "日本語", loadFont: fontsFromDisk })).rejects.toThrow(/caption has characters that cannot be printed/);
   });
 
   it("allows a signature that hangs a little over the edge", async () => {

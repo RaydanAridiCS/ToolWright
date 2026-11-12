@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { degrees, PDFDocument } from "pdf-lib";
+import { fontsFromDisk, readBack } from "./pdf-read-back";
 import {
   addPageNumbers,
   addTextWatermark,
@@ -73,6 +74,16 @@ describe("page numbers and watermark on rotated pages", () => {
 
   it("rejects a blank watermark", async () => {
     await expect(addTextWatermark(await makePdf(1), { text: "   " })).rejects.toThrow(PdfError);
+  });
+
+  it("prints a Cyrillic or Vietnamese watermark on every page when given the fonts, and says what it cannot print", async () => {
+    const bytes = await makePdf(2);
+    await expect(addTextWatermark(bytes, { text: "КОНФИДЕНЦИАЛЬНО" })).rejects.toThrow(/standard PDF font cannot print/);
+    const out = await addTextWatermark(bytes, { text: "КОНФИДЕНЦИАЛЬНО", fontSize: 20, loadFont: fontsFromDisk });
+    expect(await readBack(out, 1)).toContain("КОНФИДЕНЦИАЛЬНО");
+    expect(await readBack(out, 2)).toContain("КОНФИДЕНЦИАЛЬНО");
+    expect((await readBack(await addTextWatermark(bytes, { text: "BẢN NHÁP", fontSize: 20, loadFont: fontsFromDisk }))).includes("BẢN NHÁP")).toBe(true);
+    await expect(addTextWatermark(bytes, { text: "机密", loadFont: fontsFromDisk })).rejects.toThrow(/cannot be printed: 机 密/);
   });
 });
 

@@ -15,6 +15,9 @@ test-results
 # Copied from pdfjs-dist by scripts/copy-pdfjs-assets.mjs
 apps/web/public/pdfjs/
 
+# Copied from @fontsource/noto-sans by scripts/copy-font-assets.mjs
+apps/web/public/fonts/
+
 # Private notes from the assistant to the owner (decisions, concerns, things to look at)
 owner-notes/
 

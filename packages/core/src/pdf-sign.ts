@@ -4,8 +4,9 @@
  * by 90, 180 or 270 degrees, and PDF coordinates start at the bottom left of the unturned page, so a position on
  * the page as it is shown has to be converted. Keep this file free of React, the DOM and the network.
  */
-import { degrees, rgb, StandardFonts } from "pdf-lib";
+import { degrees } from "pdf-lib";
 import { loadPdf, PdfError } from "./pdf";
+import { createTextPainter, type FontLoader } from "./pdf-text";
 
 export interface PageGeometry {
   /** The visible box of the page in PDF user space (the CropBox, or the MediaBox when there is none). */
@@ -94,13 +95,15 @@ export interface SignOptions {
   /** Small text printed under each signature, such as a date. */
   caption?: string;
   captionSize?: number;
+  /** Supplies the font files for a caption the standard PDF font cannot print. */
+  loadFont?: FontLoader;
 }
 
 const isPng = (b: Uint8Array) => b.length > 8 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47;
 
 /** Stamp the signature picture, and optionally a caption, at each placement. Throws readable errors. */
 export async function signPdf(bytes: Uint8Array, options: SignOptions): Promise<Uint8Array> {
-  const { image, placements, caption, captionSize = 9 } = options;
+  const { image, placements, caption, captionSize = 9, loadFont } = options;
   if (placements.length === 0) throw new PdfError("Choose where the signature goes.");
   if (!isPng(image)) throw new PdfError("The signature is not a PNG picture. Draw, type or upload it again.");
 
@@ -112,14 +115,7 @@ export async function signPdf(bytes: Uint8Array, options: SignOptions): Promise<
   } catch {
     throw new PdfError("The signature picture could not be read.");
   }
-  const font = caption ? await doc.embedFont(StandardFonts.Helvetica) : null;
-  if (font && caption) {
-    try {
-      font.widthOfTextAtSize(caption, captionSize);
-    } catch {
-      throw new PdfError("The caption has characters that the standard PDF font cannot print. Use plain letters, digits and punctuation.");
-    }
-  }
+  const captionPainter = caption ? await createTextPainter(doc, caption, { loadFont, label: "The caption" }) : null;
 
   for (const place of placements) {
     const page = pages[place.page];
@@ -135,9 +131,9 @@ export async function signPdf(bytes: Uint8Array, options: SignOptions): Promise<
     // The picture's bottom-left corner as shown. Turning the picture by the page's own turn keeps it upright for the reader.
     const anchor = displayToUser(g, place.left, place.top + height);
     page.drawImage(embedded, { x: anchor.x, y: anchor.y, width: place.width, height, rotate: degrees(g.rotate) });
-    if (font && caption) {
+    if (captionPainter) {
       const text = displayToUser(g, place.left, place.top + height + captionSize + 2);
-      page.drawText(caption, { x: text.x, y: text.y, size: captionSize, font, color: rgb(0.25, 0.25, 0.25), rotate: degrees(g.rotate) });
+      captionPainter.draw(page, { x: text.x, y: text.y, size: captionSize, color: { r: 0.25, g: 0.25, b: 0.25 }, rotate: g.rotate });
     }
   }
   return doc.save({ useObjectStreams: true });
