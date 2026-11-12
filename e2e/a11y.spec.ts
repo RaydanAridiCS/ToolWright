@@ -70,6 +70,7 @@ const PAGES = [
   "/tools/pdf-to-images",
   "/tools/pdf-to-text",
   "/tools/extract-pdf-images",
+  "/tools/crop-pdf",
   "/tools/xml-formatter",
   "/tools/subnet-calculator",
   "/tools/barcode-generator",

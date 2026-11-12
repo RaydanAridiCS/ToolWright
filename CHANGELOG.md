@@ -4,6 +4,16 @@ All notable changes to Toolwright. The format follows [Keep a Changelog](https:/
 
 ## [Unreleased]
 
+### Added: Crop PDF; fixes to the PDF tools
+
+- **New tool: `/tools/crop-pdf`.** Trim margins off every page, or only the pages you choose, in millimetres, inches or points. A live preview shades the part that will be removed, and *Detect blank borders* measures the white border of a page for you. Margins are measured on the page as you see it, so rotated pages and pages whose box does not start at 0,0 are cropped correctly. It sets the CropBox (and, by default, the MediaBox); the trimmed parts stay in the file and the tool says so.
+- **Core logic** in `packages/core/src/crop-pdf.ts` (`cropPdf`, `croppedRect`, `detectBlankMargins`), with unit tests in `packages/core/tests/crop-pdf.test.ts` and an e2e spec in `e2e/crop-pdf.spec.ts`.
+- **Split PDF** parsed the whole file once for every output part, so splitting a large file into single pages took quadratic time. It now parses once. The page labels for non-contiguous parts (`1, 3, 5`) are correct and a stale result is cleared when the inputs change.
+- **Add Page Numbers** and **Add Watermark** now place text correctly on rotated pages and on pages whose crop box does not start at the origin (shared `displayToPageSpace` in `@toolwright/core/pdf`). A start number of 0 is no longer turned into 1.
+- **PDF Metadata Editor** keeps keywords comma-separated (pdf-lib joined them with spaces).
+- **Rotate PDF** turns a page once even when it is listed twice (`1-3, 2`).
+- Removed the unused `sign-pdf` scaffold stub from `@toolwright/core`; the real logic stays in `pdf-sign.ts`. Added `packages/core/tests/pdf.test.ts`, which covers every core PDF operation including password-protected and corrupt files.
+
 ### Added: JWT Generator & Signer
 
 - **New tool: `/tools/jwt-generator`.** Build, sign, and verify JSON Web Tokens entirely inside your browser using the native Web Crypto API (`crypto.subtle`). Supports HMAC algorithms (`HS256`, `HS384`, `HS512`) and unsecured tokens (`none`). Features live JSON validation for header and payload, quick expiration presets (+15m, +1h, +24h, +7d) and automatic `iat` updates, custom or cryptographically random secret key generation, and one-click token and cURL copy actions.

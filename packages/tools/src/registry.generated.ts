@@ -11,6 +11,7 @@ import meta_compound_interest_calculator from "./tools/compound-interest-calcula
 import meta_compress_pdf from "./tools/compress-pdf/meta";
 import meta_contrast_checker from "./tools/contrast-checker/meta";
 import meta_cron_explainer from "./tools/cron-explainer/meta";
+import meta_crop_pdf from "./tools/crop-pdf/meta";
 import meta_csv_delimiter_converter from "./tools/csv-delimiter-converter/meta";
 import meta_csv_to_markdown from "./tools/csv-to-markdown/meta";
 import meta_curl_to_fetch from "./tools/curl-to-fetch/meta";
@@ -134,6 +135,7 @@ export const tools: readonly ToolMeta[] = [
   meta_compress_pdf,
   meta_contrast_checker,
   meta_cron_explainer,
+  meta_crop_pdf,
   meta_csv_delimiter_converter,
   meta_csv_to_markdown,
   meta_curl_to_fetch,

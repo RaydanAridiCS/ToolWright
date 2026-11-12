@@ -15,6 +15,7 @@ export const toolLoaders: Record<string, ToolLoader> = {
   "compress-pdf": () => import("./tools/compress-pdf/Tool"),
   "contrast-checker": () => import("./tools/contrast-checker/Tool"),
   "cron-explainer": () => import("./tools/cron-explainer/Tool"),
+  "crop-pdf": () => import("./tools/crop-pdf/Tool"),
   "csv-delimiter-converter": () => import("./tools/csv-delimiter-converter/Tool"),
   "csv-to-markdown": () => import("./tools/csv-to-markdown/Tool"),
   "curl-to-fetch": () => import("./tools/curl-to-fetch/Tool"),
