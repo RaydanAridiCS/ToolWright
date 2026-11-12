@@ -18,3 +18,23 @@ export async function readBack(bytes: Uint8Array, pageNumber = 1): Promise<strin
   await task.destroy();
   return text;
 }
+
+export interface ReadItem {
+  str: string;
+  /** Left end of the text on the unrotated page, in points from the bottom left. */
+  x: number;
+  y: number;
+  width: number;
+}
+
+/** The pieces of text PDF.js finds on a page, with where they sit. */
+export async function readItems(bytes: Uint8Array, pageNumber = 1): Promise<ReadItem[]> {
+  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  const task = pdfjs.getDocument({ data: bytes.slice(), useWorkerFetch: false, useSystemFonts: false, verbosity: 0 });
+  const doc = await task.promise;
+  const page = await doc.getPage(pageNumber);
+  const content = await page.getTextContent();
+  const items = content.items.flatMap((item) => ("str" in item && item.str !== "" ? [{ str: item.str, x: item.transform[4] as number, y: item.transform[5] as number, width: item.width }] : []));
+  await task.destroy();
+  return items;
+}

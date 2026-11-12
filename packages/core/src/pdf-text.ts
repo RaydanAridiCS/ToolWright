@@ -54,6 +54,14 @@ function once(doc: PDFDocument, key: string, make: () => Promise<PDFFont>): Prom
   return font;
 }
 
+/** Font files already fetched and read for this document, so a text drawn on every page reads each file once. */
+const readFonts = new WeakMap<PDFDocument, Map<string, { bytes: Uint8Array; covers(cp: number): boolean }>>();
+function parsedFonts(doc: PDFDocument) {
+  let fonts = readFonts.get(doc);
+  if (!fonts) readFonts.set(doc, (fonts = new Map()));
+  return fonts;
+}
+
 /** The standard Helvetica (or bold) of this document, embedded once. */
 export const standardFont = (doc: PDFDocument, bold = false) => once(doc, bold ? "std-bold" : "std", () => doc.embedFont(bold ? StandardFonts.HelveticaBold : StandardFonts.Helvetica));
 
@@ -166,9 +174,10 @@ async function unicodeRuns(doc: PDFDocument, text: string, weight: FontWeight, l
 
   // A tab or line break would print as a missing-glyph box; a single space reads better and keeps the line on one row.
   const clean = text.replace(/[\t\r\n\u00a0]+/g, " ");
-  const loaded = new Map<FontSubset, { bytes: Uint8Array; covers(cp: number): boolean }>();
+  const loaded = parsedFonts(doc);
   const load = async (subset: FontSubset) => {
-    let entry = loaded.get(subset);
+    const key = `${subset}-${weight}`;
+    let entry = loaded.get(key);
     if (!entry) {
       let bytes: Uint8Array;
       try {
@@ -177,9 +186,9 @@ async function unicodeRuns(doc: PDFDocument, text: string, weight: FontWeight, l
         if (err instanceof PdfError) throw err;
         throw new PdfError("The font for this text could not be loaded. Check your connection once, then it works offline.");
       }
-      const parsed = fontkit.create(bytes);
-      entry = { bytes, covers: (cp) => parsed.hasGlyphForCodePoint(cp) };
-      loaded.set(subset, entry);
+      const face = fontkit.create(bytes);
+      entry = { bytes, covers: (cp) => face.hasGlyphForCodePoint(cp) };
+      loaded.set(key, entry);
     }
     return entry;
   };

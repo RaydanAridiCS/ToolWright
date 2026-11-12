@@ -352,7 +352,7 @@ export function displayToPageSpace(
   return { x: box.x + x, y: box.y + y, rotate: angle + r, view };
 }
 
-function pageViewOf(page: PDFPage): { box: { x: number; y: number; width: number; height: number }; rotation: number; view: PageView } {
+export function pageViewOf(page: PDFPage): { box: { x: number; y: number; width: number; height: number }; rotation: number; view: PageView } {
   const box = page.getCropBox();
   const rotation = page.getRotation().angle;
   return { box, rotation, view: displayToPageSpace(box, rotation, 0, 0).view };

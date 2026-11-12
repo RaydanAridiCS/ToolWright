@@ -75,6 +75,7 @@ const PAGES = [
   "/tools/compare-pdf",
   "/tools/fill-pdf-form",
   "/tools/redact-pdf",
+  "/tools/pdf-header-footer",
   "/tools/xml-formatter",
   "/tools/subnet-calculator",
   "/tools/barcode-generator",

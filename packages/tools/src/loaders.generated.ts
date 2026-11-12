@@ -76,6 +76,7 @@ export const toolLoaders: Record<string, ToolLoader> = {
   "number-to-words": () => import("./tools/number-to-words/Tool"),
   "palette-generator": () => import("./tools/palette-generator/Tool"),
   "password-generator": () => import("./tools/password-generator/Tool"),
+  "pdf-header-footer": () => import("./tools/pdf-header-footer/Tool"),
   "pdf-metadata-editor": () => import("./tools/pdf-metadata-editor/Tool"),
   "pdf-organizer": () => import("./tools/pdf-organizer/Tool"),
   "pdf-page-numbers": () => import("./tools/pdf-page-numbers/Tool"),

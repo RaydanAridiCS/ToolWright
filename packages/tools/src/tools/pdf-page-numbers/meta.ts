@@ -19,8 +19,8 @@ export default defineTool({
   faq: [
     { question: "How do I add page numbers to a PDF?", answer: "Drop the PDF, choose the position, format and starting number, and download the numbered file." },
     { question: "Can I start numbering from a different number?", answer: "Yes. Set the starting number you want." },
-    { question: "Can I number only some pages?", answer: "The tool numbers every page. To skip pages, remove them first or split the file." },
+    { question: "Can I number only some pages?", answer: "This tool numbers every page. To skip the cover, number only odd or even pages, or add Bates numbers, use Add Header and Footer to PDF." },
   ],
   nextStep: { slug: "pdf-watermark", text: "Marking the document as a draft too? Add a watermark." },
-  related: ["pdf-watermark", "merge-pdf", "pdf-metadata-editor"],
+  related: ["pdf-header-footer", "pdf-watermark", "merge-pdf", "pdf-metadata-editor"],
 });

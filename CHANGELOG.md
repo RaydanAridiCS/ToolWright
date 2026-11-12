@@ -4,6 +4,12 @@ All notable changes to Toolwright. The format follows [Keep a Changelog](https:/
 
 ## [Unreleased]
 
+### Added: Add Header and Footer to PDF (with Bates numbering)
+
+- **New tool: `/tools/pdf-header-footer`.** Six text boxes (header and footer, each left, middle and right) stamped on the pages you choose. `{page}`, `{pages}`, `{date}`, `{file}` and `{bates}` are filled in per page; Bates numbers (for example `ACME-000123`) take a prefix, a first number, a digit count and a suffix, and count up by one on each stamped page. Pages can be all, odd, even or a list, the first page can be left blank (page numbers still count it), and left and right can swap on even pages for double-sided printing. Layouts to start from, buttons that insert each token into the box last used, a live preview of any page, and text size, margin, colour and starting number. Cyrillic, Greek, Polish and Vietnamese text work through the shared font support.
+- **Core logic** in `packages/core/src/pdf-header-footer.ts` (`addHeaderFooter`, `expandTokens`, `formatBates`, `layoutRow`, `choosePages`, `zonesForPage`) with the rotation- and CropBox-aware placement used by Page Numbers. Texts that would run into each other or off the page are refused with the page and row named, rather than printed on top of each other.
+- `createTextPainter` now reads each font file once per document, so a different text on every page does not re-read it. Add Page Numbers' FAQ and related links point to the new tool for skipping the cover.
+
 ### Added: Redact PDF
 
 - **New tool: `/tools/redact-pdf`.** Cover areas of a PDF with solid black boxes, drawn by dragging on a page preview (or with "Add box" and position fields and arrow buttons, so no mouse is needed), or found by searching: exact words, email addresses, or phone, ID and account numbers. Each page with a box is redrawn as a picture with the boxes painted into the pixels, and the page is rebuilt from that picture alone, so the covered words and the fonts and text commands that held them are not in the file. A box laid over live text would leave every word selectable and searchable, which is why it is not done that way. Quality is Smaller (150 dpi JPEG), Balanced (200 dpi JPEG) or Sharpest (300 dpi PNG); an option turns every page into a picture, which also removes hidden text and links on the unmarked pages. The result is a new file with none of the original properties, bookmarks, form fields or attachments. Warns about digital signatures and tells the reader to look through the result before sharing.
