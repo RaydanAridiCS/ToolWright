@@ -92,7 +92,7 @@ export function PdfPageSelector({
           let cardStyle = "border-border bg-card text-foreground hover:border-foreground/40";
           if (isSelected) {
             if (isDeleting) {
-              cardStyle = "border-destructive bg-destructive/10 text-destructive";
+              cardStyle = "border-danger bg-danger/10 text-danger";
             } else {
               cardStyle = "border-foreground bg-accent/20 text-foreground font-medium";
             }
@@ -111,7 +111,7 @@ export function PdfPageSelector({
                 <span className="font-mono text-muted-foreground">p. {pageNum}</span>
                 {isSelected ? (
                   isDeleting ? (
-                    <span className="flex items-center gap-0.5 text-[10px] text-destructive">
+                    <span className="flex items-center gap-0.5 text-[10px] text-danger">
                       <Trash2 className="size-3" aria-hidden /> Delete
                     </span>
                   ) : (

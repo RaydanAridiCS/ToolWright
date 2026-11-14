@@ -1,10 +1,12 @@
 "use client";
 
-import { useCallback, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Loader2 } from "lucide-react";
-import { Alert, Button, DownloadButton, FileDropzone, FileListItem, formatFileSize } from "@toolwright/ui";
+import { Alert, Button, DownloadButton, FileDropzone, FileListItem, Select, baseName, formatFileSize } from "@toolwright/ui";
 import { getPdfInfo, isPdf, type PdfInfo } from "@toolwright/core/pdf";
 import { errorMessage } from "./format";
+import { createZip, type ZipEntry } from "./zip";
+import { canHandOff, currentToolSlug, handOffPdf, HANDOFF_TARGETS, usePdfHandoff } from "./pdf-handoff";
 
 export interface PdfSource {
   file: File;
@@ -12,9 +14,21 @@ export interface PdfSource {
   info: PdfInfo;
 }
 
-/** Loads a single PDF from a drop, reads its structure, and tracks errors. */
+/** Reads one dropped file into a PdfSource, or throws a message naming the file. */
+async function readPdf(file: File): Promise<PdfSource> {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  if (!isPdf(bytes)) throw new Error(`${file.name} does not look like a PDF file.`);
+  return { file, bytes, info: await getPdfInfo(bytes) };
+}
+
+/**
+ * Loads a PDF from a drop, reads its structure, and tracks errors.
+ *
+ * Tools that support batch work call `loadMany` with every dropped file: `all` then holds each readable PDF,
+ * `source` is the first one (for previews and page counts), and files that could not be read are reported by name.
+ */
 export function usePdfSource() {
-  const [source, setSource] = useState<PdfSource | null>(null);
+  const [all, setAll] = useState<PdfSource[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -22,24 +36,46 @@ export function usePdfSource() {
     setLoading(true);
     setError(null);
     try {
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      if (!isPdf(bytes)) throw new Error(`${file.name} does not look like a PDF file.`);
-      const info = await getPdfInfo(bytes);
-      setSource({ file, bytes, info });
+      setAll([await readPdf(file)]);
     } catch (err) {
-      setSource(null);
+      setAll([]);
       setError(errorMessage(err));
     } finally {
       setLoading(false);
     }
   }, []);
 
+  /** Adds files to the batch (keeping the ones already there). */
+  const loadMany = useCallback(async (files: File[]) => {
+    setLoading(true);
+    setError(null);
+    const read: PdfSource[] = [];
+    const problems: string[] = [];
+    for (const file of files) {
+      try {
+        read.push(await readPdf(file));
+      } catch (err) {
+        problems.push(errorMessage(err));
+      }
+    }
+    setAll((current) => [...current, ...read]);
+    if (problems.length) setError(problems.join(" "));
+    setLoading(false);
+  }, []);
+
+  const remove = useCallback((index: number) => {
+    setAll((current) => current.filter((_, i) => i !== index));
+  }, []);
+
   const clear = useCallback(() => {
-    setSource(null);
+    setAll([]);
     setError(null);
   }, []);
 
-  return { source, error, setError, loading, load, clear };
+  // A file passed on from another tool ("Continue with…") loads as if it had been dropped.
+  usePdfHandoff((file) => void load(file));
+
+  return { source: all[0] ?? null, all, error, setError, loading, load, loadMany, remove, clear };
 }
 
 export function PdfDrop({ onFile, onReject, loading }: { onFile: (file: File) => void; onReject?: (message: string) => void; loading?: boolean }) {
@@ -53,6 +89,59 @@ export function PdfDrop({ onFile, onReject, loading }: { onFile: (file: File) =>
       onFiles={([f]) => f && onFile(f)}
     />
   );
+}
+
+/** Drop zone for tools that can process many PDFs with the same settings. */
+export function PdfBatchDrop({ onFiles, onReject, loading, more = false }: { onFiles: (files: File[]) => void; onReject?: (message: string) => void; loading?: boolean; more?: boolean }) {
+  return (
+    <FileDropzone
+      accept=".pdf,application/pdf"
+      multiple
+      label={loading ? "Reading PDFs…" : more ? "Add more PDFs" : "Drop one or more PDFs here, or click to browse"}
+      hint={more ? "Every file gets the same settings." : "Drop several files to process them all at once. Nothing is uploaded."}
+      disabled={loading}
+      onReject={onReject}
+      onFiles={onFiles}
+    />
+  );
+}
+
+/** The batch: one row per file, each removable. */
+export function PdfSourceList({ sources, onRemove }: { sources: PdfSource[]; onRemove: (index: number) => void }) {
+  return (
+    <ul aria-label={`${sources.length} PDF${sources.length === 1 ? "" : "s"} to process`} className="flex flex-col gap-2">
+      {sources.map((s, i) => (
+        <FileListItem key={`${s.file.name}-${s.file.size}-${i}`} name={s.file.name} size={s.file.size} detail={`${s.info.pageCount} page${s.info.pageCount === 1 ? "" : "s"}`} onRemove={() => onRemove(i)} />
+      ))}
+    </ul>
+  );
+}
+
+export interface BatchOutput {
+  data: Uint8Array;
+  filename: string;
+  mime: string;
+  note?: string;
+}
+
+/**
+ * Runs `work` on every file, one at a time, and returns one PDF (a single file) or one ZIP (several files).
+ * A failure names the file it happened on.
+ */
+export async function runOnAll(sources: PdfSource[], suffix: string, work: (source: PdfSource) => Promise<Uint8Array>, onProgress?: (done: number, total: number) => void): Promise<BatchOutput> {
+  const outputs: ZipEntry[] = [];
+  for (const [i, source] of sources.entries()) {
+    onProgress?.(i, sources.length);
+    try {
+      outputs.push({ name: `${baseName(source.file.name)}-${suffix}.pdf`, data: await work(source) });
+    } catch (err) {
+      throw new Error(sources.length > 1 ? `${source.file.name}: ${errorMessage(err)}` : errorMessage(err));
+    }
+  }
+  onProgress?.(sources.length, sources.length);
+  const [only] = outputs;
+  if (outputs.length === 1 && only) return { data: only.data, filename: only.name, mime: "application/pdf" };
+  return { data: createZip(outputs), filename: `${suffix}-pdfs.zip`, mime: "application/zip", note: `${outputs.length} PDFs` };
 }
 
 export function PdfSourceCard({ source, onRemove }: { source: PdfSource; onRemove: () => void }) {
@@ -124,15 +213,61 @@ export function JobError({ error }: { error: string | null }) {
 
 export function DownloadResult({ data, filename, mime = "application/pdf", note }: { data: Uint8Array; filename: string; mime?: string; note?: string }) {
   return (
-    <div className="flex flex-wrap items-center gap-4 border border-l-4 border-foreground border-l-success bg-card p-4 shadow-md">
-      <div className="min-w-0 flex-1">
-        <p className="font-medium">Done! Your file is ready.</p>
-        <p className="truncate text-sm text-muted-foreground">
-          {filename} · {formatFileSize(data.length)}
-          {note ? ` · ${note}` : ""}
-        </p>
+    <div className="flex flex-col gap-3 border border-l-4 border-foreground border-l-success bg-card p-4 shadow-md">
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="min-w-0 flex-1">
+          <p className="font-medium">Done! Your file is ready.</p>
+          <p className="truncate text-sm text-muted-foreground">
+            {filename} · {formatFileSize(data.length)}
+            {note ? ` · ${note}` : ""}
+          </p>
+        </div>
+        <DownloadButton data={data} filename={filename} mime={mime} variant="primary" size="md" label="Download" />
       </div>
-      <DownloadButton data={data} filename={filename} mime={mime} variant="primary" size="md" label="Download" />
+      {mime === "application/pdf" ? <ContinueWith data={data} filename={filename} /> : null}
+    </div>
+  );
+}
+
+const QUICK_TARGETS = 4;
+
+/**
+ * Buttons that open the finished PDF in another tool, already loaded. The file moves in memory during a
+ * client-side navigation; it is not stored or sent anywhere.
+ */
+export function ContinueWith({ data, filename }: { data: Uint8Array; filename: string }) {
+  const [ready, setReady] = useState(false);
+  // Read after mount: the navigator and the current path only exist in the browser.
+  useEffect(() => setReady(canHandOff()), []);
+  if (!ready) return null;
+  const here = currentToolSlug();
+  const targets = HANDOFF_TARGETS.filter((t) => t.slug !== here);
+  const quick = targets.slice(0, QUICK_TARGETS);
+  const more = targets.slice(QUICK_TARGETS);
+  const go = (slug: string) => handOffPdf(slug, filename, data);
+  return (
+    <div className="flex flex-wrap items-center gap-2 border-t border-dashed border-border pt-3">
+      <span className="text-sm text-muted-foreground">Continue with this file:</span>
+      {quick.map((t) => (
+        <Button key={t.slug} variant="outline" size="sm" onClick={() => go(t.slug)}>
+          {t.label}
+        </Button>
+      ))}
+      <Select
+        aria-label="More tools to continue with"
+        className="h-8 w-auto text-[13px]"
+        value=""
+        onChange={(e) => {
+          if (e.target.value) go(e.target.value);
+        }}
+      >
+        <option value="">More tools…</option>
+        {more.map((t) => (
+          <option key={t.slug} value={t.slug}>
+            {t.label}
+          </option>
+        ))}
+      </Select>
     </div>
   );
 }

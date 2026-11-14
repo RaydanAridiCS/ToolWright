@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Field, Input, baseName } from "@toolwright/ui";
+import { Field, Input } from "@toolwright/ui";
 import { addTextWatermark } from "@toolwright/core/pdf";
 import { parseColor } from "@toolwright/core/color";
-import { DownloadResult, JobError, PdfDrop, PdfSourceCard, RunButton, useJob, usePdfSource } from "../../shared/pdf-ui";
+import { DownloadResult, JobError, PdfBatchDrop, PdfSourceList, RunButton, runOnAll, useJob, usePdfSource, type BatchOutput } from "../../shared/pdf-ui";
 import { NumberField, num } from "../../shared/number-field";
 import { loadPdfFont } from "../../shared/pdf-fonts";
 
@@ -15,12 +15,13 @@ export default function Tool() {
   const [opacity, setOpacity] = useState("20");
   const [angle, setAngle] = useState("45");
   const [color, setColor] = useState("#5b574a");
-  const job = useJob<Uint8Array>();
+  const job = useJob<BatchOutput>();
   const source = pdf.source;
 
   return (
     <div className="flex flex-col gap-5">
-      {source ? <PdfSourceCard source={source} onRemove={() => (pdf.clear(), job.reset())} /> : <PdfDrop onFile={pdf.load} onReject={pdf.setError} loading={pdf.loading} />}
+      {source ? <PdfSourceList sources={pdf.all} onRemove={(i) => (pdf.remove(i), job.reset())} /> : null}
+      <PdfBatchDrop more={Boolean(source)} onFiles={(files) => (job.reset(), void pdf.loadMany(files))} onReject={pdf.setError} loading={pdf.loading} />
       <JobError error={pdf.error} />
 
       {source ? (
@@ -41,24 +42,25 @@ export default function Tool() {
             onClick={() =>
               job.run(() => {
                 const c = parseColor(color) ?? { r: 128, g: 128, b: 128, a: 1 };
-                return addTextWatermark(source.bytes, {
+                const options = {
                   text,
                   fontSize: num(size) || 72,
                   opacity: Math.min(1, Math.max(0.01, (num(opacity) || 20) / 100)),
                   angle: num(angle) || 0,
                   color: { r: c.r / 255, g: c.g / 255, b: c.b / 255 },
                   loadFont: loadPdfFont,
-                });
+                };
+                return runOnAll(pdf.all, "watermarked", (s) => addTextWatermark(s.bytes, options));
               })
             }
           >
-            Add watermark
+            {pdf.all.length > 1 ? `Add watermark to ${pdf.all.length} PDFs` : "Add watermark"}
           </RunButton>
         </>
       ) : null}
 
       <JobError error={job.error} />
-      {job.result && source ? <DownloadResult data={job.result} filename={`${baseName(source.file.name)}-watermarked.pdf`} /> : null}
+      {job.result ? <DownloadResult {...job.result} /> : null}
     </div>
   );
 }

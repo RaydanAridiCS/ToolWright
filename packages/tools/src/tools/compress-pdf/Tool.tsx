@@ -23,7 +23,8 @@ import {
 } from "@toolwright/core/pdf-compress";
 import { CompressAborted, CompressSession } from "../../shared/pdf-compress-client";
 import { rasterizePdf } from "../../shared/pdf-raster";
-import { JobError, RunButton, RunProgress, useJob } from "../../shared/pdf-ui";
+import { ContinueWith, JobError, RunButton, RunProgress, useJob } from "../../shared/pdf-ui";
+import { usePdfHandoff } from "../../shared/pdf-handoff";
 import { NumberField, num } from "../../shared/number-field";
 import { errorMessage, formatInt, pluralize } from "../../shared/format";
 import { PdfCompareSlider } from "../../shared/pdf-compare-slider";
@@ -118,6 +119,8 @@ export default function Tool() {
     },
     [release, job],
   );
+  // A file passed on from another tool ("Continue with…") loads as if it had been dropped.
+  usePdfHandoff((next) => void load(next));
 
   const edit = (patch: Partial<typeof values>) => {
     job.reset();
@@ -321,14 +324,17 @@ export default function Tool() {
                 <li key={note}>{note}</li>
               ))}
             </ul>
-            <div className="flex flex-wrap items-center gap-4 border border-l-4 border-foreground border-l-success bg-card p-4 shadow-md">
-              <div className="min-w-0 flex-1">
-                <p className="font-medium">Your smaller file is ready.</p>
-                <p className="truncate text-sm text-muted-foreground">
-                  {baseName(file.name)}-compressed.pdf · {formatFileSize(done.data.length)}
-                </p>
+            <div className="flex flex-col gap-3 border border-l-4 border-foreground border-l-success bg-card p-4 shadow-md">
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium">Your smaller file is ready.</p>
+                  <p className="truncate text-sm text-muted-foreground">
+                    {baseName(file.name)}-compressed.pdf · {formatFileSize(done.data.length)}
+                  </p>
+                </div>
+                <DownloadButton data={done.data} filename={`${baseName(file.name)}-compressed.pdf`} mime="application/pdf" variant="primary" size="md" label="Download" />
               </div>
-              <DownloadButton data={done.data} filename={`${baseName(file.name)}-compressed.pdf`} mime="application/pdf" variant="primary" size="md" label="Download" />
+              <ContinueWith data={done.data} filename={`${baseName(file.name)}-compressed.pdf`} />
             </div>
             {analysis ? (
               <PdfCompareSlider

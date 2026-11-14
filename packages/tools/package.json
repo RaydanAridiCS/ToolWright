@@ -9,7 +9,8 @@
     ".": "./src/index.ts",
     "./loaders": "./src/loaders.generated.ts",
     "./define": "./src/define.ts",
-    "./categories": "./src/categories.ts"
+    "./categories": "./src/categories.ts",
+    "./handoff": "./src/shared/pdf-handoff.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

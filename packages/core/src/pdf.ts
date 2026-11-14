@@ -160,6 +160,21 @@ export async function rotatePdf(bytes: Uint8Array, angle: 90 | 180 | 270, pageIn
   return doc.save({ useObjectStreams: true });
 }
 
+/**
+ * Turns each page by its own amount, in place, so links, bookmarks and form fields are kept.
+ * `turns[i]` is the extra clockwise rotation for page i (any multiple of 90, negative allowed); missing entries mean no change.
+ */
+export async function rotatePagesBy(bytes: Uint8Array, turns: readonly number[]): Promise<Uint8Array> {
+  const doc = await load(bytes);
+  turns.forEach((turn, i) => {
+    if (!turn || i >= doc.getPageCount()) return;
+    if (turn % 90 !== 0) throw new PdfError(`Page ${i + 1} can only be turned in steps of 90°.`);
+    const page = doc.getPage(i);
+    page.setRotation(degrees((((page.getRotation().angle + turn) % 360) + 360) % 360));
+  });
+  return doc.save({ useObjectStreams: true });
+}
+
 export async function reorderPages(bytes: Uint8Array, order: number[]): Promise<Uint8Array> {
   return extractPages(bytes, order);
 }

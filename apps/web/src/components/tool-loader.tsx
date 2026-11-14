@@ -1,6 +1,8 @@
 "use client";
 
 import { Component, lazy, Suspense, useEffect, useState, type ComponentType, type LazyExoticComponent, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import { registerToolNavigator } from "@toolwright/tools/handoff";
 import { toolLoaders } from "@toolwright/tools/loaders";
 import { Alert, Button } from "@toolwright/ui";
 import { pushRecent } from "../lib/local-list";
@@ -66,6 +68,12 @@ export function ToolLoader({ slug, track = true }: { slug: string; track?: boole
   useEffect(() => {
     if (track) pushRecent(slug);
   }, [slug, track]);
+  // Lets "Continue with…" open the next tool by client-side navigation, so the handed-off file stays in memory.
+  const router = useRouter();
+  useEffect(() => {
+    registerToolNavigator((href) => router.push(href));
+    return () => registerToolNavigator(null);
+  }, [router]);
 
   const Tool = componentFor(slug);
   if (!Tool) return <Alert tone="error">This tool could not be found.</Alert>;

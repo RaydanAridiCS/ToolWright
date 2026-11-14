@@ -21,6 +21,7 @@ export default defineTool({
     { question: "How do I remove the author from a PDF?", answer: "Open the PDF here, clear the author field or remove all metadata, and download the new file." },
     { question: "What metadata does a PDF contain?", answer: "Typically a title, author, subject, keywords, the program that created it and creation and modification dates." },
     { question: "Is my PDF uploaded?", answer: "No. The file is read and rewritten in your browser." },
+    { question: "Can I remove the metadata from many PDFs at once?", answer: "Yes. Drop several PDFs and choose Remove all metadata. Each file is cleaned and you download them together as one ZIP." },
   ],
   nextStep: { slug: "compress-pdf", text: "Sharing the file? Compress it before you send it." },
   related: ["exif-remover", "merge-pdf", "pdf-watermark"],

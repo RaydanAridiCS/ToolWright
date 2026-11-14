@@ -5,6 +5,7 @@ import { ArrowDown, ArrowUp } from "lucide-react";
 import { Alert, Button, FileDropzone, FileListItem } from "@toolwright/ui";
 import { getPdfInfo, isPdf, mergePdfs } from "@toolwright/core/pdf";
 import { DownloadResult, JobError, RunButton, useJob } from "../../shared/pdf-ui";
+import { usePdfHandoff } from "../../shared/pdf-handoff";
 import { errorMessage } from "../../shared/format";
 
 interface Item {
@@ -38,6 +39,9 @@ export default function Tool() {
     }
     setItems((current) => [...current, ...added]);
   };
+
+  // A file passed on from another tool ("Continue with…") becomes the first file to merge.
+  usePdfHandoff((file) => void addFiles([file]));
 
   const move = (index: number, delta: number) => {
     job.reset();

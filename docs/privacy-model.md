@@ -95,6 +95,8 @@ All in `localStorage`, never transmitted:
 | `tw-token` | Random anonymous code for the request board (created on first use) |
 | Service worker cache | Site files for offline use |
 
+"Continue with…" on PDF results passes the finished file to the next tool in memory only (a module variable in `packages/tools/src/shared/pdf-handoff.ts`, kept for one client-side navigation). It is never written to storage, the URL or the network, and a page reload drops it.
+
 ## What reaches the server
 
 | Data | When | Notes |

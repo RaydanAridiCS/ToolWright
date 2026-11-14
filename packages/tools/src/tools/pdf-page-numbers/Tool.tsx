@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Field, Select, baseName } from "@toolwright/ui";
+import { Field, Select } from "@toolwright/ui";
 import { addPageNumbers, type PageNumberOptions } from "@toolwright/core/pdf";
-import { DownloadResult, JobError, PdfDrop, PdfSourceCard, RunButton, useJob, usePdfSource } from "../../shared/pdf-ui";
+import { DownloadResult, JobError, PdfBatchDrop, PdfSourceList, RunButton, runOnAll, useJob, usePdfSource, type BatchOutput } from "../../shared/pdf-ui";
 import { NumberField, num } from "../../shared/number-field";
 
 export default function Tool() {
@@ -12,12 +12,13 @@ export default function Tool() {
   const [format, setFormat] = useState<NonNullable<PageNumberOptions["format"]>>("n");
   const [startAt, setStartAt] = useState("1");
   const [fontSize, setFontSize] = useState("10");
-  const job = useJob<Uint8Array>();
+  const job = useJob<BatchOutput>();
   const source = pdf.source;
 
   return (
     <div className="flex flex-col gap-5">
-      {source ? <PdfSourceCard source={source} onRemove={() => (pdf.clear(), job.reset())} /> : <PdfDrop onFile={pdf.load} onReject={pdf.setError} loading={pdf.loading} />}
+      {source ? <PdfSourceList sources={pdf.all} onRemove={(i) => (pdf.remove(i), job.reset())} /> : null}
+      <PdfBatchDrop more={Boolean(source)} onFiles={(files) => (job.reset(), void pdf.loadMany(files))} onReject={pdf.setError} loading={pdf.loading} />
       <JobError error={pdf.error} />
 
       {source ? (
@@ -47,14 +48,20 @@ export default function Tool() {
             <NumberField label="Start at" value={startAt} onChange={setStartAt} min={0} step={1} />
             <NumberField label="Font size" suffix="pt" value={fontSize} onChange={setFontSize} min={6} max={48} />
           </div>
-          <RunButton busy={job.busy} onClick={() => job.run(() => addPageNumbers(source.bytes, { position, format, startAt: Number.isFinite(num(startAt)) && startAt.trim() !== "" ? Math.floor(num(startAt)) : 1, fontSize: num(fontSize) || 10 }))}>
-            Add page numbers
+          <RunButton
+            busy={job.busy}
+            onClick={() => {
+              const options = { position, format, startAt: Number.isFinite(num(startAt)) && startAt.trim() !== "" ? Math.floor(num(startAt)) : 1, fontSize: num(fontSize) || 10 };
+              job.run(() => runOnAll(pdf.all, "numbered", (s) => addPageNumbers(s.bytes, options)));
+            }}
+          >
+            {pdf.all.length > 1 ? `Add page numbers to ${pdf.all.length} PDFs` : "Add page numbers"}
           </RunButton>
         </>
       ) : null}
 
       <JobError error={job.error} />
-      {job.result && source ? <DownloadResult data={job.result} filename={`${baseName(source.file.name)}-numbered.pdf`} /> : null}
+      {job.result ? <DownloadResult {...job.result} /> : null}
     </div>
   );
 }

@@ -102,6 +102,16 @@ Fonts are loaded with `next/font/local` from the `@fontsource-variable/*` and `g
 | `TransformTool` | Input → options → output tool. |
 | `useShareableState` | State mirrored into the URL hash; supports `exclude` for secrets. |
 
+### `packages/tools/src/shared` (PDF tools)
+
+| Piece | Notes |
+| --- | --- |
+| `usePdfSource` | Loads one PDF (`load`) or a batch (`loadMany`, `all`, `remove`); `source` is the first file. Picks up a handed-off file on mount. |
+| `PdfDrop` / `PdfBatchDrop` / `PdfSourceList` | One-file drop zone; many-file drop zone ("Add more PDFs" once files are in); the batch as removable file rows. |
+| `runOnAll` | Runs one job per file and returns one PDF or one ZIP (`BatchOutput`, spread into `DownloadResult`). |
+| `DownloadResult` + `ContinueWith` | The success slab (left success bar). PDF results add a dashed rule and "Continue with this file:" with four outline buttons and a "More tools…" select. |
+| `PdfPageSelector`, `PageThumb` / `useThumbnails` | Page grids with lazy PDF.js previews; selected-to-delete pages use the `danger` frame. |
+
 ### `apps/web/src/components` (site-specific)
 
 | Component | Notes |

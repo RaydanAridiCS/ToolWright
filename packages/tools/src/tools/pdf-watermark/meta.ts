@@ -21,6 +21,7 @@ export default defineTool({
     { question: "Can I use a watermark in Russian, Greek or Polish?", answer: "Yes. Latin letters with accents, Polish, Czech, Turkish and Vietnamese, plus Cyrillic and Greek, all work. Chinese, Japanese, Korean, Arabic, Hebrew and Indic scripts are not supported, and the tool names any character it cannot print." },
     { question: "Can I use an image as a watermark?", answer: "No. This tool stamps text only." },
     { question: "Does the free version add its own watermark?", answer: "No. The only watermark is the text you type. There is no paid version." },
+    { question: "Can I watermark several PDFs at once?", answer: "Yes. Drop as many PDFs as you like. Every file gets the same watermark, and you download them together as one ZIP." },
   ],
   nextStep: { slug: "pdf-page-numbers", text: "Also need page numbers on the document? Add them next." },
   related: ["sign-pdf", "pdf-page-numbers", "merge-pdf", "pdf-metadata-editor"],

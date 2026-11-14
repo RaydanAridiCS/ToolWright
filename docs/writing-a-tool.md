@@ -128,6 +128,7 @@
 `
 `- Read files with `file.arrayBuffer()` and pass bytes to `core`.
 `- Wrap async work in `useJob()` (from `shared/pdf-ui`) so you get busy and error state for free.
+- PDF tools: load files with `usePdfSource()` so "Continue with…" hand-offs work, and add the slug to `HANDOFF_TARGETS` in `shared/pdf-handoff.ts` if the tool takes one PDF. If the same settings make sense for many files, use `PdfBatchDrop` + `PdfSourceList` + `runOnAll` so people get one ZIP.
 `- Show sizes before and after, and give clear errors for corrupt or unsupported files.
 `- Never keep object URLs around: revoke them (`URL.revokeObjectURL`) when you replace or unmount.
 `- Mention in the copy that files never leave the device.

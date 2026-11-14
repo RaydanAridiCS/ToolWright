@@ -12,6 +12,7 @@ import {
   getPdfInfo,
   mergePdfs,
   PdfError,
+  rotatePagesBy,
   rotatePdf,
   setPdfMetadata,
   splitPdf,
@@ -91,6 +92,20 @@ describe("rotatePdf", () => {
   it("turns a page once even when it is listed twice", async () => {
     const out = await rotatePdf(await makePdf(3), 90, [0, 1, 1]);
     expect((await getPdfInfo(out)).pages.map((p) => p.rotation)).toEqual([90, 90, 0]);
+  });
+});
+
+describe("rotatePagesBy", () => {
+  it("turns each page by its own amount and adds to the existing rotation", async () => {
+    const start = await rotatePdf(await makePdf(4), 90, [3]);
+    const out = await rotatePagesBy(start, [90, -90, 0, 180]);
+    expect((await getPdfInfo(out)).pages.map((p) => p.rotation)).toEqual([90, 270, 0, 270]);
+  });
+
+  it("ignores missing entries and refuses angles that are not quarter turns", async () => {
+    const pdf = await makePdf(2);
+    expect((await getPdfInfo(await rotatePagesBy(pdf, [450]))).pages.map((p) => p.rotation)).toEqual([90, 0]);
+    await expect(rotatePagesBy(pdf, [45])).rejects.toThrow(/steps of 90/);
   });
 });
 
