@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Button, Field, Input, Panel } from "@toolwright/ui";
 import { setPdfMetadata, stripPdfMetadata } from "@toolwright/core/pdf";
-import { DownloadResult, JobError, PdfBatchDrop, PdfSourceList, RunButton, runOnAll, useJob, usePdfSource, type BatchOutput } from "../../shared/pdf-ui";
+import { DownloadResult, JobError, PdfBatchDrop, PdfLoadStatus, PdfSourceList, RunButton, runOnAll, useJob, usePdfSource, type BatchOutput } from "../../shared/pdf-ui";
 
 const FIELDS = ["title", "author", "subject", "keywords", "creator", "producer"] as const;
 type FieldKey = (typeof FIELDS)[number];
@@ -25,7 +25,7 @@ export default function Tool() {
     <div className="flex flex-col gap-5">
       {source ? <PdfSourceList sources={pdf.all} onRemove={(i) => (pdf.remove(i), job.reset())} /> : null}
       <PdfBatchDrop more={Boolean(source)} onFiles={(files) => (job.reset(), void pdf.loadMany(files))} onReject={pdf.setError} loading={pdf.loading} />
-      <JobError error={pdf.error} />
+      <PdfLoadStatus pdf={pdf} />
 
       {source && batch ? (
         <>

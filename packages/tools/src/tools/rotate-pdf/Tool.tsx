@@ -4,7 +4,7 @@ import { useState } from "react";
 import { RotateCcw, RotateCw } from "lucide-react";
 import { Button, Field, Input, SegmentedControl, baseName } from "@toolwright/ui";
 import { parsePageRanges, rotatePagesBy } from "@toolwright/core/pdf";
-import { DownloadResult, JobError, PdfBatchDrop, PdfSourceList, RunButton, runOnAll, useJob, usePdfSource, type BatchOutput, type PdfSource } from "../../shared/pdf-ui";
+import { DownloadResult, JobError, PdfBatchDrop, PdfLoadStatus, PdfSourceList, RunButton, runOnAll, useJob, usePdfSource, type BatchOutput, type PdfSource } from "../../shared/pdf-ui";
 import { PageThumb, useThumbnails } from "../../shared/pdf-thumbs";
 import { errorMessage } from "../../shared/format";
 
@@ -30,7 +30,7 @@ export default function Tool() {
     <div className="flex flex-col gap-5">
       {source ? <PdfSourceList sources={pdf.all} onRemove={pdf.remove} /> : null}
       <PdfBatchDrop more={Boolean(source)} onFiles={(files) => void pdf.loadMany(files)} onReject={pdf.setError} loading={pdf.loading} />
-      <JobError error={pdf.error} />
+      <PdfLoadStatus pdf={pdf} />
       {pdf.all.length > 1 ? <BatchRotator sources={pdf.all} /> : source ? <Rotator key={`${source.file.name}-${source.file.size}-${source.file.lastModified}`} source={source} /> : null}
     </div>
   );

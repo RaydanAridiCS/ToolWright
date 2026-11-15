@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { Alert, Button, FileDropzone, FileListItem } from "@toolwright/ui";
-import { getPdfInfo, isPdf, mergePdfs } from "@toolwright/core/pdf";
-import { DownloadResult, JobError, RunButton, useJob } from "../../shared/pdf-ui";
+import { isPdf, mergePdfs } from "@toolwright/core/pdf";
+import { DownloadResult, isLockedPdf, JobError, PdfLoadStatus, readPdfFile, RunButton, useJob, useLockedPdfs, type LockedPdf, type PdfSource } from "../../shared/pdf-ui";
 import { usePdfHandoff } from "../../shared/pdf-handoff";
 import { errorMessage } from "../../shared/format";
 
@@ -23,21 +23,27 @@ export default function Tool() {
   const [error, setError] = useState<string | null>(null);
   const job = useJob<Uint8Array>();
 
+  const toItem = (s: PdfSource): Item => ({ id: nextId++, name: s.file.name, size: s.file.size, pages: s.info.pageCount, bytes: s.bytes });
+  // Password-protected files wait for their password, then join the end of the list.
+  const locks = useLockedPdfs((s) => (job.reset(), setItems((current) => [...current, toItem(s)])));
+
   const addFiles = async (files: File[]) => {
     setError(null);
     job.reset();
     const added: Item[] = [];
+    const waiting: LockedPdf[] = [];
     for (const file of files) {
       try {
-        const bytes = new Uint8Array(await file.arrayBuffer());
-        if (!isPdf(bytes)) throw new Error("not a PDF");
-        const info = await getPdfInfo(bytes);
-        added.push({ id: nextId++, name: file.name, size: file.size, pages: info.pageCount, bytes });
+        if (!isPdf(new Uint8Array(await file.slice(0, 5).arrayBuffer()))) throw new Error("not a PDF");
+        const read = await readPdfFile(file);
+        if (isLockedPdf(read)) waiting.push(read);
+        else added.push(toItem(read));
       } catch (err) {
         setError(`${file.name}: ${errorMessage(err, "could not be read")}`);
       }
     }
     setItems((current) => [...current, ...added]);
+    locks.addLocked(waiting);
   };
 
   // A file passed on from another tool ("Continue with…") becomes the first file to merge.
@@ -60,6 +66,7 @@ export default function Tool() {
     <div className="flex flex-col gap-5">
       <FileDropzone accept=".pdf,application/pdf" multiple label="Drop PDFs here, or click to browse" hint="Add two or more PDF files. They never leave your device." onReject={setError} onFiles={addFiles} />
       {error ? <Alert tone="warning">{error}</Alert> : null}
+      <PdfLoadStatus pdf={{ error: null, ...locks }} />
 
       {items.length > 0 ? (
         <>

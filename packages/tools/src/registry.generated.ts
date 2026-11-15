@@ -83,6 +83,7 @@ import meta_pdf417_generator from "./tools/pdf417-generator/meta";
 import meta_percentage_calculator from "./tools/percentage-calculator/meta";
 import meta_port_numbers from "./tools/port-numbers/meta";
 import meta_prime_factors from "./tools/prime-factors/meta";
+import meta_protect_pdf from "./tools/protect-pdf/meta";
 import meta_qr_code_generator from "./tools/qr-code-generator/meta";
 import meta_readability_score from "./tools/readability-score/meta";
 import meta_redact_pdf from "./tools/redact-pdf/meta";
@@ -118,6 +119,7 @@ import meta_unicode_escape from "./tools/unicode-escape/meta";
 import meta_unique_id_generator from "./tools/unique-id-generator/meta";
 import meta_unit_converter from "./tools/unit-converter/meta";
 import meta_unit_price_comparison from "./tools/unit-price-comparison/meta";
+import meta_unlock_pdf from "./tools/unlock-pdf/meta";
 import meta_url_cleaner from "./tools/url-cleaner/meta";
 import meta_url_encoder from "./tools/url-encoder/meta";
 import meta_url_parser from "./tools/url-parser/meta";
@@ -212,6 +214,7 @@ export const tools: readonly ToolMeta[] = [
   meta_percentage_calculator,
   meta_port_numbers,
   meta_prime_factors,
+  meta_protect_pdf,
   meta_qr_code_generator,
   meta_readability_score,
   meta_redact_pdf,
@@ -247,6 +250,7 @@ export const tools: readonly ToolMeta[] = [
   meta_unique_id_generator,
   meta_unit_converter,
   meta_unit_price_comparison,
+  meta_unlock_pdf,
   meta_url_cleaner,
   meta_url_encoder,
   meta_url_parser,

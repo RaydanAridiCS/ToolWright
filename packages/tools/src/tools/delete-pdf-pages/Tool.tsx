@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Field, Input, baseName } from "@toolwright/ui";
 import { deletePages, formatPageRanges, parsePageRanges } from "@toolwright/core/pdf";
-import { DownloadResult, JobError, PdfDrop, PdfSourceCard, RunButton, useJob, usePdfSource } from "../../shared/pdf-ui";
+import { DownloadResult, JobError, PdfDrop, PdfLoadStatus, PdfSourceCard, RunButton, useJob, usePdfSource } from "../../shared/pdf-ui";
 import { PdfPageSelector } from "../../shared/pdf-page-selector";
 
 export default function Tool() {
@@ -29,7 +29,7 @@ export default function Tool() {
   return (
     <div className="flex flex-col gap-5">
       {source ? <PdfSourceCard source={source} onRemove={() => (pdf.clear(), job.reset())} /> : <PdfDrop onFile={pdf.load} onReject={pdf.setError} loading={pdf.loading} />}
-      <JobError error={pdf.error} />
+      <PdfLoadStatus pdf={pdf} />
 
       {source ? (
         <>

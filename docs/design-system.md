@@ -110,6 +110,8 @@ Fonts are loaded with `next/font/local` from the `@fontsource-variable/*` and `g
 | `PdfDrop` / `PdfBatchDrop` / `PdfSourceList` | One-file drop zone; many-file drop zone ("Add more PDFs" once files are in); the batch as removable file rows. |
 | `runOnAll` | Runs one job per file and returns one PDF or one ZIP (`BatchOutput`, spread into `DownloadResult`). |
 | `DownloadResult` + `ContinueWith` | The success slab (left success bar). PDF results add a dashed rule and "Continue with this file:" with four outline buttons and a "More tools…" select. |
+| `PdfLoadStatus` + `useLockedPdfs` | The load error, then a prompt for each password-protected file: a ruled box with a marker left bar, the file name, a `PasswordField`, "Open PDF" and "Skip this file"/"Cancel". `usePdfSource` includes the queue; Merge and Compress use `useLockedPdfs` directly. |
+| `PasswordField` | `Field` + password `Input` + an outline icon button "Show …" with `aria-pressed`. |
 | `PdfPageSelector`, `PageThumb` / `useThumbnails` | Page grids with lazy PDF.js previews; selected-to-delete pages use the `danger` frame. |
 
 ### `apps/web/src/components` (site-specific)

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Alert, Button, Field, Input, SegmentedControl, Toggle, baseName } from "@toolwright/ui";
 import { displaySize, looksDigitallySigned, pagesFromSpec, readPageGeometry, signPdf, type PageGeometry } from "@toolwright/core/pdf-sign";
-import { DownloadResult, JobError, PdfDrop, PdfSourceCard, RunButton, useJob, usePdfSource } from "../../shared/pdf-ui";
+import { DownloadResult, JobError, PdfDrop, PdfLoadStatus, PdfSourceCard, RunButton, useJob, usePdfSource } from "../../shared/pdf-ui";
 import { createThumbnailer, type PageThumbnailer } from "../../shared/pdf-raster";
 import { SignatureMaker, type Signature } from "../../shared/signature-maker";
 import { loadPdfFont } from "../../shared/pdf-fonts";
@@ -176,7 +176,7 @@ export default function Tool() {
   return (
     <div className="flex flex-col gap-5">
       {source ? <PdfSourceCard source={source} onRemove={() => (pdf.clear(), job.reset())} /> : <PdfDrop onFile={pdf.load} onReject={pdf.setError} loading={pdf.loading} />}
-      <JobError error={pdf.error} />
+      <PdfLoadStatus pdf={pdf} />
 
       {source ? (
         <>

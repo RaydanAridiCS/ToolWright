@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Alert, DownloadButton, Field, FileListItem, Input, SegmentedControl, baseName } from "@toolwright/ui";
 import { formatPageRanges, splitPdf, type SplitMode, type SplitPart } from "@toolwright/core/pdf";
-import { JobError, PdfDrop, PdfSourceCard, RunButton, useJob, usePdfSource } from "../../shared/pdf-ui";
+import { JobError, PdfDrop, PdfLoadStatus, PdfSourceCard, RunButton, useJob, usePdfSource } from "../../shared/pdf-ui";
 import { NumberField, num } from "../../shared/number-field";
 import { createZip } from "../../shared/zip";
 
@@ -22,7 +22,7 @@ export default function Tool() {
   return (
     <div className="flex flex-col gap-5">
       {source ? <PdfSourceCard source={source} onRemove={() => (pdf.clear(), job.reset())} /> : <PdfDrop onFile={pdf.load} onReject={pdf.setError} loading={pdf.loading} />}
-      <JobError error={pdf.error} />
+      <PdfLoadStatus pdf={pdf} />
 
       {source ? (
         <>

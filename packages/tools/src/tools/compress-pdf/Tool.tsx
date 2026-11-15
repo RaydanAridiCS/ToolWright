@@ -23,7 +23,7 @@ import {
 } from "@toolwright/core/pdf-compress";
 import { CompressAborted, CompressSession } from "../../shared/pdf-compress-client";
 import { rasterizePdf } from "../../shared/pdf-raster";
-import { ContinueWith, JobError, RunButton, RunProgress, useJob } from "../../shared/pdf-ui";
+import { ContinueWith, isLockedPdf, JobError, PdfLoadStatus, readPdfFile, RunButton, RunProgress, useJob, useLockedPdfs } from "../../shared/pdf-ui";
 import { usePdfHandoff } from "../../shared/pdf-handoff";
 import { NumberField, num } from "../../shared/number-field";
 import { errorMessage, formatInt, pluralize } from "../../shared/format";
@@ -88,9 +88,15 @@ export default function Tool() {
     job.reset();
   }, [release, job]);
 
+  // Password-protected files: once opened, the decrypted copy is compressed like any other.
+  const loadRef = useRef<(file: File) => Promise<void>>(async () => undefined);
+  const locks = useLockedPdfs((source) => void loadRef.current(source.file));
+  const { addLocked } = locks;
+
   const load = useCallback(
     async (next: File) => {
       release();
+      addLocked([], true);
       job.reset();
       setAnalysis(null);
       setLoadError(null);
@@ -111,16 +117,30 @@ export default function Tool() {
       } catch (err) {
         if (err instanceof CompressAborted) return;
         setFile(null);
+        if (/password-protected/.test(errorMessage(err))) {
+          // Open it first: a file that only restricts printing opens at once, otherwise ask for the password.
+          try {
+            const read = await readPdfFile(next);
+            if (isLockedPdf(read)) addLocked([read], true);
+            else void loadRef.current(read.file);
+          } catch (inner) {
+            setLoadError(errorMessage(inner, "This PDF could not be read."));
+          }
+          return;
+        }
         setLoadError(errorMessage(err, "This PDF could not be read."));
       } finally {
         if (session.current === created) stop.current = null;
         setLoading(false);
       }
     },
-    [release, job],
+    [release, job, addLocked],
   );
   // A file passed on from another tool ("Continue with…") loads as if it had been dropped.
   usePdfHandoff((next) => void load(next));
+  useEffect(() => {
+    loadRef.current = load;
+  });
 
   const edit = (patch: Partial<typeof values>) => {
     job.reset();
@@ -202,6 +222,7 @@ export default function Tool() {
         />
       )}
       <JobError error={loadError} />
+      <PdfLoadStatus pdf={{ error: null, ...locks }} />
 
       {file && loading ? <p className="text-sm text-muted-foreground">Reading the file and counting its images…</p> : null}
 

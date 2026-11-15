@@ -5,7 +5,7 @@ import { Alert, Button, CopyButton, DownloadButton, ResultSlab, Stat, StatGrid, 
 import { PdfCancelled } from "@toolwright/core/pdf-to-images";
 import { TEXT_LIMITS, assembleDocument, checkTextRun, countCharacters, describeCoverage, textStats } from "@toolwright/core/pdf-to-text";
 import { extractPdfText } from "../../shared/pdf-raster";
-import { PdfDrop, PdfSourceCard, RunProgress, usePdfSource } from "../../shared/pdf-ui";
+import { PdfDrop, PdfLoadStatus, PdfSourceCard, RunProgress, usePdfSource } from "../../shared/pdf-ui";
 import { errorMessage, formatInt } from "../../shared/format";
 
 interface Read {
@@ -72,7 +72,7 @@ export default function Tool() {
   return (
     <div className="flex flex-col gap-6">
       {!source ? <PdfDrop onFile={(f) => void pdf.load(f)} onReject={pdf.setError} loading={pdf.loading} /> : <PdfSourceCard source={source} onRemove={remove} />}
-      {pdf.error ? <Alert tone="error">{pdf.error}</Alert> : null}
+      <PdfLoadStatus pdf={pdf} />
       {limit.refuse ? <Alert tone="error">{limit.refuse}</Alert> : null}
       {limit.warn ? <Alert tone="warning">{limit.warn}</Alert> : null}
 

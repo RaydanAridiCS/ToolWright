@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Loader2 } from "lucide-react";
 import { Alert, Button, DownloadButton, FileDropzone, FileListItem, Select, baseName, formatFileSize } from "@toolwright/ui";
 import { getPdfInfo, isPdf, type PdfInfo } from "@toolwright/core/pdf";
 import { errorMessage } from "./format";
 import { createZip, type ZipEntry } from "./zip";
 import { canHandOff, currentToolSlug, handOffPdf, HANDOFF_TARGETS, usePdfHandoff } from "./pdf-handoff";
+import { PasswordField } from "./password-field";
 
 export interface PdfSource {
   file: File;
@@ -14,11 +15,87 @@ export interface PdfSource {
   info: PdfInfo;
 }
 
-/** Reads one dropped file into a PdfSource, or throws a message naming the file. */
-async function readPdf(file: File): Promise<PdfSource> {
+/** A dropped PDF that needs its password before it can be used. */
+export interface LockedPdf {
+  locked: true;
+  file: File;
+  bytes: Uint8Array;
+}
+
+/** Wraps decrypted bytes as a source with the original name, so previews and downloads read the unlocked file. */
+async function sourceFrom(file: File, bytes: Uint8Array): Promise<PdfSource> {
+  const plain = new File([bytes as Uint8Array<ArrayBuffer>], file.name, { type: "application/pdf", lastModified: file.lastModified });
+  return { file: plain, bytes, info: await getPdfInfo(bytes) };
+}
+
+/**
+ * Reads one dropped file into a PdfSource, or throws a message naming the file. A password-protected PDF comes
+ * back as a LockedPdf; one that opens without a password (it only restricts printing or copying) is decrypted
+ * straight away, as any reader would open it. The crypto code loads only when such a file turns up.
+ */
+export async function readPdfFile(file: File): Promise<PdfSource | LockedPdf> {
   const bytes = new Uint8Array(await file.arrayBuffer());
   if (!isPdf(bytes)) throw new Error(`${file.name} does not look like a PDF file.`);
-  return { file, bytes, info: await getPdfInfo(bytes) };
+  try {
+    return { file, bytes, info: await getPdfInfo(bytes) };
+  } catch (err) {
+    if (!/password-protected/.test(errorMessage(err))) throw err;
+    const { decryptPdf, readPdfSecurity } = await import("@toolwright/core/pdf-crypto");
+    const security = await readPdfSecurity(bytes);
+    if (security && !security.needsPassword) return sourceFrom(file, await decryptPdf(bytes, ""));
+    return { locked: true, file, bytes };
+  }
+}
+
+export const isLockedPdf = (x: PdfSource | LockedPdf): x is LockedPdf => "locked" in x;
+
+/**
+ * The queue of password-protected files waiting for their password. `unlock` opens the first one and hands it
+ * to `onOpened`; a wrong password keeps it waiting with a message. Render it with `PdfLoadStatus`.
+ */
+export function useLockedPdfs(onOpened: (source: PdfSource) => void) {
+  const [locked, setLocked] = useState<LockedPdf[]>([]);
+  const [unlockError, setUnlockError] = useState<string | null>(null);
+  const [unlocking, setUnlocking] = useState(false);
+  const opened = useRef(onOpened);
+  useEffect(() => {
+    opened.current = onOpened;
+  });
+
+  const addLocked = useCallback((items: LockedPdf[], replace = false) => {
+    setUnlockError(null);
+    setLocked((current) => (replace ? items : [...current, ...items]));
+  }, []);
+
+  /** Resolves true when the file opened. */
+  const unlock = useCallback(
+    async (password: string): Promise<boolean> => {
+      const first = locked[0];
+      if (!first) return false;
+      setUnlockError(null);
+      setUnlocking(true);
+      try {
+        const { decryptPdf } = await import("@toolwright/core/pdf-crypto");
+        const source = await sourceFrom(first.file, await decryptPdf(first.bytes, password));
+        setLocked((current) => current.slice(1));
+        opened.current(source);
+        return true;
+      } catch (err) {
+        setUnlockError(errorMessage(err));
+        return false;
+      } finally {
+        setUnlocking(false);
+      }
+    },
+    [locked],
+  );
+
+  const skipLocked = useCallback(() => {
+    setUnlockError(null);
+    setLocked((current) => current.slice(1));
+  }, []);
+
+  return { locked, unlockError, unlocking, addLocked, unlock, skipLocked };
 }
 
 /**
@@ -26,42 +103,58 @@ async function readPdf(file: File): Promise<PdfSource> {
  *
  * Tools that support batch work call `loadMany` with every dropped file: `all` then holds each readable PDF,
  * `source` is the first one (for previews and page counts), and files that could not be read are reported by name.
+ * Password-protected files wait in `locked` until `unlock(password)` opens them (render `PdfLoadStatus`).
  */
 export function usePdfSource() {
   const [all, setAll] = useState<PdfSource[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const locks = useLockedPdfs((source) => setAll((current) => [...current, source]));
+  const { addLocked } = locks;
 
-  const load = useCallback(async (file: File) => {
-    setLoading(true);
-    setError(null);
-    try {
-      setAll([await readPdf(file)]);
-    } catch (err) {
-      setAll([]);
-      setError(errorMessage(err));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const load = useCallback(
+    async (file: File) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const read = await readPdfFile(file);
+        setAll(isLockedPdf(read) ? [] : [read]);
+        addLocked(isLockedPdf(read) ? [read] : [], true);
+      } catch (err) {
+        setAll([]);
+        addLocked([], true);
+        setError(errorMessage(err));
+      } finally {
+        setLoading(false);
+      }
+    },
+    [addLocked],
+  );
 
   /** Adds files to the batch (keeping the ones already there). */
-  const loadMany = useCallback(async (files: File[]) => {
-    setLoading(true);
-    setError(null);
-    const read: PdfSource[] = [];
-    const problems: string[] = [];
-    for (const file of files) {
-      try {
-        read.push(await readPdf(file));
-      } catch (err) {
-        problems.push(errorMessage(err));
+  const loadMany = useCallback(
+    async (files: File[]) => {
+      setLoading(true);
+      setError(null);
+      const read: PdfSource[] = [];
+      const waiting: LockedPdf[] = [];
+      const problems: string[] = [];
+      for (const file of files) {
+        try {
+          const one = await readPdfFile(file);
+          if (isLockedPdf(one)) waiting.push(one);
+          else read.push(one);
+        } catch (err) {
+          problems.push(errorMessage(err));
+        }
       }
-    }
-    setAll((current) => [...current, ...read]);
-    if (problems.length) setError(problems.join(" "));
-    setLoading(false);
-  }, []);
+      setAll((current) => [...current, ...read]);
+      addLocked(waiting);
+      if (problems.length) setError(problems.join(" "));
+      setLoading(false);
+    },
+    [addLocked],
+  );
 
   const remove = useCallback((index: number) => {
     setAll((current) => current.filter((_, i) => i !== index));
@@ -69,13 +162,52 @@ export function usePdfSource() {
 
   const clear = useCallback(() => {
     setAll([]);
+    addLocked([], true);
     setError(null);
-  }, []);
+  }, [addLocked]);
 
   // A file passed on from another tool ("Continue with…") loads as if it had been dropped.
   usePdfHandoff((file) => void load(file));
 
-  return { source: all[0] ?? null, all, error, setError, loading, load, loadMany, remove, clear };
+  return { source: all[0] ?? null, all, ...locks, error, setError, loading, load, loadMany, remove, clear };
+}
+
+export type PdfSourceState = ReturnType<typeof usePdfSource>;
+
+/** The load error, if any, and a password prompt for each password-protected file waiting to be opened. */
+export function PdfLoadStatus({ pdf }: { pdf: Pick<PdfSourceState, "error" | "locked" | "unlockError" | "unlocking" | "unlock" | "skipLocked"> }) {
+  const [password, setPassword] = useState("");
+  const first = pdf.locked[0];
+  const submit = () => {
+    if (!password) return;
+    void pdf.unlock(password).then((opened) => {
+      if (opened) setPassword("");
+    });
+  };
+  return (
+    <>
+      {pdf.error ? <Alert tone="error">{pdf.error}</Alert> : null}
+      {first ? (
+        <div className="flex flex-col gap-3 border border-l-4 border-foreground border-l-marker bg-card p-4" role="group" aria-label={`Password for ${first.file.name}`}>
+          <p className="text-sm">
+            <span className="font-medium">{first.file.name}</span> is password-protected. Type its password to open it here. It is decrypted in this tab and the password is not stored.
+            {pdf.locked.length > 1 ? ` ${pdf.locked.length - 1} more protected file${pdf.locked.length === 2 ? "" : "s"} after this one.` : ""}
+          </p>
+          <PasswordField label="PDF password" value={password} onChange={setPassword} onEnter={submit} autoComplete="current-password" invalid={pdf.unlockError !== null} />
+          {pdf.unlockError ? <Alert tone="error">{pdf.unlockError}</Alert> : null}
+          <div className="flex flex-wrap gap-2">
+            <Button variant="primary" size="md" disabled={!password || pdf.unlocking} onClick={submit}>
+              {pdf.unlocking ? <Loader2 className="animate-spin" /> : null}
+              Open PDF
+            </Button>
+            <Button variant="ghost" size="md" onClick={() => (setPassword(""), pdf.skipLocked())}>
+              {pdf.locked.length > 1 ? "Skip this file" : "Cancel"}
+            </Button>
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
 }
 
 export function PdfDrop({ onFile, onReject, loading }: { onFile: (file: File) => void; onReject?: (message: string) => void; loading?: boolean }) {
@@ -128,7 +260,7 @@ export interface BatchOutput {
  * Runs `work` on every file, one at a time, and returns one PDF (a single file) or one ZIP (several files).
  * A failure names the file it happened on.
  */
-export async function runOnAll(sources: PdfSource[], suffix: string, work: (source: PdfSource) => Promise<Uint8Array>, onProgress?: (done: number, total: number) => void): Promise<BatchOutput> {
+export async function runOnAll<S extends { file: File }>(sources: S[], suffix: string, work: (source: S) => Promise<Uint8Array>, onProgress?: (done: number, total: number) => void): Promise<BatchOutput> {
   const outputs: ZipEntry[] = [];
   for (const [i, source] of sources.entries()) {
     onProgress?.(i, sources.length);
@@ -211,7 +343,8 @@ export function JobError({ error }: { error: string | null }) {
   return error ? <Alert tone="error">{error}</Alert> : null;
 }
 
-export function DownloadResult({ data, filename, mime = "application/pdf", note }: { data: Uint8Array; filename: string; mime?: string; note?: string }) {
+/** `continueWith={false}` hides the hand-off row, for results other tools could not open (a password-protected PDF). */
+export function DownloadResult({ data, filename, mime = "application/pdf", note, continueWith = true }: { data: Uint8Array; filename: string; mime?: string; note?: string; continueWith?: boolean }) {
   return (
     <div className="flex flex-col gap-3 border border-l-4 border-foreground border-l-success bg-card p-4 shadow-md">
       <div className="flex flex-wrap items-center gap-4">
@@ -224,7 +357,7 @@ export function DownloadResult({ data, filename, mime = "application/pdf", note 
         </div>
         <DownloadButton data={data} filename={filename} mime={mime} variant="primary" size="md" label="Download" />
       </div>
-      {mime === "application/pdf" ? <ContinueWith data={data} filename={filename} /> : null}
+      {continueWith && mime === "application/pdf" ? <ContinueWith data={data} filename={filename} /> : null}
     </div>
   );
 }

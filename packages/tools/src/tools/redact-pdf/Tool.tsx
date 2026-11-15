@@ -17,7 +17,7 @@ import {
   type RedactQuality,
   type SearchKind,
 } from "@toolwright/core/redact-pdf";
-import { DownloadResult, PdfDrop, PdfSourceCard, RunButton, RunProgress, usePdfSource } from "../../shared/pdf-ui";
+import { DownloadResult, PdfDrop, PdfLoadStatus, PdfSourceCard, RunButton, RunProgress, usePdfSource } from "../../shared/pdf-ui";
 import { NumberField, num } from "../../shared/number-field";
 import { usePagePreview } from "../../shared/pdf-page-preview";
 import { findTextBoxes, renderRedactedPages } from "../../shared/pdf-raster";
@@ -127,7 +127,7 @@ export default function Tool() {
   return (
     <div className="flex flex-col gap-5">
       {source ? <PdfSourceCard source={source} onRemove={remove} /> : <PdfDrop onFile={(f) => void pdf.load(f)} onReject={pdf.setError} loading={pdf.loading} />}
-      {pdf.error ? <Alert tone="error">{pdf.error}</Alert> : null}
+      <PdfLoadStatus pdf={pdf} />
 
       {source ? (
         <>

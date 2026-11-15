@@ -17,7 +17,7 @@ import {
   type PageImageFormat,
 } from "@toolwright/core/pdf-to-images";
 import { renderPagesToImages, type PageImage } from "../../shared/pdf-raster";
-import { PdfDrop, PdfSourceCard, RunButton, RunProgress, usePdfSource } from "../../shared/pdf-ui";
+import { PdfDrop, PdfLoadStatus, PdfSourceCard, RunButton, RunProgress, usePdfSource } from "../../shared/pdf-ui";
 import { createZip } from "../../shared/zip";
 import { errorMessage, formatInt, pluralize } from "../../shared/format";
 
@@ -148,7 +148,7 @@ export default function Tool() {
   return (
     <div className="flex flex-col gap-6">
       {!source ? <PdfDrop onFile={(f) => void pdf.load(f)} onReject={pdf.setError} loading={pdf.loading} /> : <PdfSourceCard source={source} onRemove={remove} />}
-      {pdf.error ? <Alert tone="error">{pdf.error}</Alert> : null}
+      <PdfLoadStatus pdf={pdf} />
 
       {source ? (
         <>

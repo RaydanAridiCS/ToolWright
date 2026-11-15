@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Alert, Button, Field, Input, SegmentedControl, Toggle, baseName } from "@toolwright/ui";
 import { parsePageRanges } from "@toolwright/core/pdf";
 import { cropPdf, detectBlankMargins, fromPoints, pageDisplaySizes, toPoints, tooMuchCropped, type CropMargins, type CropUnit } from "@toolwright/core/crop-pdf";
-import { DownloadResult, JobError, PdfDrop, PdfSourceCard, RunButton, useJob, usePdfSource } from "../../shared/pdf-ui";
+import { DownloadResult, JobError, PdfDrop, PdfLoadStatus, PdfSourceCard, RunButton, useJob, usePdfSource } from "../../shared/pdf-ui";
 import { NumberField, num } from "../../shared/number-field";
 import { usePagePreview } from "../../shared/pdf-page-preview";
 import { errorMessage } from "../../shared/format";
@@ -124,7 +124,7 @@ export default function Tool() {
   return (
     <div className="flex flex-col gap-5">
       {source ? <PdfSourceCard source={source} onRemove={() => (pdf.clear(), job.reset())} /> : <PdfDrop onFile={pdf.load} onReject={pdf.setError} loading={pdf.loading} />}
-      <JobError error={pdf.error} />
+      <PdfLoadStatus pdf={pdf} />
 
       {source ? (
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,18rem)]">

@@ -18,7 +18,7 @@ import {
   type PageChange,
 } from "@toolwright/core/compare-pdf";
 import { createThumbnailer, extractPdfText, type PageThumbnailer } from "../../shared/pdf-raster";
-import { PdfDrop, PdfSourceCard, RunProgress, usePdfSource, type PdfSource } from "../../shared/pdf-ui";
+import { PdfDrop, PdfLoadStatus, PdfSourceCard, RunProgress, usePdfSource, type PdfSource } from "../../shared/pdf-ui";
 import { errorMessage, formatInt } from "../../shared/format";
 
 /* ----------------------------------------------------------------------------------------------- */
@@ -516,7 +516,7 @@ export default function Tool() {
         {letter === "A" ? "A · original" : "B · new version"}
       </p>
       {pdf.source ? <PdfSourceCard source={pdf.source} onRemove={pdf.clear} /> : <PdfDrop onFile={(f) => void pdf.load(f)} onReject={pdf.setError} loading={pdf.loading} />}
-      {pdf.error ? <Alert tone="error">{pdf.error}</Alert> : null}
+      <PdfLoadStatus pdf={pdf} />
     </div>
   );
 

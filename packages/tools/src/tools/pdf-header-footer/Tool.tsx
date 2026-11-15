@@ -19,7 +19,7 @@ import {
   type PageChoice,
   type Zone,
 } from "@toolwright/core/pdf-header-footer";
-import { DownloadResult, JobError, PdfDrop, PdfSourceCard, RunButton, useJob, usePdfSource } from "../../shared/pdf-ui";
+import { DownloadResult, JobError, PdfDrop, PdfLoadStatus, PdfSourceCard, RunButton, useJob, usePdfSource } from "../../shared/pdf-ui";
 import { NumberField, num } from "../../shared/number-field";
 import { usePagePreview } from "../../shared/pdf-page-preview";
 import { loadPdfFont } from "../../shared/pdf-fonts";
@@ -136,7 +136,7 @@ export default function Tool() {
   return (
     <div className="flex flex-col gap-5">
       {source ? <PdfSourceCard source={source} onRemove={() => pdf.clear()} /> : <PdfDrop onFile={(f) => void pdf.load(f)} onReject={pdf.setError} loading={pdf.loading} />}
-      <JobError error={pdf.error} />
+      <PdfLoadStatus pdf={pdf} />
 
       {source ? (
         <>

@@ -69,10 +69,11 @@ test.describe("Extract PDF Images", () => {
     await expect(appAlert(page)).toContainText("no embedded images");
   });
 
-  test("reports encrypted and corrupt PDFs with readable errors", async ({ page }) => {
+  test("asks for the password of an encrypted PDF and reports a corrupt one in words", async ({ page }) => {
     await page.goto("/tools/extract-pdf-images");
     await page.locator('input[type="file"]').setInputFiles(join(PDF_FIXTURES, "encrypted.pdf"));
-    await expect(appAlert(page)).toContainText("password");
+    // A protected PDF is not refused any more: the tool asks for its password.
+    await expect(page.getByRole("group", { name: "Password for encrypted.pdf" })).toBeVisible();
 
     await page.locator('input[type="file"]').setInputFiles(join(PDF_FIXTURES, "corrupt.pdf"));
     await expect(appAlert(page)).toContainText("could not be read");

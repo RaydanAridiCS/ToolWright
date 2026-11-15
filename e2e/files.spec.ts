@@ -312,10 +312,10 @@ test.describe("Compress PDF in a real browser", () => {
     await expect(page.getByRole("button", { name: "Download original" })).toBeVisible();
   });
 
-  test("encrypted, damaged and non-PDF files get a readable error", async ({ page }) => {
+  test("encrypted files ask for a password; damaged and non-PDF files get a readable error", async ({ page }) => {
     await page.goto("/tools/compress-pdf");
     await page.locator('input[type="file"]').setInputFiles(join(PDF_FIXTURES, "encrypted.pdf"));
-    await expect(appAlert(page)).toContainText("password-protected");
+    await expect(page.getByRole("group", { name: "Password for encrypted.pdf" })).toBeVisible();
     await page.locator('input[type="file"]').setInputFiles(join(PDF_FIXTURES, "corrupt.pdf"));
     await expect(appAlert(page)).toContainText("could not be read");
     await page.locator('input[type="file"]').setInputFiles({ name: "notes.pdf", mimeType: "application/pdf", buffer: Buffer.from("this is not a pdf at all") });

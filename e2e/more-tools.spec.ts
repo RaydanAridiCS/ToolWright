@@ -240,7 +240,7 @@ test.describe("PDF to Images", () => {
     expect(jpegSize(bytes)).toEqual([612, 792]);
   });
 
-  test("says which page does not exist, and refuses encrypted and broken files in words", async ({ page }) => {
+  test("says which page does not exist, and asks for the password of encrypted files and refuses broken ones in words", async ({ page }) => {
     await page.goto("/tools/pdf-to-images");
     await page.locator('input[type="file"]').setInputFiles(join(PDFS, "text-only.pdf"));
     await page.getByRole("textbox", { name: "Pages", exact: true }).fill("9");
@@ -249,7 +249,7 @@ test.describe("PDF to Images", () => {
 
     await page.goto("/tools/pdf-to-images");
     await page.locator('input[type="file"]').setInputFiles(join(PDFS, "encrypted.pdf"));
-    await expect(appAlert(page)).toContainText("password");
+    await expect(page.getByRole("group", { name: "Password for encrypted.pdf" })).toBeVisible();
     await page.goto("/tools/pdf-to-images");
     await page.locator('input[type="file"]').setInputFiles(join(PDFS, "corrupt.pdf"));
     await expect(appAlert(page)).toContainText(/could not be read|does not look like/);

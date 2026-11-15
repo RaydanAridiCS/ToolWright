@@ -5,7 +5,7 @@ import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Plus, Trash2 } from "lucide-
 import { Alert, Button, Field, Input, SegmentedControl, Select, Textarea, Toggle, baseName, cn } from "@toolwright/ui";
 import { STAMP_LIMITS, changedValues, fillPdfForm, readForm, type FieldValue, type FormFieldInfo, type FormInfo, type TextStamp } from "@toolwright/core/fill-pdf-form";
 import { displaySize, readPageGeometry, type PageGeometry } from "@toolwright/core/pdf-sign";
-import { DownloadResult, JobError, PdfDrop, PdfSourceCard, RunButton, useJob, usePdfSource, type PdfSource } from "../../shared/pdf-ui";
+import { DownloadResult, JobError, PdfDrop, PdfLoadStatus, PdfSourceCard, RunButton, useJob, usePdfSource, type PdfSource } from "../../shared/pdf-ui";
 import { NumberField, num } from "../../shared/number-field";
 import { usePagePreview } from "../../shared/pdf-page-preview";
 import { errorMessage } from "../../shared/format";
@@ -373,7 +373,7 @@ export default function Tool() {
   return (
     <div className="flex flex-col gap-5">
       {source ? <PdfSourceCard source={source} onRemove={() => pdf.clear()} /> : <PdfDrop onFile={(f) => void pdf.load(f)} onReject={pdf.setError} loading={pdf.loading} />}
-      <JobError error={pdf.error} />
+      <PdfLoadStatus pdf={pdf} />
       {form?.status === "failed" && form.error ? <Alert tone="error">{form.error}</Alert> : null}
 
       {source && info ? (

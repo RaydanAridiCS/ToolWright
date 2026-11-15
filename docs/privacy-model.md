@@ -95,6 +95,8 @@ All in `localStorage`, never transmitted:
 | `tw-token` | Random anonymous code for the request board (created on first use) |
 | Service worker cache | Site files for offline use |
 
+Passwords for Protect PDF, Unlock PDF and the "PDF password" prompt live in React state only. They are never mirrored into the URL hash, written to storage or sent; the files are encrypted and decrypted in the tab (`packages/core/src/pdf-crypto.ts`, Web Crypto for AES and SHA-2). `e2e/protect-unlock-pdf.spec.ts` checks that no request carries the password.
+
 "Continue with…" on PDF results passes the finished file to the next tool in memory only (a module variable in `packages/tools/src/shared/pdf-handoff.ts`, kept for one client-side navigation). It is never written to storage, the URL or the network, and a page reload drops it.
 
 ## What reaches the server

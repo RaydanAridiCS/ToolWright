@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Button, SegmentedControl, baseName } from "@toolwright/ui";
 import { formatPageRanges } from "@toolwright/core/pdf";
 import { inkRatio, isBlank, pagesToRemove, removeBlankPages, type BlankSensitivity } from "@toolwright/core/remove-blank-pages";
-import { DownloadResult, JobError, PdfDrop, PdfSourceCard, RunButton, RunProgress, useJob, usePdfSource } from "../../shared/pdf-ui";
+import { DownloadResult, JobError, PdfDrop, PdfLoadStatus, PdfSourceCard, RunButton, RunProgress, useJob, usePdfSource } from "../../shared/pdf-ui";
 import { createThumbnailer } from "../../shared/pdf-raster";
 import { errorMessage } from "../../shared/format";
 
@@ -129,7 +129,7 @@ export default function Tool() {
   return (
     <div className="flex flex-col gap-5">
       {source ? <PdfSourceCard source={source} onRemove={() => (pdf.clear(), job.reset())} /> : <PdfDrop onFile={pdf.load} onReject={pdf.setError} loading={pdf.loading} />}
-      <JobError error={pdf.error} />
+      <PdfLoadStatus pdf={pdf} />
 
       {source ? (
         <>

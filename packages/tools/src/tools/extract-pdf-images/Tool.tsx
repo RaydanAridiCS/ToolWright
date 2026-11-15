@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Download, ImageIcon } from "lucide-react";
 import { Alert, Button, downloadBlob, formatFileSize } from "@toolwright/ui";
 import { extractPdfImages, type ExtractedImage } from "@toolwright/core/extract-pdf-images";
-import { PdfDrop, PdfSourceCard, RunButton, useJob, usePdfSource } from "../../shared/pdf-ui";
+import { PdfDrop, PdfLoadStatus, PdfSourceCard, RunButton, useJob, usePdfSource } from "../../shared/pdf-ui";
 import { createZip } from "../../shared/zip";
 import { errorMessage, pluralize } from "../../shared/format";
 
@@ -67,7 +67,7 @@ export default function Tool() {
   return (
     <div className="flex flex-col gap-5">
       {!pdf.source ? <PdfDrop onFile={(f) => void pdf.load(f)} onReject={pdf.setError} loading={pdf.loading} /> : <PdfSourceCard source={pdf.source} onRemove={remove} />}
-      {pdf.error ? <Alert tone="error">{pdf.error}</Alert> : null}
+      <PdfLoadStatus pdf={pdf} />
 
       {pdf.source ? (
         <>

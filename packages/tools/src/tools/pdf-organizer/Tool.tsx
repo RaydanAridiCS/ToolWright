@@ -5,7 +5,7 @@ import { ArrowDown, ArrowUp, Copy, RotateCcw, RotateCw, Trash2 } from "lucide-re
 import { Alert, Badge, Button, baseName } from "@toolwright/ui";
 import { organizePages } from "@toolwright/core/pdf";
 import { collateDuplexScan, duplicatePage, initialPlan, isUntouched, movePage, planToOps, removePage, reversePlan, turnPage, type PlanPage } from "@toolwright/core/pdf-organizer";
-import { DownloadResult, JobError, PdfDrop, PdfSourceCard, RunButton, useJob, usePdfSource, type PdfSource } from "../../shared/pdf-ui";
+import { DownloadResult, JobError, PdfDrop, PdfLoadStatus, PdfSourceCard, RunButton, useJob, usePdfSource, type PdfSource } from "../../shared/pdf-ui";
 import { PageThumb, useThumbnails } from "../../shared/pdf-thumbs";
 
 export default function Tool() {
@@ -15,7 +15,7 @@ export default function Tool() {
   return (
     <div className="flex flex-col gap-5">
       {source ? null : <PdfDrop onFile={pdf.load} onReject={pdf.setError} loading={pdf.loading} />}
-      <JobError error={pdf.error} />
+      <PdfLoadStatus pdf={pdf} />
       {source ? <Organizer key={`${source.file.name}-${source.file.size}-${source.file.lastModified}`} source={source} onRemove={pdf.clear} /> : null}
     </div>
   );
