@@ -20,6 +20,7 @@ import meta_data_matrix_generator from "./tools/data-matrix-generator/meta";
 import meta_date_calculator from "./tools/date-calculator/meta";
 import meta_delete_pdf_pages from "./tools/delete-pdf-pages/meta";
 import meta_dockerfile_linter from "./tools/dockerfile-linter/meta";
+import meta_edit_pdf from "./tools/edit-pdf/meta";
 import meta_exif_remover from "./tools/exif-remover/meta";
 import meta_exif_viewer from "./tools/exif-viewer/meta";
 import meta_extract_pdf_images from "./tools/extract-pdf-images/meta";
@@ -151,6 +152,7 @@ export const tools: readonly ToolMeta[] = [
   meta_date_calculator,
   meta_delete_pdf_pages,
   meta_dockerfile_linter,
+  meta_edit_pdf,
   meta_exif_remover,
   meta_exif_viewer,
   meta_extract_pdf_images,

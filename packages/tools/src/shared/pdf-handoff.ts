@@ -22,6 +22,7 @@ let navigate: Navigate | null = null;
 /** Tools that take one PDF as input and can pick up a handed-off file. Order is the order shown to people. */
 export const HANDOFF_TARGETS: readonly { slug: string; label: string }[] = [
   { slug: "compress-pdf", label: "Compress" },
+  { slug: "edit-pdf", label: "Edit" },
   { slug: "sign-pdf", label: "Sign" },
   { slug: "pdf-organizer", label: "Organize pages" },
   { slug: "merge-pdf", label: "Merge with more PDFs" },

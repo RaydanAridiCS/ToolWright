@@ -24,6 +24,7 @@ export const toolLoaders: Record<string, ToolLoader> = {
   "date-calculator": () => import("./tools/date-calculator/Tool"),
   "delete-pdf-pages": () => import("./tools/delete-pdf-pages/Tool"),
   "dockerfile-linter": () => import("./tools/dockerfile-linter/Tool"),
+  "edit-pdf": () => import("./tools/edit-pdf/Tool"),
   "exif-remover": () => import("./tools/exif-remover/Tool"),
   "exif-viewer": () => import("./tools/exif-viewer/Tool"),
   "extract-pdf-images": () => import("./tools/extract-pdf-images/Tool"),

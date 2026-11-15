@@ -37,6 +37,8 @@ export interface TextPainter {
   /** Width of the whole text in points at this size. */
   width(size: number): number;
   draw(page: PDFPage, options: DrawOptions): void;
+  /** A painter for part of the text (such as one wrapped line), printed with the same fonts as the whole. */
+  slice(part: string): TextPainter;
 }
 
 interface Run {
@@ -63,7 +65,26 @@ function parsedFonts(doc: PDFDocument) {
 }
 
 /** The standard Helvetica (or bold) of this document, embedded once. */
-export const standardFont = (doc: PDFDocument, bold = false) => once(doc, bold ? "std-bold" : "std", () => doc.embedFont(bold ? StandardFonts.HelveticaBold : StandardFonts.Helvetica));
+export const standardFont = (doc: PDFDocument, bold = false) => standardFace(doc, "sans", bold, false);
+
+/** A family of the standard PDF fonts every viewer has: Helvetica, Times or Courier. */
+export type FontFamily = "sans" | "serif" | "mono";
+
+/** The name of the standard font for a family and style. */
+export function standardFontName(family: FontFamily, bold: boolean, italic: boolean): StandardFonts {
+  const faces: Record<FontFamily, [StandardFonts, StandardFonts, StandardFonts, StandardFonts]> = {
+    sans: [StandardFonts.Helvetica, StandardFonts.HelveticaBold, StandardFonts.HelveticaOblique, StandardFonts.HelveticaBoldOblique],
+    serif: [StandardFonts.TimesRoman, StandardFonts.TimesRomanBold, StandardFonts.TimesRomanItalic, StandardFonts.TimesRomanBoldItalic],
+    mono: [StandardFonts.Courier, StandardFonts.CourierBold, StandardFonts.CourierOblique, StandardFonts.CourierBoldOblique],
+  };
+  return faces[family][(bold ? 1 : 0) + (italic ? 2 : 0)] as StandardFonts;
+}
+
+/** One standard font of this document, embedded once however many texts use it. */
+export const standardFace = (doc: PDFDocument, family: FontFamily, bold: boolean, italic: boolean) => {
+  const key = family === "sans" && !italic ? (bold ? "std-bold" : "std") : `std-${family}-${bold ? "b" : ""}${italic ? "i" : ""}`;
+  return once(doc, key, () => doc.embedFont(standardFontName(family, bold, italic)));
+};
 
 /**
  * Unwraps a WOFF font into the plain TrueType file a PDF needs. A PDF's font stream must be an sfnt; pdf-lib stores
@@ -127,10 +148,21 @@ function describe(chars: string[]): string {
  * Prepare `text` for drawing on pages of `doc`. Throws a PdfError that names the characters when they cannot be printed.
  * Call once per distinct text, then `draw` on as many pages as needed.
  */
-export async function createTextPainter(doc: PDFDocument, text: string, options: { bold?: boolean; loadFont?: FontLoader; /** How error messages refer to the text, such as "The caption". */ label?: string } = {}): Promise<TextPainter> {
-  const { bold = false, loadFont } = options;
+export async function createTextPainter(
+  doc: PDFDocument,
+  text: string,
+  options: {
+    bold?: boolean;
+    /** Standard font family (Helvetica by default). Text the standard fonts cannot print uses Noto Sans, upright, whatever the family. */
+    family?: FontFamily;
+    italic?: boolean;
+    loadFont?: FontLoader;
+    /** How error messages refer to the text, such as "The caption". */ label?: string;
+  } = {},
+): Promise<TextPainter> {
+  const { bold = false, loadFont, family = "sans", italic = false } = options;
   const subject = options.label ?? `“${text.slice(0, 30)}”`;
-  const standard = await standardFont(doc, bold);
+  const standard = await standardFace(doc, family, bold, italic);
   let runs: Run[];
   try {
     standard.encodeText(text);
@@ -140,9 +172,28 @@ export async function createTextPainter(doc: PDFDocument, text: string, options:
     runs = await unicodeRuns(doc, text, bold ? 700 : 400, loadFont, subject);
   }
 
+  // Which font prints each character, so a part of the text (one wrapped line) is measured and drawn exactly as in the whole.
+  const fontOf = new Map<string, PDFFont>();
+  for (const run of runs) for (const ch of run.text) fontOf.set(ch, run.font);
+  const standardRun = runs.length === 1 && runs[0]?.font === standard;
+  return paint(runs, (part) => {
+    if (standardRun) return [{ font: standard, text: part }];
+    const out: Run[] = [];
+    for (const ch of part.replace(/[\t\r\n\u00a0]+/g, " ")) {
+      const font = fontOf.get(ch) ?? (runs[0] as Run).font;
+      const last = out[out.length - 1];
+      if (last && last.font === font) last.text += ch;
+      else out.push({ font, text: ch });
+    }
+    return out;
+  });
+}
+
+function paint(runs: Run[], split: (part: string) => Run[]): TextPainter {
   const widthOf = (size: number) => runs.reduce((sum, run) => sum + run.font.widthOfTextAtSize(run.text, size), 0);
   return {
     width: widthOf,
+    slice: (part) => paint(split(part), split),
     draw(page, { x, y, size, color = { r: 0, g: 0, b: 0 }, opacity, rotate = 0 }) {
       const rad = (rotate * Math.PI) / 180;
       let offset = 0;

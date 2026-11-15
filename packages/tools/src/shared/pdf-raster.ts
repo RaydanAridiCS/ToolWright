@@ -10,6 +10,7 @@ import { COMPRESS_LIMITS, CompressCancelled, createImagePdfBuilder, planRaster, 
 import { PdfError } from "@toolwright/core/pdf";
 import { PdfCancelled, PAGE_IMAGE_LIMITS, formatInfo, normalizeQuality, overBudget, planPageImage, type PageImageFormat } from "@toolwright/core/pdf-to-images";
 import { TEXT_LIMITS, assemblePage, toPieces, type TextOptions } from "@toolwright/core/pdf-to-text";
+import { groupTextLines, sampleTextColors, type PageTextLine, type Rgb, type TextRunLike } from "@toolwright/core/pdf-edit";
 import { QUALITIES, REDACT_LIMITS, boxPixelRects, matchBoxes, type RasterPage, type RedactBox, type RedactQuality, type SearchSpec, type ShareOfPiece } from "@toolwright/core/redact-pdf";
 
 export interface RasterResult {
@@ -153,7 +154,14 @@ export interface PageThumbnailer {
   pageCount: number;
   /** Draws one page (zero-based) as a JPEG with its longer side `maxSide` pixels (default: the size given to `createThumbnailer`), turned the way the PDF itself says. Draws happen one at a time. */
   render(pageIndex: number, maxSide?: number): Promise<Blob>;
+  /** The lines of selectable text on one page, in points on the page as shown, with the page colour behind each and the colour of its letters. */
+  readTextLines(pageIndex: number): Promise<SampledTextLine[]>;
   dispose(): void;
+}
+
+export interface SampledTextLine extends PageTextLine {
+  background: Rgb;
+  ink: Rgb;
 }
 
 /** Opens a PDF for previews. `maxSide` is the longer side of each thumbnail in pixels. */
@@ -184,6 +192,46 @@ export async function createThumbnailer(file: File, maxSide = 160): Promise<Page
         const blob = await toBlob(canvas, "image/jpeg", size > 400 ? 0.9 : 0.8);
         page.cleanup();
         return blob;
+      });
+      queue = job.catch(() => undefined);
+      return job;
+    },
+    readTextLines(pageIndex) {
+      const job = queue.then(async () => {
+        if (disposed) throw new Error("The previews were closed.");
+        const page = await open.pdf.getPage(pageIndex + 1);
+        const natural = page.getViewport({ scale: 1 });
+        // Drawing the page loads its fonts (so their bold and italic flags can be read) and gives the pixels for the colours.
+        const scale = Math.min(3, 2400 / Math.max(natural.width, natural.height, 1));
+        const viewport = page.getViewport({ scale });
+        const sampler = document.createElement("canvas");
+        sampler.width = Math.max(1, Math.ceil(viewport.width));
+        sampler.height = Math.max(1, Math.ceil(viewport.height));
+        const ctx = sampler.getContext("2d", { alpha: false, willReadFrequently: true });
+        if (!ctx) throw new PdfError("This browser cannot draw pages.");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, sampler.width, sampler.height);
+        await page.render({ canvas: sampler, canvasContext: ctx, viewport, annotationMode: open.pdfjs.AnnotationMode.DISABLE }).promise;
+        const content = await page.getTextContent();
+        const runs: TextRunLike[] = (content.items as unknown[]).flatMap((item) => {
+          const it = item as { str?: unknown; transform?: unknown; width?: unknown; fontName?: unknown };
+          if (typeof it.str !== "string" || !Array.isArray(it.transform) || typeof it.width !== "number") return [];
+          const fontName = typeof it.fontName === "string" ? it.fontName : "";
+          const style = (content.styles as Record<string, { ascent?: number; descent?: number; fontFamily?: string } | undefined>)[fontName];
+          let face: { bold?: unknown; italic?: unknown; black?: unknown } | undefined;
+          try {
+            face = fontName && page.commonObjs.has(fontName) ? (page.commonObjs.get(fontName) as typeof face) : undefined;
+          } catch {
+            face = undefined;
+          }
+          return [{ str: it.str, transform: it.transform as number[], width: it.width, ascent: style?.ascent, descent: style?.descent, fontFamily: style?.fontFamily, bold: face?.bold === true || face?.black === true, italic: face?.italic === true }];
+        });
+        const lines = groupTextLines(runs, natural.transform);
+        const pixels = ctx.getImageData(0, 0, sampler.width, sampler.height).data;
+        const sampled = lines.map((line) => ({ ...line, ...sampleTextColors(pixels, sampler.width, sampler.height, { left: line.left * scale, top: line.top * scale, width: line.width * scale, height: line.height * scale }) }));
+        sampler.width = sampler.height = 0;
+        page.cleanup();
+        return sampled;
       });
       queue = job.catch(() => undefined);
       return job;

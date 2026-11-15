@@ -112,6 +112,7 @@ Fonts are loaded with `next/font/local` from the `@fontsource-variable/*` and `g
 | `DownloadResult` + `ContinueWith` | The success slab (left success bar). PDF results add a dashed rule and "Continue with this file:" with four outline buttons and a "More tools…" select. |
 | `PdfLoadStatus` + `useLockedPdfs` | The load error, then a prompt for each password-protected file: a ruled box with a marker left bar, the file name, a `PasswordField`, "Open PDF" and "Skip this file"/"Cancel". `usePdfSource` includes the queue; Merge and Compress use `useLockedPdfs` directly. |
 | `PasswordField` | `Field` + password `Input` + an outline icon button "Show …" with `aria-pressed`. |
+| Edit PDF editor (`tools/edit-pdf`) | A `role="toolbar"` of icon buttons (`aria-pressed`, the active one `primary`), a fixed-height hint line so the page never moves when the tool changes, the page in a `bg-muted` frame with an SVG overlay (selection: dashed `--ring` outline and square handles in `--card`), and a side panel with the properties of the selected edit and the list of edits on the page (the selected row in `marker`). Tool messages go in the side panel, not above the page. |
 | `PdfPageSelector`, `PageThumb` / `useThumbnails` | Page grids with lazy PDF.js previews; selected-to-delete pages use the `danger` frame. |
 
 ### `apps/web/src/components` (site-specific)
