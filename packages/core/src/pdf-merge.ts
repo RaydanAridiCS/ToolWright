@@ -4,7 +4,7 @@
  * and keeps working form fields: pdf-lib copies the field widgets with the pages but not the form itself, so the form
  * is rebuilt here, and fields that share a name across files are renamed so filling one does not fill the other.
  */
-import { PDFArray, PDFBool, PDFDict, PDFDocument, PDFHexString, PDFName, PDFObjectCopier, PDFRef, PDFString, degrees, type PDFPage } from "pdf-lib";
+import { PDFArray, PDFBool, PDFDict, PDFDocument, PDFHexString, PDFName, PDFObjectCopier, PDFPage, PDFRef, PDFString, degrees, type PDFPageLeaf } from "pdf-lib";
 import { loadPdf, PdfError } from "./pdf";
 import { plainView, readOutline, writeOutline, type NewOutlineItem, type OutlineItem } from "./pdf-outline";
 
@@ -13,8 +13,12 @@ export interface MergeFile {
   name: string;
 }
 
-/** One page of the result: a page of a file (zero-based), turned by a multiple of 90° clockwise, or a blank page. */
-export type MergeEntry = { file: number; page: number; turn?: number } | { blank: true };
+/**
+ * One page of the result: a page of a file (zero-based), turned by a multiple of 90° clockwise, or a blank page.
+ * A blank page has its own `size` (in points, upright), takes the size and turn of the page `like` names, or
+ * otherwise copies the page before it.
+ */
+export type MergeEntry = { file: number; page: number; turn?: number } | { blank: true; size?: { width: number; height: number }; like?: { file: number; page: number } };
 
 export interface MergeOptions {
   /** A bookmark at the first page of each file, named after the file. */
@@ -23,6 +27,8 @@ export interface MergeOptions {
   keepBookmarks?: boolean;
   /** Keep form fields fillable. On by default. */
   keepForms?: boolean;
+  /** Copy the title, author, subject, keywords, creator and language of this file to the result. */
+  infoFrom?: number;
 }
 
 export interface MergeResult {
@@ -54,7 +60,7 @@ const baseTitle = (name: string) => name.replace(/\.pdf$/i, "").trim() || "Untit
 export async function mergeDocuments(files: readonly MergeFile[], sequence: readonly MergeEntry[], options: MergeOptions = {}): Promise<MergeResult> {
   const { bookmarkPerFile = false, keepBookmarks = true, keepForms = true } = options;
   if (sequence.filter((e) => !("blank" in e)).length === 0) throw new PdfError("There are no pages to merge.");
-  const used = [...new Set(sequence.flatMap((e) => ("blank" in e ? [] : [e.file])))].sort((a, b) => a - b);
+  const used = [...new Set([...sequence.flatMap((e) => ("blank" in e ? (e.like ? [e.like.file] : []) : [e.file])), ...(options.infoFrom === undefined ? [] : [options.infoFrom])])].sort((a, b) => a - b);
   const sources = new Map<number, PDFDocument>();
   for (const i of used) {
     const f = files[i];
@@ -65,14 +71,26 @@ export async function mergeDocuments(files: readonly MergeFile[], sequence: read
   const merged = await PDFDocument.create();
   // Copy each file's pages in one go, so pages that share fonts, pictures or form fields share one copy of them.
   const copies = new Map<string, PDFPage[]>();
+  // Pages used more than once that have no links, fields or comments: later uses share the first copy's content
+  // and resources (a new page object pointing at them), so a page repeated 100 times is stored once.
+  const templates = new Map<string, PDFPageLeaf>();
   const batches = new Map<number, PDFPage[][]>();
   for (const [file, doc] of sources) {
     const count = doc.getPageCount();
     const wanted: number[][] = [];
+    const check = (page: number) => {
+      if (!Number.isInteger(page) || page < 0 || page >= count) throw new PdfError(`${files[file]?.name} has no page ${page + 1} (it has ${count}).`);
+    };
     for (const e of sequence) {
-      if ("blank" in e || e.file !== file) continue;
-      if (!Number.isInteger(e.page) || e.page < 0 || e.page >= count) throw new PdfError(`${files[file]?.name} has no page ${e.page + 1} (it has ${count}).`);
-      // A page used twice needs a second copy.
+      if ("blank" in e) {
+        if (e.like?.file === file) check(e.like.page);
+        continue;
+      }
+      if (e.file !== file) continue;
+      check(e.page);
+      const plain = !hasAnnotations(doc.getPage(e.page).node);
+      if (plain && wanted[0]?.includes(e.page)) continue;
+      // A page with annotations used twice needs a second copy, so each copy has its own fields and links.
       let round = wanted.find((r) => !r.includes(e.page));
       if (!round) wanted.push((round = []));
       round.push(e.page);
@@ -83,11 +101,24 @@ export async function mergeDocuments(files: readonly MergeFile[], sequence: read
       fileBatches.push(pages);
       round.forEach((p, k) => {
         const key = `${file}:${p}`;
-        copies.set(key, [...(copies.get(key) ?? []), pages[k] as PDFPage]);
+        const page = pages[k] as PDFPage;
+        copies.set(key, [...(copies.get(key) ?? []), page]);
+        if (!templates.has(key) && !hasAnnotations(page.node)) {
+          // Resources written inline would be repeated in every reuse; one shared object is enough.
+          const resources = page.node.get(PDFName.of("Resources"));
+          if (resources instanceof PDFDict) page.node.set(PDFName.of("Resources"), merged.context.register(resources));
+          templates.set(key, page.node.clone());
+        }
       });
     }
     batches.set(file, fileBatches);
   }
+  const reuse = (key: string): PDFPage | undefined => {
+    const template = templates.get(key);
+    if (!template) return undefined;
+    const node = template.clone();
+    return PDFPage.of(node, merged.context.register(node), merged);
+  };
 
   const firstOut = new Map<string, PDFRef>();
   const fileStart = new Map<number, PDFRef>();
@@ -95,15 +126,16 @@ export async function mergeDocuments(files: readonly MergeFile[], sequence: read
   let last: PDFPage | null = null;
   for (const e of sequence) {
     if ("blank" in e) {
-      const size = last ? last.getSize() : { width: 612, height: 792 };
+      const like = e.like ? (sources.get(e.like.file) as PDFDocument).getPage(e.like.page) : e.size ? null : last;
+      const size = e.size ?? (like ? like.getSize() : { width: 612, height: 792 });
       const page = merged.addPage([size.width, size.height]);
-      if (last) page.setRotation(last.getRotation());
+      if (like) page.setRotation(degrees(like.getRotation().angle));
       blanks++;
       last = page;
       continue;
     }
     const key = `${e.file}:${e.page}`;
-    const page = copies.get(key)?.shift();
+    const page = copies.get(key)?.shift() ?? reuse(key);
     if (!page) throw new PdfError("A page could not be copied.");
     const turn = (((Math.round((e.turn ?? 0) / 90) * 90) % 360) + 360) % 360;
     if (turn) page.setRotation(degrees((page.getRotation().angle + turn) % 360));
@@ -127,8 +159,32 @@ export async function mergeDocuments(files: readonly MergeFile[], sequence: read
   }
 
   const renamedFields = keepForms ? mergeForms(merged, sources, batches) : 0;
+  const infoSource = options.infoFrom === undefined ? undefined : sources.get(options.infoFrom);
+  if (infoSource) copyInfo(infoSource, merged);
   const data = await merged.save({ useObjectStreams: true });
   return { data, pages: sequence.length, blanks, renamedFields };
+}
+
+/** Whether a page has links, fields or comments (pdf-lib gives new pages an empty Annots array). */
+function hasAnnotations(node: PDFPageLeaf): boolean {
+  const annots = node.lookup(PDFName.of("Annots"));
+  return annots instanceof PDFArray && annots.size() > 0;
+}
+
+/** The document details a reader shows, from one file to another. */
+export function copyInfo(from: PDFDocument, to: PDFDocument): void {
+  const title = from.getTitle();
+  if (title) to.setTitle(title);
+  const author = from.getAuthor();
+  if (author) to.setAuthor(author);
+  const subject = from.getSubject();
+  if (subject) to.setSubject(subject);
+  const keywords = from.getKeywords();
+  if (keywords) to.setKeywords([keywords]);
+  const creator = from.getCreator();
+  if (creator) to.setCreator(creator);
+  const lang = from.catalog.lookup(PDFName.of("Lang"));
+  if (lang instanceof PDFString || lang instanceof PDFHexString) to.catalog.set(PDFName.of("Lang"), PDFString.of(lang.decodeText()));
 }
 
 function mapOutline(items: OutlineItem[], pageRef: (page: number) => PDFRef | null): NewOutlineItem[] {

@@ -105,7 +105,7 @@ export function useLockedPdfs(onOpened: (source: PdfSource) => void) {
  * `source` is the first one (for previews and page counts), and files that could not be read are reported by name.
  * Password-protected files wait in `locked` until `unlock(password)` opens them (render `PdfLoadStatus`).
  */
-export function usePdfSource() {
+export function usePdfSource({ handoff = true }: { handoff?: boolean } = {}) {
   const [all, setAll] = useState<PdfSource[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -167,7 +167,7 @@ export function usePdfSource() {
   }, [addLocked]);
 
   // A file passed on from another tool ("Continue with…") loads as if it had been dropped.
-  usePdfHandoff((file) => void load(file));
+  usePdfHandoff((file) => void load(file), handoff);
 
   return { source: all[0] ?? null, all, ...locks, error, setError, loading, load, loadMany, remove, clear };
 }

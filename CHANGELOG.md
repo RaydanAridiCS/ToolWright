@@ -4,6 +4,15 @@ All notable changes to Toolwright. The format follows [Keep a Changelog](https:/
 
 ## [Unreleased]
 
+### Added: Insert PDF Pages and Alternate & Mix PDF
+
+- **New tool: `/tools/insert-pdf-pages`.** Inserts blank pages, or chosen pages of another PDF, into a PDF. Click the plus between any two page previews (or at the start or end), or insert after every N pages, such as a notes page after each slide. Blank pages take the size and turn of the page next to them, or A4, Letter, Legal, A3 or A5 upright or sideways. The PDF's bookmarks, links, fillable forms, title, author and language are kept.
+- **New tool: `/tools/alternate-mix-pdf`.** Interleaves PDFs page by page, for the fronts and backs of a one-sided scan: two or more files, or one file with every front first and every back after. Backs scanned by turning the stack over are reversed (on by default for the second file), each file can give chosen pages and several pages at a time, a longer file's extra pages go at the end with a warning, and the whole new order is previewed with page pictures.
+- **Merge core:** a blank page can have its own size or copy the size and turn of a named page (`like`), `infoFrom` copies a file's title, author, subject, keywords, creator and language to the result, and a page used more than once that has no annotations is stored once: later uses are new page objects sharing its content and resources, so a page inserted after each of 40 pages adds a few kilobytes, not 40 copies.
+- **Core:** `packages/core/src/pdf-insert.ts` (`gapsEvery`, `cleanGaps`, `insertSequence`, `insertPages`, `alternateSequence`, `halves`, `alternatePdfs`), built on `mergeDocuments`.
+- **Shared:** `usePdfSource({ handoff: false })` for a second drop box, so a file passed on with "Continue with…" lands in the main one. "Continue with…" offers Insert pages and Mix with another PDF.
+- **Tests:** `packages/core/tests/pdf-insert.test.ts` (gaps, sequences, blanks matched to their neighbour including its turn, sized blanks, pages from another PDF with bookmarks and document details kept, a repeated page stored once, form fields copied per insertion and renamed, interleaving with reversal, uneven files, several pages at a time, three files, one file's halves, and the errors). Browser spec `e2e/pdf-insert.spec.ts`: clicking gaps, inserting another PDF's pages after every 2 pages, mixing reversed backs with a previewed order, the page count warning, one-file mode, no outside requests and axe on both tools.
+
 ### Added: N-up PDF, PDF Booklet Maker and Resize PDF Pages
 
 - **New tool: `/tools/pdf-n-up`.** Puts 2, 4, 6, 8, 9, 12 or 16 pages on each sheet. Paper size (the pages' own size, A4, Letter, A3, A5, Legal or Tabloid), orientation (best fit, portrait or landscape), page order (left to right, top to bottom, or right to left), margin, gap, borders, turning pages that fit their space better the other way round, and "Repeat each page to fill the sheet" for cards and labels. A live preview draws every sheet from page pictures, exactly where the PDF will put them, before anything is made.

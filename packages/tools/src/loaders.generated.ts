@@ -4,6 +4,7 @@ import type { ComponentType } from "react";
 export type ToolLoader = () => Promise<{ default: ComponentType }>;
 
 export const toolLoaders: Record<string, ToolLoader> = {
+  "alternate-mix-pdf": () => import("./tools/alternate-mix-pdf/Tool"),
   "apng-maker": () => import("./tools/apng-maker/Tool"),
   "barcode-generator": () => import("./tools/barcode-generator/Tool"),
   "base64-encoder": () => import("./tools/base64-encoder/Tool"),
@@ -53,6 +54,7 @@ export const toolLoaders: Record<string, ToolLoader> = {
   "image-to-base64": () => import("./tools/image-to-base64/Tool"),
   "image-to-svg": () => import("./tools/image-to-svg/Tool"),
   "images-to-pdf": () => import("./tools/images-to-pdf/Tool"),
+  "insert-pdf-pages": () => import("./tools/insert-pdf-pages/Tool"),
   "json-csv-converter": () => import("./tools/json-csv-converter/Tool"),
   "json-diff": () => import("./tools/json-diff/Tool"),
   "json-formatter": () => import("./tools/json-formatter/Tool"),

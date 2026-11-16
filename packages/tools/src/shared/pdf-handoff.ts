@@ -26,6 +26,8 @@ export const HANDOFF_TARGETS: readonly { slug: string; label: string }[] = [
   { slug: "sign-pdf", label: "Sign" },
   { slug: "pdf-organizer", label: "Organize pages" },
   { slug: "merge-pdf", label: "Merge with more PDFs" },
+  { slug: "insert-pdf-pages", label: "Insert pages" },
+  { slug: "alternate-mix-pdf", label: "Mix with another PDF" },
   { slug: "pdf-watermark", label: "Add watermark" },
   { slug: "pdf-page-numbers", label: "Add page numbers" },
   { slug: "pdf-header-footer", label: "Add header and footer" },
@@ -79,15 +81,20 @@ export function currentToolSlug(): string | null {
   return match?.[1] ?? null;
 }
 
-/** Calls `receive` once with a handed-off PDF, if one is waiting for the current tool page. */
-export function usePdfHandoff(receive: (file: File) => void): void {
+/**
+ * Calls `receive` once with a handed-off PDF, if one is waiting for the current tool page. A tool with a second
+ * drop box (such as the pages to insert) passes `enabled: false` there, so the hand-off lands in the main one.
+ */
+export function usePdfHandoff(receive: (file: File) => void, enabled = true): void {
   const receiveRef = useRef(receive);
   useEffect(() => {
     receiveRef.current = receive;
   });
   useEffect(() => {
+    if (!enabled) return;
     const slug = currentToolSlug();
     const handoff = slug ? takePdfHandoff(slug) : null;
     if (handoff) receiveRef.current(new File([handoff.bytes as Uint8Array<ArrayBuffer>], handoff.name, { type: "application/pdf" }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once on mount; `enabled` is fixed per drop box
   }, []);
 }

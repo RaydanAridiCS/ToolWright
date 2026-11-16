@@ -47,6 +47,10 @@ export const SERP_CLUSTERS: Record<Cluster, string> = {
 };
 
 export const KEYWORD_MAP: Record<string, KeywordEntry> = {
+  "alternate-mix-pdf": { primary: "interleave pdf pages", intent: "do", volume: "medium", difficulty: "low", serp: "pdf",
+    secondary: ["alternate and mix pdf", "merge front and back scans", "combine odd and even pages pdf", "interleave two pdfs", "collate scanned pages", "mix pdf pages", "one-sided scanner double-sided"],
+    modifiers: ["free", "online", "no upload", "no sign-up"],
+    edge: "Fronts and backs from a one-sided scanner, as two files or one, with the backs reversed and the page order previewed; nothing is uploaded." },
   "apng-maker": { primary: "apng maker", intent: "do", volume: "medium", difficulty: "medium", serp: "image",
     secondary: ["create apng", "png to apng", "animated png maker", "make animated png", "apng creator", "apng animation", "convert png to apng", "apng frames", "animated png online"],
     modifiers: ["free", "online", "no upload", "browser"],
@@ -243,6 +247,10 @@ export const KEYWORD_MAP: Record<string, KeywordEntry> = {
     secondary: ["image to pdf", "png to pdf", "photos to pdf", "convert image to pdf", "scan to pdf", "combine images into pdf", "picture to pdf"],
     modifiers: ["no upload", "no sign-up", "no watermark", "free", "online"],
     edge: "No upload, reorder pages, A4/Letter/fit sizes and margins." },
+  "insert-pdf-pages": { primary: "insert pages into pdf", intent: "do", volume: "high", difficulty: "medium", serp: "pdf",
+    secondary: ["add blank page to pdf", "insert blank page in pdf", "add pages to pdf", "insert pdf into pdf", "add a page to a pdf", "add notes pages to pdf", "insert page in pdf"],
+    modifiers: ["free", "online", "no upload", "no sign-up", "no watermark"],
+    edge: "Click between page previews to insert blank pages or another PDF's pages, or after every N pages; bookmarks and forms are kept and nothing is uploaded." },
   "json-csv-converter": { primary: "json to csv", intent: "do", volume: "high", difficulty: "high", serp: "data",
     secondary: ["csv to json", "json to excel", "convert csv", "tsv to json", "flatten json", "json array to csv", "json to csv online"],
     modifiers: ["online", "free", "no upload"],

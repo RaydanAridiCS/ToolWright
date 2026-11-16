@@ -1,5 +1,6 @@
 {
   "tools": {
+    "alternate-mix-pdf": "2026-11-16",
     "apng-maker": "2026-11-04",
     "barcode-generator": "2026-10-31",
     "base64-encoder": "2026-10-31",
@@ -49,6 +50,7 @@
     "image-to-base64": "2026-10-31",
     "image-to-svg": "2026-10-31",
     "images-to-pdf": "2026-10-31",
+    "insert-pdf-pages": "2026-11-16",
     "json-csv-converter": "2026-10-31",
     "json-diff": "2026-10-31",
     "json-formatter": "2026-10-31",
