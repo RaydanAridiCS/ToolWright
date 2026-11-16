@@ -33,6 +33,7 @@ export const HANDOFF_TARGETS: readonly { slug: string; label: string }[] = [
   { slug: "pdf-header-footer", label: "Add header and footer" },
   { slug: "rotate-pdf", label: "Rotate pages" },
   { slug: "crop-pdf", label: "Crop" },
+  { slug: "grayscale-pdf", label: "Make grayscale" },
   { slug: "resize-pdf", label: "Resize pages" },
   { slug: "pdf-n-up", label: "Pages per sheet" },
   { slug: "pdf-booklet", label: "Make a booklet" },

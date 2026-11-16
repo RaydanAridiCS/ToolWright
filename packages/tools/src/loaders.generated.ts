@@ -39,6 +39,7 @@ export const toolLoaders: Record<string, ToolLoader> = {
   "gif-maker": () => import("./tools/gif-maker/Tool"),
   "graphql-formatter": () => import("./tools/graphql-formatter/Tool"),
   "graphql-validator": () => import("./tools/graphql-validator/Tool"),
+  "grayscale-pdf": () => import("./tools/grayscale-pdf/Tool"),
   "hash-generator": () => import("./tools/hash-generator/Tool"),
   "hex-binary-converter": () => import("./tools/hex-binary-converter/Tool"),
   "html-entities": () => import("./tools/html-entities/Tool"),

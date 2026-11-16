@@ -4,6 +4,13 @@ All notable changes to Toolwright. The format follows [Keep a Changelog](https:/
 
 ## [Unreleased]
 
+### Added: Grayscale PDF
+
+- **New tool: `/tools/grayscale-pdf`.** Converts colour PDFs to shades of gray or to pure black and white (with a lightness threshold), keeping text and drawings as sharp, selectable vectors. Shows the page before and after (the real result, drawn by PDF.js), converts many files at once (ZIP), and lists anything that kept its colour.
+- **How it works.** Colour operators in page content, forms, tiling patterns, Type 3 glyphs, soft masks and annotation appearances are rewritten (`rg`, `k`, `sc`, `scn` and colour-space changes become DeviceGray), using the PDF standard's weights. Spot colours (Separation, DeviceN) go through their own tint transforms, evaluated by a small PDF function interpreter (sampled, exponential, stitching and PostScript calculator functions). Pictures are decoded (with PNG and TIFF predictors undone) and stored again in gray; palette pictures only get a gray palette; a colour-key mask becomes a soft mask. Gradients get a sampled gray function. Inline images, annotation colours (`C`, `IC`, `MK`) and default appearance strings are converted too. JPEGs are decoded and encoded by the browser's canvas.
+- **Core:** `packages/core/src/pdf-grayscale.ts` (`grayscalePdf`, `toGray`, `compileFunction`, `unpredict`).
+- **Tests:** `packages/core/tests/pdf-grayscale.test.ts` (colour maths, the four function types, PNG predictors, operators with text read back by PDF.js, Separation, All and DeviceN, raw RGB and palette pictures, a colour-key mask, a gradient, a form, an inline image, annotation colours, black and white with a threshold, JPEGs with and without a codec). Browser spec `e2e/pdf-grayscale.spec.ts`.
+
 ### Added: Flatten PDF
 
 - **New tool: `/tools/flatten-pdf`.** Draws filled-in form fields, ticks, comments, highlights, stamps and drawings into the pages exactly where they show, then removes the fillable form (including any XFA version) and the comment layer, so the file looks the same in every reader. It first shows what each file holds (fields and how many are filled in, comments by kind, links), lets you flatten forms, comments or both and remove links, warns before breaking a digital signature, works on many files at once (ZIP), and reads the new file back to confirm nothing fillable is left.

@@ -35,6 +35,7 @@ import meta_gif_editor from "./tools/gif-editor/meta";
 import meta_gif_maker from "./tools/gif-maker/meta";
 import meta_graphql_formatter from "./tools/graphql-formatter/meta";
 import meta_graphql_validator from "./tools/graphql-validator/meta";
+import meta_grayscale_pdf from "./tools/grayscale-pdf/meta";
 import meta_hash_generator from "./tools/hash-generator/meta";
 import meta_hex_binary_converter from "./tools/hex-binary-converter/meta";
 import meta_html_entities from "./tools/html-entities/meta";
@@ -173,6 +174,7 @@ export const tools: readonly ToolMeta[] = [
   meta_gif_maker,
   meta_graphql_formatter,
   meta_graphql_validator,
+  meta_grayscale_pdf,
   meta_hash_generator,
   meta_hex_binary_converter,
   meta_html_entities,
