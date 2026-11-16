@@ -30,6 +30,7 @@ import meta_favicon_generator from "./tools/favicon-generator/meta";
 import meta_fetch_to_curl from "./tools/fetch-to-curl/meta";
 import meta_fill_pdf_form from "./tools/fill-pdf-form/meta";
 import meta_find_and_replace from "./tools/find-and-replace/meta";
+import meta_flatten_pdf from "./tools/flatten-pdf/meta";
 import meta_gif_editor from "./tools/gif-editor/meta";
 import meta_gif_maker from "./tools/gif-maker/meta";
 import meta_graphql_formatter from "./tools/graphql-formatter/meta";
@@ -167,6 +168,7 @@ export const tools: readonly ToolMeta[] = [
   meta_fetch_to_curl,
   meta_fill_pdf_form,
   meta_find_and_replace,
+  meta_flatten_pdf,
   meta_gif_editor,
   meta_gif_maker,
   meta_graphql_formatter,

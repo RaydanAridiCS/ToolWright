@@ -43,6 +43,7 @@ export const HANDOFF_TARGETS: readonly { slug: string; label: string }[] = [
   { slug: "redact-pdf", label: "Redact" },
   { slug: "protect-pdf", label: "Add a password" },
   { slug: "fill-pdf-form", label: "Fill form" },
+  { slug: "flatten-pdf", label: "Flatten" },
   { slug: "pdf-metadata-editor", label: "Edit metadata" },
   { slug: "pdf-to-images", label: "Convert to images" },
   { slug: "pdf-to-text", label: "Copy the text" },

@@ -339,46 +339,54 @@ export function drawAnnotationAppearances(doc: PDFDocument, pageIndexes: Iterabl
       if (subtype === "Popup" || subtype === "Link") continue;
       const flags = annot.lookupMaybe(PDFName.of("F"), PDFNumber)?.asNumber() ?? 0;
       if (flags & (ANNOT_HIDDEN | ANNOT_NO_VIEW)) continue;
-      const ap = annot.lookupMaybe(PDFName.of("AP"), PDFDict);
-      if (!ap) continue;
-      let raw = ap.get(PDFName.of("N"));
-      let normal = ap.lookup(PDFName.of("N"));
-      if (normal instanceof PDFDict && !(normal instanceof PDFStream)) {
-        const state = annot.lookupMaybe(PDFName.of("AS"), PDFName);
-        if (!state) continue;
-        raw = normal.get(state);
-        normal = normal.lookup(state);
-      }
-      if (!(normal instanceof PDFStream)) continue;
-      const rect = numbers(annot.lookupMaybe(PDFName.of("Rect"), PDFArray));
-      const bbox = numbers(normal.dict.lookupMaybe(PDFName.of("BBox"), PDFArray));
-      if (!rect || rect.length < 4 || !bbox || bbox.length < 4) continue;
-      const m = numbers(normal.dict.lookupMaybe(PDFName.of("Matrix"), PDFArray)) ?? [1, 0, 0, 1, 0, 0];
-      // The appearance box after its own matrix, then stretched onto the annotation's rectangle (PDF 32000-1, 12.5.5).
-      const corners = [
-        [bbox[0], bbox[1]],
-        [bbox[2], bbox[1]],
-        [bbox[0], bbox[3]],
-        [bbox[2], bbox[3]],
-      ].map(([x, y]) => [(m[0] as number) * (x as number) + (m[2] as number) * (y as number) + (m[4] as number), (m[1] as number) * (x as number) + (m[3] as number) * (y as number) + (m[5] as number)]);
-      const xs = corners.map((c) => c[0] as number);
-      const ys = corners.map((c) => c[1] as number);
-      const [bx0, bx1, by0, by1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
-      const [rx0, rx1, ry0, ry1] = [Math.min(rect[0] as number, rect[2] as number), Math.max(rect[0] as number, rect[2] as number), Math.min(rect[1] as number, rect[3] as number), Math.max(rect[1] as number, rect[3] as number)];
-      if (bx1 - bx0 <= 0 || by1 - by0 <= 0 || rx1 - rx0 <= 0 || ry1 - ry0 <= 0) continue;
-      const sx = (rx1 - rx0) / (bx1 - bx0);
-      const sy = (ry1 - ry0) / (by1 - by0);
-      if (!normal.dict.has(PDFName.of("Subtype"))) {
-        normal.dict.set(PDFName.of("Type"), PDFName.of("XObject"));
-        normal.dict.set(PDFName.of("Subtype"), PDFName.of("Form"));
-      }
-      const ref = raw instanceof PDFRef ? raw : doc.context.register(normal);
-      const name = page.node.newXObject("Annot", ref);
-      page.pushOperators(pushGraphicsState(), concatTransformationMatrix(sx, 0, 0, sy, rx0 - sx * bx0, ry0 - sy * by0), drawObject(name), popGraphicsState());
-      drawn++;
+      if (drawAppearance(doc, page, annot)) drawn++;
     }
   }
   return drawn;
+}
+
+/**
+ * Draws one annotation's normal appearance into the page content, where it shows (PDF 32000-1, 12.5.5). Returns
+ * false when it has no appearance to draw. The annotation itself is left in place.
+ */
+export function drawAppearance(doc: PDFDocument, page: PDFPage, annot: PDFDict): boolean {
+  const ap = annot.lookupMaybe(PDFName.of("AP"), PDFDict);
+  if (!ap) return false;
+  let raw = ap.get(PDFName.of("N"));
+  let normal = ap.lookup(PDFName.of("N"));
+  if (normal instanceof PDFDict && !(normal instanceof PDFStream)) {
+    const state = annot.lookupMaybe(PDFName.of("AS"), PDFName);
+    if (!state) return false;
+    raw = normal.get(state);
+    normal = normal.lookup(state);
+  }
+  if (!(normal instanceof PDFStream)) return false;
+  const rect = numbers(annot.lookupMaybe(PDFName.of("Rect"), PDFArray));
+  const bbox = numbers(normal.dict.lookupMaybe(PDFName.of("BBox"), PDFArray));
+  if (!rect || rect.length < 4 || !bbox || bbox.length < 4) return false;
+  const m = numbers(normal.dict.lookupMaybe(PDFName.of("Matrix"), PDFArray)) ?? [1, 0, 0, 1, 0, 0];
+  // The appearance box after its own matrix, then stretched onto the annotation's rectangle (PDF 32000-1, 12.5.5).
+  const corners = [
+    [bbox[0], bbox[1]],
+    [bbox[2], bbox[1]],
+    [bbox[0], bbox[3]],
+    [bbox[2], bbox[3]],
+  ].map(([x, y]) => [(m[0] as number) * (x as number) + (m[2] as number) * (y as number) + (m[4] as number), (m[1] as number) * (x as number) + (m[3] as number) * (y as number) + (m[5] as number)]);
+  const xs = corners.map((c) => c[0] as number);
+  const ys = corners.map((c) => c[1] as number);
+  const [bx0, bx1, by0, by1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+  const [rx0, rx1, ry0, ry1] = [Math.min(rect[0] as number, rect[2] as number), Math.max(rect[0] as number, rect[2] as number), Math.min(rect[1] as number, rect[3] as number), Math.max(rect[1] as number, rect[3] as number)];
+  if (bx1 - bx0 <= 0 || by1 - by0 <= 0 || rx1 - rx0 <= 0 || ry1 - ry0 <= 0) return false;
+  const sx = (rx1 - rx0) / (bx1 - bx0);
+  const sy = (ry1 - ry0) / (by1 - by0);
+  if (!normal.dict.has(PDFName.of("Subtype"))) {
+    normal.dict.set(PDFName.of("Type"), PDFName.of("XObject"));
+    normal.dict.set(PDFName.of("Subtype"), PDFName.of("Form"));
+  }
+  const ref = raw instanceof PDFRef ? raw : doc.context.register(normal);
+  const name = page.node.newXObject("Annot", ref);
+  page.pushOperators(pushGraphicsState(), concatTransformationMatrix(sx, 0, 0, sy, rx0 - sx * bx0, ry0 - sy * by0), drawObject(name), popGraphicsState());
+  return true;
 }
 
 /** Maps the embedded page (its visible box moved to 0,0) onto the sheet: turned clockwise by `turn`, scaled, then moved. */

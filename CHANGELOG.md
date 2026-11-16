@@ -4,6 +4,13 @@ All notable changes to Toolwright. The format follows [Keep a Changelog](https:/
 
 ## [Unreleased]
 
+### Added: Flatten PDF
+
+- **New tool: `/tools/flatten-pdf`.** Draws filled-in form fields, ticks, comments, highlights, stamps and drawings into the pages exactly where they show, then removes the fillable form (including any XFA version) and the comment layer, so the file looks the same in every reader. It first shows what each file holds (fields and how many are filled in, comments by kind, links), lets you flatten forms, comments or both and remove links, warns before breaking a digital signature, works on many files at once (ZIP), and reads the new file back to confirm nothing fillable is left.
+- **Old values are gone, not hidden.** pdf-lib writes every object it holds, so `removeUnusedObjects` drops everything no longer reachable from the catalog: the removed fields, their values, scripts and signature data do not stay in the file.
+- **Core:** `packages/core/src/pdf-flatten.ts` (`inspectFlatten`, `flattenPdf`, `removeUnusedObjects`). `drawAppearance` (one annotation's appearance onto its rectangle, following its BBox and Matrix) is split out of `drawAnnotationAppearances` in `pdf-layout.ts` and shared.
+- **Tests:** `packages/core/tests/pdf-flatten.test.ts` (counts by kind, a filled field and a stamp read back by PDF.js where they show, a stamp's picture stretched onto its rectangle, an appearance with its own matrix, hidden marks not drawn, a note with no picture reported, forms only, comments only, removing links, a signed signature counted, old values dropped from the file, and unreachable objects removed). Browser spec `e2e/pdf-flatten.spec.ts`.
+
 ### Added: Insert PDF Pages and Alternate & Mix PDF
 
 - **New tool: `/tools/insert-pdf-pages`.** Inserts blank pages, or chosen pages of another PDF, into a PDF. Click the plus between any two page previews (or at the start or end), or insert after every N pages, such as a notes page after each slide. Blank pages take the size and turn of the page next to them, or A4, Letter, Legal, A3 or A5 upright or sideways. The PDF's bookmarks, links, fillable forms, title, author and language are kept.

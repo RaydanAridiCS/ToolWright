@@ -34,6 +34,7 @@ export const toolLoaders: Record<string, ToolLoader> = {
   "fetch-to-curl": () => import("./tools/fetch-to-curl/Tool"),
   "fill-pdf-form": () => import("./tools/fill-pdf-form/Tool"),
   "find-and-replace": () => import("./tools/find-and-replace/Tool"),
+  "flatten-pdf": () => import("./tools/flatten-pdf/Tool"),
   "gif-editor": () => import("./tools/gif-editor/Tool"),
   "gif-maker": () => import("./tools/gif-maker/Tool"),
   "graphql-formatter": () => import("./tools/graphql-formatter/Tool"),
