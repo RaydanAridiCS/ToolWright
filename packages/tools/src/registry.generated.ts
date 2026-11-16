@@ -100,6 +100,7 @@ import meta_resize_pdf from "./tools/resize-pdf/meta";
 import meta_roman_numerals from "./tools/roman-numerals/meta";
 import meta_rotate_pdf from "./tools/rotate-pdf/meta";
 import meta_salary_converter from "./tools/salary-converter/meta";
+import meta_sanitize_pdf from "./tools/sanitize-pdf/meta";
 import meta_sign_pdf from "./tools/sign-pdf/meta";
 import meta_slug_generator from "./tools/slug-generator/meta";
 import meta_split_pdf from "./tools/split-pdf/meta";
@@ -239,6 +240,7 @@ export const tools: readonly ToolMeta[] = [
   meta_roman_numerals,
   meta_rotate_pdf,
   meta_salary_converter,
+  meta_sanitize_pdf,
   meta_sign_pdf,
   meta_slug_generator,
   meta_split_pdf,

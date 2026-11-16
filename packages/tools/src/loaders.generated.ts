@@ -104,6 +104,7 @@ export const toolLoaders: Record<string, ToolLoader> = {
   "roman-numerals": () => import("./tools/roman-numerals/Tool"),
   "rotate-pdf": () => import("./tools/rotate-pdf/Tool"),
   "salary-converter": () => import("./tools/salary-converter/Tool"),
+  "sanitize-pdf": () => import("./tools/sanitize-pdf/Tool"),
   "sign-pdf": () => import("./tools/sign-pdf/Tool"),
   "slug-generator": () => import("./tools/slug-generator/Tool"),
   "split-pdf": () => import("./tools/split-pdf/Tool"),

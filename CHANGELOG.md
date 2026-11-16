@@ -4,6 +4,13 @@ All notable changes to Toolwright. The format follows [Keep a Changelog](https:/
 
 ## [Unreleased]
 
+### Added: Sanitize PDF
+
+- **New tool: `/tools/sanitize-pdf`.** Lists what each PDF carries besides its pages, then removes it: JavaScript (document scripts, open actions, page, field and annotation actions, XFA), actions that launch programs, open other files, submit or import data or play media, attached files (name tree, file attachment annotations, associated files, portfolios), metadata (document details, XMP anywhere, applications' private data, EXIF, XMP, IPTC and comments inside photos, the file ID), and content on layers that are off when the file opens. Comments, form fields (flattened, so answers stay) and web links can go too. Earlier saved versions, page thumbnails and unused objects are always left out. Many files at once; the new file is read back to confirm.
+- **Hidden layers without changing the page.** Drawing inside hidden marked content (and hidden XObjects and annotations, including membership dictionaries) is taken out while every state change stays: a hidden fill becomes `n`, so clipping and positions after it are unchanged.
+- **Core:** `packages/core/src/pdf-sanitize.ts` (`inspectSanitize`, `sanitizePdf`, `stripJpegMetadata`), and `packages/core/src/pdf-content.ts`, the stream decoding and content tokenizer now shared with Grayscale PDF.
+- **Tests:** `packages/core/tests/pdf-sanitize.test.ts` (a PDF with scripts in four places, a launch action, two attachments, every kind of metadata, a photo with EXIF, IPTC and a comment, a hidden and a shown layer, an earlier version, a comment and three links: every object of the result is decoded and searched, hidden words are gone while visible and shown-layer words stay, state round hidden content is kept, comments, web links and fields on request, and only chosen categories change). Browser spec `e2e/pdf-sanitize.spec.ts`.
+
 ### Added: Grayscale PDF
 
 - **New tool: `/tools/grayscale-pdf`.** Converts colour PDFs to shades of gray or to pure black and white (with a lightness threshold), keeping text and drawings as sharp, selectable vectors. Shows the page before and after (the real result, drawn by PDF.js), converts many files at once (ZIP), and lists anything that kept its colour.
