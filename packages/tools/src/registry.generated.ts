@@ -73,8 +73,10 @@ import meta_number_base_converter from "./tools/number-base-converter/meta";
 import meta_number_to_words from "./tools/number-to-words/meta";
 import meta_palette_generator from "./tools/palette-generator/meta";
 import meta_password_generator from "./tools/password-generator/meta";
+import meta_pdf_booklet from "./tools/pdf-booklet/meta";
 import meta_pdf_header_footer from "./tools/pdf-header-footer/meta";
 import meta_pdf_metadata_editor from "./tools/pdf-metadata-editor/meta";
+import meta_pdf_n_up from "./tools/pdf-n-up/meta";
 import meta_pdf_organizer from "./tools/pdf-organizer/meta";
 import meta_pdf_page_numbers from "./tools/pdf-page-numbers/meta";
 import meta_pdf_to_images from "./tools/pdf-to-images/meta";
@@ -90,6 +92,7 @@ import meta_readability_score from "./tools/readability-score/meta";
 import meta_redact_pdf from "./tools/redact-pdf/meta";
 import meta_regex_tester from "./tools/regex-tester/meta";
 import meta_remove_blank_pages from "./tools/remove-blank-pages/meta";
+import meta_resize_pdf from "./tools/resize-pdf/meta";
 import meta_roman_numerals from "./tools/roman-numerals/meta";
 import meta_rotate_pdf from "./tools/rotate-pdf/meta";
 import meta_salary_converter from "./tools/salary-converter/meta";
@@ -205,8 +208,10 @@ export const tools: readonly ToolMeta[] = [
   meta_number_to_words,
   meta_palette_generator,
   meta_password_generator,
+  meta_pdf_booklet,
   meta_pdf_header_footer,
   meta_pdf_metadata_editor,
+  meta_pdf_n_up,
   meta_pdf_organizer,
   meta_pdf_page_numbers,
   meta_pdf_to_images,
@@ -222,6 +227,7 @@ export const tools: readonly ToolMeta[] = [
   meta_redact_pdf,
   meta_regex_tester,
   meta_remove_blank_pages,
+  meta_resize_pdf,
   meta_roman_numerals,
   meta_rotate_pdf,
   meta_salary_converter,

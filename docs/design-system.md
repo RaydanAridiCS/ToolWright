@@ -113,6 +113,7 @@ Fonts are loaded with `next/font/local` from the `@fontsource-variable/*` and `g
 | `PdfLoadStatus` + `useLockedPdfs` | The load error, then a prompt for each password-protected file: a ruled box with a marker left bar, the file name, a `PasswordField`, "Open PDF" and "Skip this file"/"Cancel". `usePdfSource` includes the queue; Merge and Compress use `useLockedPdfs` directly. |
 | `PasswordField` | `Field` + password `Input` + an outline icon button "Show …" with `aria-pressed`. |
 | Edit PDF editor (`tools/edit-pdf`) | A `role="toolbar"` of icon buttons (`aria-pressed`, the active one `primary`), a fixed-height hint line so the page never moves when the tool changes, the page in a `bg-muted` frame with an SVG overlay (selection: dashed `--ring` outline and square handles in `--card`), and a side panel with the properties of the selected edit and the list of edits on the page (the selected row in `marker`). Tool messages go in the side panel, not above the page. |
+| `SheetSidePreview` + `SheetPager` | A sheet of paper (`bg-white`, `border-foreground`, the sheet's aspect ratio) with page pictures placed and turned exactly where the PDF puts them, an optional thin border round each page, and a caption; below it, outline chevron buttons round a mono "Sheet 2 of 7". Used by N-up PDF and the Booklet Maker (front and back side by side). |
 | `PdfPageSelector`, `PageThumb` / `useThumbnails` | Page grids with lazy PDF.js previews; selected-to-delete pages use the `danger` frame. |
 
 ### `apps/web/src/components` (site-specific)

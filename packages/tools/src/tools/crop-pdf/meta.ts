@@ -14,7 +14,7 @@ export default defineTool({
   answer:
     "Crop PDF trims the margins you choose off every page, or only selected pages, and saves a new PDF with the smaller page area. It runs in your browser, so the file is never uploaded.",
   category: "pdf",
-  keywords: ["crop pdf", "trim pdf", "remove pdf margins", "cut pdf borders", "resize pdf page", "crop pdf pages", "remove white space from pdf"],
+  keywords: ["crop pdf", "trim pdf", "remove pdf margins", "cut pdf borders", "crop pdf pages", "remove white space from pdf"],
   icon: Crop,
   howTo: [
     "Drop a PDF into the box.",
@@ -28,5 +28,5 @@ export default defineTool({
     { question: "Does it work on rotated pages?", answer: "Yes. Margins are measured on the page as you see it, so the top is always the top, even when the page is stored turned." },
   ],
   nextStep: { slug: "rotate-pdf", text: "Pages sideways after cropping? Rotate the PDF pages." },
-  related: ["rotate-pdf", "pdf-organizer", "split-pdf", "extract-pdf-pages", "images-to-pdf"],
+  related: ["resize-pdf", "rotate-pdf", "pdf-organizer", "split-pdf", "extract-pdf-pages"],
 });

@@ -30,14 +30,14 @@ export class ThumbStore {
  * Page previews for one PDF. PDF.js is loaded when this mounts (that is, once a file has been dropped), the pictures
  * are drawn only for rows that scroll into view, and everything is released on unmount.
  */
-export function useThumbnails(file: File) {
+export function useThumbnails(file: File, maxSide?: number) {
   const [store, setStore] = useState<ThumbStore | null>(null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     let made: ThumbStore | null = null;
-    createThumbnailer(file).then(
+    createThumbnailer(file, maxSide).then(
       (thumbnailer) => {
         made = new ThumbStore(thumbnailer);
         if (cancelled) made.dispose();
@@ -52,7 +52,7 @@ export function useThumbnails(file: File) {
       made?.dispose();
       setStore(null);
     };
-  }, [file]);
+  }, [file, maxSide]);
 
   return { store, failed };
 }
