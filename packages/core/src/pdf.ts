@@ -119,7 +119,10 @@ export type SplitMode = { type: "each" } | { type: "every"; pages: number } | { 
 export interface SplitPart {
   name: string;
   data: Uint8Array;
+  /** One-based page numbers of the original. */
   pages: number[];
+  /** What the part is, such as the bookmark it starts at. */
+  label?: string;
 }
 
 export async function splitPdf(bytes: Uint8Array, mode: SplitMode, baseName = "split"): Promise<SplitPart[]> {

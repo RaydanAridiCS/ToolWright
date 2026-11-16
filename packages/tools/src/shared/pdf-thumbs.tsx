@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { FileText } from "lucide-react";
 import { createThumbnailer, type PageThumbnailer } from "./pdf-raster";
 
 /** Draws each page once, on demand, and keeps the picture as an object URL until the store is closed. */
-class ThumbStore {
+export class ThumbStore {
   private readonly urls = new Map<number, Promise<string>>();
 
   constructor(private readonly thumbnailer: PageThumbnailer) {}
@@ -56,8 +56,6 @@ export function useThumbnails(file: File) {
 
   return { store, failed };
 }
-
-export type { ThumbStore };
 
 /** A 64px square (or custom size) holding a page picture, or the page icon until (or unless) the picture is ready. Decorative: the row names the page. */
 export function PageThumb({ store, pageIndex, turn = 0, className }: { store: ThumbStore | null; pageIndex: number; turn?: number; className?: string }) {
@@ -110,4 +108,52 @@ export function PageThumb({ store, pageIndex, turn = 0, className }: { store: Th
       )}
     </span>
   );
+}
+
+/**
+ * Page previews for several files at once, keyed by an id per file. A store is made when a file appears and closed
+ * when it goes, so each open file has one PDF.js worker. Pass `enabled: false` to close them all.
+ */
+export function useThumbStores(files: readonly { id: number; file: File }[], enabled = true): Map<number, ThumbStore> {
+  const [stores, setStores] = useState<Map<number, ThumbStore>>(() => new Map());
+  const made = useRef(new Map<number, Promise<ThumbStore | null>>());
+  const key = useMemo(() => (enabled ? files.map((f) => f.id).join(",") : ""), [files, enabled]);
+
+  useEffect(() => {
+    const wanted = new Map(enabled ? files.map((f) => [f.id, f.file] as const) : []);
+    for (const [id, pending] of made.current) {
+      if (wanted.has(id)) continue;
+      made.current.delete(id);
+      void pending.then((s) => s?.dispose());
+      setStores((m) => {
+        const next = new Map(m);
+        next.delete(id);
+        return next;
+      });
+    }
+    for (const [id, file] of wanted) {
+      if (made.current.has(id)) continue;
+      const pending = createThumbnailer(file).then(
+        (t) => new ThumbStore(t),
+        () => null,
+      );
+      made.current.set(id, pending);
+      void pending.then((store) => {
+        if (!store) return;
+        if (made.current.get(id) !== pending) return store.dispose();
+        setStores((m) => new Map(m).set(id, store));
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `key` lists the files; the array itself changes every render
+  }, [key]);
+
+  useEffect(() => {
+    const all = made.current;
+    return () => {
+      for (const pending of all.values()) void pending.then((s) => s?.dispose());
+      all.clear();
+    };
+  }, []);
+
+  return stores;
 }

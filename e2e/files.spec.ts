@@ -28,11 +28,12 @@ test.describe("PDF tools in a real browser", () => {
       { name: "first.pdf", mimeType: "application/pdf", buffer: await samplePdf(2, "A") },
       { name: "second.pdf", mimeType: "application/pdf", buffer: await samplePdf(3, "B") },
     ]);
-    await expect(page.getByText("1. first.pdf")).toBeVisible();
-    await expect(page.getByText("2. second.pdf")).toBeVisible();
+    const rows = page.getByRole("list", { name: "Files to merge, in order" }).getByRole("listitem");
+    await expect(rows.nth(0)).toContainText("first.pdf");
+    await expect(rows.nth(1)).toContainText("second.pdf");
 
     await page.getByRole("button", { name: "Move second.pdf up" }).click();
-    await expect(page.getByText("1. second.pdf")).toBeVisible();
+    await expect(rows.nth(0)).toContainText("second.pdf");
 
     await page.getByRole("button", { name: /Merge 2 PDFs \(5 pages\)/ }).click();
     await expect(page.getByText("Done! Your file is ready.")).toBeVisible();
@@ -53,7 +54,8 @@ test.describe("PDF tools in a real browser", () => {
     await page.goto("/tools/split-pdf");
     await page.locator('input[type="file"]').setInputFiles({ name: "report.pdf", mimeType: "application/pdf", buffer: await samplePdf(3, "R") });
     await expect(page.getByText("3 pages")).toBeVisible();
-    await page.getByRole("button", { name: "Split PDF", exact: true }).click();
+    await page.getByRole("radio", { name: "Every page" }).check({ force: true });
+    await page.getByRole("button", { name: "Split into 3 files", exact: true }).click();
     await expect(page.getByText("Created 3 files.")).toBeVisible();
     const [zip] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: /Download all/ }).click()]);
     const entries = unzipSync(new Uint8Array(await readFile((await zip.path())!)));

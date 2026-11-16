@@ -127,7 +127,7 @@ Merge, split, rotate and edit PDF files.
 | [Extract PDF Pages](../packages/tools/src/tools/extract-pdf-pages) | Pull selected pages out of a PDF into a new file, in any order. |
 | [Fill PDF Form](../packages/tools/src/tools/fill-pdf-form) | Fill in a PDF form, flatten it, or type onto a form that has no fields. |
 | [Images to PDF](../packages/tools/src/tools/images-to-pdf) ⭐ | Turn JPG, PNG and WebP images into a single PDF. |
-| [Merge PDF](../packages/tools/src/tools/merge-pdf) ⭐ | Combine several PDF files into one, in the order you choose. |
+| [Merge PDF](../packages/tools/src/tools/merge-pdf) ⭐ | Combine PDFs into one: whole files or chosen pages, in any order, with a bookmark per file. |
 | [Add Header and Footer to PDF](../packages/tools/src/tools/pdf-header-footer) | Stamp headers, footers, page numbers and Bates numbers on a PDF. |
 | [PDF Metadata Viewer & Editor](../packages/tools/src/tools/pdf-metadata-editor) | See, edit or strip a PDF's title, author, dates and producer. |
 | [PDF Page Organizer](../packages/tools/src/tools/pdf-organizer) | Reorder, turn, duplicate and remove PDF pages from one list. |
@@ -140,7 +140,7 @@ Merge, split, rotate and edit PDF files.
 | [Remove Blank Pages](../packages/tools/src/tools/remove-blank-pages) | Find and delete the empty pages in a scanned or exported PDF. |
 | [Rotate PDF Pages](../packages/tools/src/tools/rotate-pdf) | Rotate all or selected PDF pages by 90°, 180° or 270°. |
 | [Sign PDF](../packages/tools/src/tools/sign-pdf) ⭐ | Draw, type or upload your signature and place it on a PDF. |
-| [Split PDF](../packages/tools/src/tools/split-pdf) ⭐ | Split a PDF into single pages, fixed chunks or custom ranges. |
+| [Split PDF](../packages/tools/src/tools/split-pdf) ⭐ | Split a PDF where you click, at its bookmarks, by file size, or into pages or ranges. |
 | [Unlock PDF](../packages/tools/src/tools/unlock-pdf) | Remove the password from a PDF you can open, or lift its print and copy restrictions. |
 
 ## Color & design (11)
