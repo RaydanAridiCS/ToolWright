@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Toolwright avatar</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* 1080x1080 avatar: the logo mark alone on paper, centred.
+     The mark is 560x590px, so its corners sit about 133px inside the circle crop (radius 540)
+     and it keeps more than a third of its height as clear space to the square edges. */
+  body { width: 1080px; height: 1080px; display: grid; place-items: center; }
+  svg { width: 560px; height: 590px; display: block; }
+</style>
+</head>
+<body>
+  <svg viewBox="2 2 28 29.5" aria-label="Toolwright">
+    <rect x="2" y="2" width="28" height="25" fill="#1B1A15"/>
+    <rect x="11" y="2" width="10" height="11" fill="#F4F0E6"/>
+    <circle cx="16" cy="20" r="3.2" fill="#F4F0E6"/>
+    <rect x="2" y="28.5" width="28" height="3" fill="#D8EC4E"/>
+  </svg>
+</body>
+</html>

@@ -2,7 +2,7 @@ import { cn } from "@toolwright/ui";
 
 /**
  * A measuring ruler used as a section divider. It is not decoration for its own sake: it marks the scale
- * of the catalogue ("71 tools") the way a ruler marks length. Pure SVG ticks, drawn in the current text color.
+ * of the catalogue (the live tool count) the way a ruler marks length. Pure SVG ticks, drawn in the current text color.
  */
 export function Ruler({ label, className }: { label?: string; className?: string }) {
   return (

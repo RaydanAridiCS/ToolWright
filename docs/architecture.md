@@ -107,7 +107,7 @@ Next.js App Router. Key points:
 | Generated registry | Adding a tool never means editing a shared list — fewer merge conflicts, and a test guards against drift. |
 | URL hash for shareable state | Keeps privacy intact (fragments aren't sent to servers) with no backend. |
 | CSP instead of a promise | The browser enforces the privacy guarantee; tests verify it. |
-| Tokens remapped, not rewritten | Re-pointing `--radius-*`, `--shadow-*` and the color tokens restyled 71 tools without touching them; the design rules are tested so new tools cannot drift. |
+| Tokens remapped, not rewritten | Re-pointing `--radius-*`, `--shadow-*` and the color tokens restyled every existing tool (71 at the time) without touching them; the design rules are tested so new tools cannot drift. |
 | In-memory fallback for the request board | A fresh clone works with `pnpm install && pnpm dev` — no database needed. |
 | No accounts | Less to secure, nothing personal to store. Votes use a random browser token that is hashed server-side. |
 

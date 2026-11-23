@@ -126,7 +126,7 @@ Fonts are loaded with `next/font/local` from the `@fontsource-variable/*` and `g
 | `NetworkLedger` + `useOutsideRequests()` | Live count of outside requests from Resource Timing; "…" until measured; red if non-zero. |
 | `home/HeroBench` | The real Merge PDF, Compress PDF, PDF Page Organizer, Images to PDF and Image Compressor tools, lazy-loaded into tabs on the home page (through `ToolLoader` with `track={false}`). |
 | `home/ProofLog` | The page's real request log plus the "Try to make it leak" demo. |
-| `home/Ticket` | "Tool 072 is yours to name": the request-board entry point; prefills `/requests?title=`. |
+| `home/Ticket` | "Tool N is yours to name" (N = tool count + 1): the request-board entry point; prefills `/requests?title=`. |
 | `Logo` / `LogoMark` | Flat mark and wordmark, themed. |
 | `SiteHeader`, `MobileMenu`, `SiteFooter`, `CommandPalette` | Chrome. Solid paper header with an ink rule; mobile menu is a full-screen numbered index; palette selection is marked with lime. |
 

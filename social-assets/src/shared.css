@@ -1,0 +1,34 @@
+/* Workshop Ledger tokens, copied from apps/web/src/app/globals.css (light paper theme). */
+:root {
+  --paper: #f4f0e6;
+  --ink: #1b1a15;
+  --sheet: #fbf9f3;
+  --muted-foreground: #5b574a;
+  --hairline: #cfc8b4;
+  --primary: #0b6b55;
+  --marker: #d8ec4e;
+  --display: "Bricolage Grotesque", sans-serif;
+  --body: "Instrument Sans", sans-serif;
+  --mono: "Geist Mono", ui-monospace, monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--paper); color: var(--ink); }
+body { overflow: hidden; position: relative; font-family: var(--body); -webkit-font-smoothing: antialiased; }
+
+.wordmark { font-family: var(--display); font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+.display { font-family: var(--display); font-weight: 800; letter-spacing: -0.03em; line-height: 0.9; font-optical-sizing: auto; }
+.label { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted-foreground); }
+
+/* The marker: a lime highlighter swipe behind one real phrase, rotated -1deg, ink text on top. */
+.marker { position: relative; display: inline-block; z-index: 0; }
+.marker::before {
+  content: ""; position: absolute; z-index: -1;
+  left: -0.14em; right: -0.14em; top: 0.06em; bottom: -0.1em;
+  background: var(--marker); transform: rotate(-1deg);
+}
+
+/* Ruler: minor ticks every 10px, major every 50px, drawn in ink. Marks the size of the catalogue. */
+/* Same drawing as apps/web/src/components/ruler.tsx (SVG patterns, no CSS gradients). */
+.ruler { position: relative; height: 32px; color: var(--ink); }
+.ruler svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ruler .label { position: absolute; right: 0; bottom: -4px; background: var(--paper); color: var(--ink); padding: 0 8px; }

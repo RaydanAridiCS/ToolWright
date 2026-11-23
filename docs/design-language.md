@@ -19,9 +19,9 @@ And because the product's promise is *"your data never leaves your device"*, the
 | Device | What it means | Where it appears |
 | --- | --- | --- |
 | **Ledger rows** (numbered, ruled) | This is a catalogue; tools are catalogued parts | Home toolbox, `/tools`, category pages, related tools, favorites |
-| **Ruler** (tick marks, "71 tools") | The catalogue has a measurable size | Under the hero, above the footer |
+| **Ruler** (tick marks, the live tool count) | The catalogue has a measurable size | Under the hero, above the footer |
 | **Crop marks + caption strip** | A tool is a printed plate with a part number | Every tool page, the hero bench, the request log |
-| **Catalogue numbers** (`TOOL 027`) | Each tool has a stable identity | Tool plates, ledger on `/tools`, the ticket ("Tool 072 is yours to name") |
+| **Catalogue numbers** (`TOOL 027`) | Each tool has a stable identity | Tool plates, ledger on `/tools`, the ticket ("Tool N is yours to name", where N is the next free number) |
 | **Highlighter marker** (lime) | "Look here": the active, selected or hovered thing | Headline phrase, hovered rows, active tabs, selection |
 | **Hard offset shadow** | A thing you can press | Primary buttons, result slabs, the ticket |
 | **Network ledger** | The privacy promise, measured | Hero bench, tool plates, footer |
@@ -44,7 +44,7 @@ The first version of the site looked like a generic generated landing page. Thes
 | Purple/indigo gradients, gradient headlines | The default "AI/SaaS" look; says nothing about us | Flat ink and paper, one green accent, a lime marker behind real words |
 | Eyebrow pills above the headline ("Free · Open source · …") and status chips on tool pages | Decorative claims that nobody reads | The claim is *demonstrated*: the live network ledger, the proof section |
 | Glow blobs, grid-fade backdrops, glassmorphism, blur | Atmosphere with no meaning | Paper grain at 3–5% opacity, hairline rules |
-| A grid of identical rounded cards, each with a tinted icon square | Makes 71 different tools look like 71 identical ones | A numbered ledger with drawn glyphs; hover sweeps the marker |
+| A grid of identical rounded cards, each with a tinted icon square | Makes a catalogue of different tools look identical | A numbered ledger with drawn glyphs; hover sweeps the marker |
 | Soft drop shadows and big radii | Floaty, generic | 2–4px corners, flat surfaces, hard offset shadow only on pressable things |
 | Centered hero with two buttons | Interchangeable with every other site | Asymmetric hero: display type left, a *working tool* right |
 | Orange anywhere | House rule; also overused | Patina green + lime marker |
@@ -79,7 +79,7 @@ Plain, specific, a little dry. Short sentences. Verbs over adjectives.
 
 | Instead of | Write |
 | --- | --- |
-| "Supercharge your workflow with our powerful, seamless tools" | "71 everyday tools for PDFs, images, code and text." |
+| "Supercharge your workflow with our powerful, seamless tools" | "N everyday tools for PDFs, images, code and text." (N is read from the registry) |
 | "100% secure and private!" | "Nothing is uploaded. Here is how to check." |
 | "Successfully optimized!" | "1.2 MB → 340 KB (−72%)" |
 | "Oops! Something went wrong" | "Page 9 is out of range (this PDF has 6 pages)." |
@@ -134,7 +134,7 @@ Set in Bricolage Grotesque, Instrument Sans and Geist Mono, on paper the color o
 | --- | --- |
 | Light paper is the default regardless of OS | It is the signature look; dark is a first-class alternative, not the fallback |
 | Hard shadows in dark mode use a lighter ledge (`#4A463A`) rather than black | A black shadow is invisible on near-black; the ledge keeps the press affordance |
-| The ledger replaces cards everywhere | Rows scale to 71 items, scan faster, and make the catalogue feel like a catalogue |
+| The ledger replaces cards everywhere | Rows scale to the whole catalogue, scan faster, and make the catalogue feel like a catalogue |
 | Marker, not a color fill, marks "active" | One recognisable gesture used for selection, hover and emphasis |
 | The network ledger shows "…" until measured | The server must never claim a number the browser has not measured |
 | The leak demo targets `example.com` | A real cross-origin POST is the honest test; the refusal comes from the CSP, not from us |

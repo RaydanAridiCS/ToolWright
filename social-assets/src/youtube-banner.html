@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Toolwright YouTube banner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700..800&family=Geist+Mono:wght@400;500&family=Instrument+Sans:wght@400;600&display=block" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* YouTube channel art: 2560x1440. All text stays inside the centre safe area of 1546x423
+     (x 507 to 2053, y 508.5 to 931.5), which is what every device shows. */
+  body { width: 2560px; height: 1440px; }
+  .safe { position: absolute; left: 531px; top: 508.5px; width: 1498px; height: 423px; } /* 24px inside the safe area on each side */
+  header { position: absolute; left: 0; right: 0; top: 6px; height: 72px; display: flex; align-items: center; justify-content: space-between; }
+  .brand { display: flex; align-items: center; gap: 22px; }
+  .brand svg { width: 68px; height: 72px; }
+  .brand .wordmark { font-size: 56px; }
+  header .label { font-size: 24px; }
+  /* Grid break: the ink rule and the ruler run the full width of the banner, past the safe area. */
+  .rule { position: absolute; left: 0; right: 0; top: 608px; height: 2px; background: var(--ink); }
+  h1 { position: absolute; left: 0; top: 140px; font-size: 124px; white-space: nowrap; }
+  h1 .marker { margin-left: 0.12em; }
+  .meta { position: absolute; left: 0; right: 0; top: 296px; display: flex; justify-content: space-between; align-items: baseline; }
+  .meta p { font-size: 36px; line-height: 1.3; }
+  .meta .site { font-family: var(--mono); font-size: 32px; font-weight: 500; }
+  .ruler { position: absolute; left: 0; right: 0; top: 880px; }
+  .ruler .label { right: 531px; font-size: 24px; }
+</style>
+</head>
+<body>
+  <div class="rule"></div>
+  <div class="ruler">
+    <svg preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <pattern id="minor" width="10" height="32" patternUnits="userSpaceOnUse"><path d="M0.5 0V8" stroke="#1B1A15" stroke-width="1" fill="none"/></pattern>
+        <pattern id="major" width="50" height="32" patternUnits="userSpaceOnUse"><path d="M0.5 0V16" stroke="#1B1A15" stroke-width="1.5" fill="none"/></pattern>
+      </defs>
+      <rect width="100%" height="32" fill="url(#minor)"/>
+      <rect width="100%" height="32" fill="url(#major)"/>
+      <path d="M0 0.75H10000" stroke="#1B1A15" stroke-width="1.5"/>
+    </svg>
+    <span class="label">138 tools</span>
+  </div>
+
+  <div class="safe">
+    <header>
+      <div class="brand">
+        <svg viewBox="2 2 28 29.5" aria-hidden="true">
+          <rect x="2" y="2" width="28" height="25" fill="#1B1A15"/>
+          <rect x="11" y="2" width="10" height="11" fill="#F4F0E6"/>
+          <circle cx="16" cy="20" r="3.2" fill="#F4F0E6"/>
+          <rect x="2" y="28.5" width="28" height="3" fill="#D8EC4E"/>
+        </svg>
+        <span class="wordmark">Toolwright</span>
+      </div>
+      <span class="label">Open source / MIT license</span>
+    </header>
+
+    <h1 class="display">Do the job. <span class="marker">Keep the data.</span></h1>
+
+    <div class="meta">
+      <p>138 free tools for PDFs, images, code and text. Nothing is uploaded.</p>
+      <span class="site">toolwright.com</span>
+    </div>
+  </div>
+</body>
+</html>

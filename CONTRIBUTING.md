@@ -24,7 +24,7 @@ pnpm dev                             # http://localhost:3000
 pnpm dlx playwright install chromium # once, for end-to-end tests
 ```
 
-You need Node.js 20+ and pnpm 10+. We use **pnpm workspaces**.
+You need Node.js 22.13 or newer (PDF.js and Mermaid need it) and pnpm 11.5, the version pinned in `packageManager`. We use **pnpm workspaces**.
 
 ## Your first contribution: add a tool
 

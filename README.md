@@ -1,10 +1,12 @@
 # Toolwright
 
-**Free, open-source tools that never see your data.**
+**Live site: [toolwright.com](https://toolwright.com)**
 
-Toolwright is a collection of 138 everyday online tools — format JSON, merge PDFs, compress images, generate passwords, decode JWTs, and more — where **every tool runs entirely in your browser**. Nothing you type or drop in is uploaded, there are no accounts, and a strict Content Security Policy means a page physically cannot send your input to a third party.
+**Do the job. Keep the data.** Free, open-source tools that never see your data.
 
-[Browse the tools](docs/tools.md) · [How privacy works](docs/privacy-model.md) · [Design language](docs/design-language.md) · [Contribute](CONTRIBUTING.md)
+Toolwright is a collection of 138 everyday tools for PDFs, images, code and text. Format JSON, merge PDFs, compress images, generate passwords, decode JWTs and more. **Every tool runs in your browser.** Nothing you type or drop in is uploaded and there are no accounts. A Content Security Policy (`connect-src 'self'`) stops page code from sending your input to another site, and you can check that yourself in the browser's Network tab.
+
+[Open the site](https://toolwright.com) · [Browse the tools](docs/tools.md) · [How privacy works](docs/privacy-model.md) · [Request a tool](https://toolwright.com/requests) · [Contribute](CONTRIBUTING.md)
 
 ![The Toolwright home page: a display headline on a lime marker, a live working bench and a ruler](docs/images/home-light.png)
 
@@ -15,7 +17,7 @@ Toolwright is a collection of 138 everyday online tools — format JSON, merge P
 
 ## Why
 
-Most "free online tools" quietly upload your files to a server, wrap them in ads or trials, and tell you to trust them. Modern browsers are powerful enough to do the work locally, so Toolwright does — and makes that **verifiable** instead of just promised.
+Most "free online tools" quietly upload your files to a server, wrap them in ads or trials, and tell you to trust them. Modern browsers are powerful enough to do the work locally, so Toolwright does, and makes that **verifiable** instead of just promised.
 
 - **Private by construction.** Tools run client-side. A Content Security Policy (`connect-src 'self'`) enforces it, and end-to-end tests fail if a tool makes an outside request or transmits its input.
 - **Free without catches.** No sign-up, watermarks or daily quotas. The only size limits are your device's memory and a few explicit caps that each tool page states.
@@ -28,23 +30,25 @@ Toolwright looks like **a tool catalogue kept by a careful workshop**: warm pape
 
 ## What's inside
 
-| Category | Examples |
-| --- | --- |
-| **Developer** | JSON formatter & validator, JWT decoder, regex tester, cron explainer, SQL formatter, timestamp converter, JSON → TypeScript, XML formatter & XML ↔ JSON, IP & subnet calculator (IPv4 and IPv6) |
-| **PDF** | Merge, split, rotate, crop, extract/delete pages, remove blank pages, compare, fill forms, images → PDF, PDF → images, PDF → text, page numbers, watermark, metadata editor |
-| **Image** | Compressor, converter, resizer, crop / rotate / flip, EXIF remover & viewer, SVG → PNG, image → Base64, color picker, image → SVG tracing, animated GIF maker & editor |
-| **SVG** | Optimizer (SVGO), editor with live preview, sanitizer, data URI, SVG → React/TSX, path tools, recolor, blob/wave/polygon/star generator |
-| **Text** | Word counter, diff checker, case converter, find & replace, sort/dedupe lines, Markdown preview |
-| **Encoders & hashes** | Base64, URL & HTML encoding, hash generator (MD5/SHA/HMAC), hex/binary, string escaping |
-| **Color & design** | Color converter, WCAG contrast checker, palette generator, QR codes (static, never expire) |
-| **Generators** | Passwords & passphrases, UUID v4/v7, ULID, NanoID, lorem ipsum, barcodes (Code 128, EAN, UPC, Code 39, ITF) |
-| **Calculators** | Units, percentages, dates, time zones, loans, compound interest, number bases |
+138 tools in nine drawers, the same grouping as [toolwright.com/tools](https://toolwright.com/tools):
 
-See the [full catalogue](docs/tools.md). Missing something? [Request it](#request-a-tool) or build it.
+| Drawer | Tools | Examples |
+| --- | ---: | --- |
+| **Developer** | 34 | JSON formatter & validator, JSON diff, JWT decoder and signer, regex tester, cron explainer, SQL formatter, Unix timestamp converter, JSON to TypeScript, XML formatter, IP & subnet calculator, Mermaid editor, SVG sanitizer, SVG to React |
+| **PDF** | 32 | Merge, split, compress, rotate, crop, organize, edit, sign, redact, protect and unlock, fill forms, compare, flatten, sanitize, grayscale, N-up, booklet, page numbers, watermark, PDF to images and text |
+| **Calculators** | 16 | Units, percentages, dates, time zones, loans and mortgages, compound interest, number bases, salary to hourly |
+| **Image** | 14 | Compressor, compress to a target size, converter, resizer, crop / rotate / flip, EXIF viewer and remover, SVG to PNG, image to SVG, GIF maker and editor, APNG maker |
+| **Text** | 13 | Word counter, diff checker, case converter, find & replace, sort and dedupe lines, Markdown preview, HTML to Markdown, readability score |
+| **Color & design** | 11 | Color converter, WCAG contrast checker, palette generator, QR codes (static, never expire), favicon generator, SVG optimizer, editor, recolor and shape generator |
+| **Encoders & hashes** | 8 | Base64, URL and HTML entity encoding, hash generator (MD5/SHA/HMAC), hex/binary, string and Unicode escaping |
+| **Generators** | 6 | Passwords & passphrases, UUID / ULID / NanoID, lorem ipsum, barcodes, Data Matrix, PDF417 |
+| **Data converters** | 4 | JSON to CSV, JSON to YAML, CSV delimiters, CSV to Markdown table |
+
+See the [full catalogue](docs/tools.md). Missing something? [Request a tool](https://toolwright.com/requests) or build it.
 
 ## Getting started
 
-Requirements: **Node.js 20+** and **pnpm 10+**.
+Requirements: **Node.js 22.13 or newer** (PDF.js and Mermaid need it) and **pnpm 11.5** (the version pinned in `packageManager`; `corepack enable` picks it up).
 
 ```bash
 git clone https://github.com/RaydanAridiCS/toolwright.git
@@ -97,7 +101,16 @@ This scaffolds the metadata, UI, logic and tests, and registers the tool. Then f
 
 ## Request a tool
 
-Use the [request board](https://toolwright.com/requests) on the site to suggest and vote on ideas — no account needed.
+Suggest a tool or vote on ideas on the [request board](https://toolwright.com/requests). No account is needed. The most-voted ideas get built first.
+
+## Follow along
+
+New tools and short how-tos are posted here:
+
+<!-- Placeholder handles: replace @toolwright once the accounts exist. -->
+- YouTube: [@toolwright](https://www.youtube.com/@toolwright)
+- Instagram: [@toolwright](https://www.instagram.com/toolwright)
+- TikTok: [@toolwright](https://www.tiktok.com/@toolwright)
 
 ## Privacy model in one paragraph
 
@@ -109,7 +122,7 @@ Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Bricolage
 
 ## Contributing
 
-Contributions of every size are welcome — read [CONTRIBUTING.md](CONTRIBUTING.md) and our [Code of Conduct](CODE_OF_CONDUCT.md). Security issues: see [SECURITY.md](SECURITY.md).
+Contributions of every size are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) and our [Code of Conduct](CODE_OF_CONDUCT.md). Security issues: see [SECURITY.md](SECURITY.md).
 
 ## License
 
